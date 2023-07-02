@@ -1,19 +1,17 @@
-
 import numpy as np
-import time
-from itertools import product
-from scipy.optimize import minimize
-from collections import Counter
-import matplotlib.pyplot as plt
-import scipy.optimize as spopt
 
-NeutrinoMasses=(0.120*10**-6)/3
+# import time
+# from itertools import product
+# from collections import Counter
+# import matplotlib.pyplot as plt
+# import scipy.optimize as spopt
 
-PARTICLE_DICT={}
+NeutrinoMasses = (0.120 * 10**-6) / 3
+
+PARTICLE_DICT = {}
 
 
-
-def fct_fit(to,ko):
+def fct_fit(to, ko):
     """
     Returns the fitted function values based on the given time and diffusion constant.
 
@@ -25,12 +23,12 @@ def fct_fit(to,ko):
     numpy.ndarray: 1D array of function values.
     """
     global DO
-    do,d1=DO
-    RES=np.concatenate((do/(1+do*ko*to),d1/(1+d1*ko*to)))
-    return(RES)
+    do, d1 = DO
+    RES = np.concatenate((do / (1 + do * ko * to), d1 / (1 + d1 * ko * to)))
+    return RES
 
 
-def fct_fit2(to,ko):
+def fct_fit2(to, ko):
     """
     Returns the fitted function values based on the given time, diffusion constant, and dimensional number.
 
@@ -41,14 +39,18 @@ def fct_fit2(to,ko):
     Returns:
     numpy.ndarray: 1D array of function values.
     """
-    global DO,DIM_Numb,p_var
-    do,d1=DO
-    RES=np.concatenate((do**(1/2)*p_var*(ko*to)**(-DIM_Numb/4),d1**(1/2)*p_var*(ko*to)**(-DIM_Numb/4)))
-    return(RES)
+    global DO, DIM_Numb, p_var
+    do, d1 = DO
+    RES = np.concatenate(
+        (
+            do ** (1 / 2) * p_var * (ko * to) ** (-DIM_Numb / 4),
+            d1 ** (1 / 2) * p_var * (ko * to) ** (-DIM_Numb / 4),
+        )
+    )
+    return RES
 
 
-
-def Denfct(DIM_Numb0,Density,Trange,ax,PARTICLE_DICT0):
+def Denfct(DIM_Numb0, Density, Trange, ax, PARTICLE_DICT0):
     """
     Plots the particle densities in a DIM_Numb-dimensional box as a function of time.
 
@@ -60,30 +62,39 @@ def Denfct(DIM_Numb0,Density,Trange,ax,PARTICLE_DICT0):
     Returns:
         None
     """
-    global DO,p_var,DIM_Numb,PARTICLE_DICT
+    global DO, p_var, DIM_Numb, PARTICLE_DICT
     # Initialize parameters
 
-    PARTICLE_DICT=PARTICLE_DICT0
-    Numb_of_TYPES=len(PARTICLE_DICT)
-    PARTICLE_NAMES=[*PARTICLE_DICT.keys()]
-    DIM_Numb=DIM_Numb0
-    DT=['',0.1,0.1,0.05]
-    dt=float(DT[DIM_Numb])
-    PART_Colors=['red','blue','orange']
-    #labels = ['Particule', 'Anti Particule','Photon' ,'Absorption','Annihilation','Collision','Creation']
+    PARTICLE_DICT = PARTICLE_DICT0
+    Numb_of_TYPES = len(PARTICLE_DICT)
+    PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
+    DIM_Numb = DIM_Numb0
+    DT = ["", 0.1, 0.1, 0.05]
+    dt = float(DT[DIM_Numb])
+    PART_Colors = ["red", "blue", "orange"]
+    # labels = ['Particule', 'Anti Particule','Photon' ,'Absorption','Annihilation','Collision','Creation']
 
-    ax.set_xlabel('Time(s)')
-    ax.set_ylabel('N/V')
-    ax.set_title('Particle Densities in a '+str(DIM_Numb)+'D box\n as a function of Time')
-    PART_LStyle=['-','--']
-    for p1,densType in enumerate(Density):
-        for p0,parttype in enumerate(densType):
-            if parttype!=[0 for i in range(len(parttype))]:
-                Trangei=np.linspace(0,Trange[-1],len(parttype))
-                ax.loglog(Trangei,parttype,color=PARTICLE_DICT[PARTICLE_NAMES[p1]]['color'],linestyle=PART_LStyle[p0],label=p0*'anti'+PARTICLE_NAMES[p1])#PART_ColorsDICT{typeid0,typeind}
-            #ax.loglog(Trange,densType,color=PART_Colors[typeind],label=labels[typeind])
+    ax.set_xlabel("Time(s)")
+    ax.set_ylabel("N/V")
+    ax.set_title(
+        "Particle Densities in a " + str(DIM_Numb) + "D box\n as a function of Time"
+    )
+    PART_LStyle = ["-", "--"]
+    for p1, densType in enumerate(Density):
+        for p0, parttype in enumerate(densType):
+            if parttype != [0 for i in range(len(parttype))]:
+                Trangei = np.linspace(0, Trange[-1], len(parttype))
+                ax.loglog(
+                    Trangei,
+                    parttype,
+                    color=PARTICLE_DICT[PARTICLE_NAMES[p1]]["color"],
+                    linestyle=PART_LStyle[p0],
+                    label=p0 * "anti" + PARTICLE_NAMES[p1],
+                )  # PART_ColorsDICT{typeid0,typeind}
+            # ax.loglog(Trange,densType,color=PART_Colors[typeind],label=labels[typeind])
 
-    '''
+    DO, p_var = [1, 1], 1
+    """
     ax.set_xlabel('Time(s)')
     ax.set_ylabel('N')
     ax.set_title('Particle Densities in a '+str(DIM_Numb)+'D box\n as a function of Time')
@@ -97,6 +108,7 @@ def Denfct(DIM_Numb0,Density,Trange,ax,PARTICLE_DICT0):
     Ttheo=np.linspace(Trange[0],Trange[-1],10**3)
     d0=Density[0][0]
     d1=Density[1][0]
+    
     DO=d0,d1 #initial densities for each particle type
     k2=spopt.curve_fit(fct_fit,Trange,Density[0]+Density[1])[0][0]
     Dpart_theo=d0/(1+d0*k2*Ttheo)
@@ -118,7 +130,5 @@ def Denfct(DIM_Numb0,Density,Trange,ax,PARTICLE_DICT0):
         ax.loglog(Ttheo,Dantipart_theo,color='green',label='Antiparticle Theo')
         D_theo1=[d1]+[d1**(1/2)*p_var*(D*dt)**(-DIM_Numb/4) for dt in Ttheo[1:]]
         ax.loglog(Ttheo,D_theo1,color='grey',label='AntiParticle FIT')
-    '''
+    """
     ax.legend()
-    
-
