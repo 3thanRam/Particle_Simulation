@@ -1,7 +1,7 @@
 import numpy as np
 import vg
-rng=np.random.default_rng()
 
+rng = np.random.default_rng()
 
 
 from Particles.Dictionary import PARTICLE_DICT
@@ -9,19 +9,16 @@ from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
 
 
-
-BOUNDARY_FCT=Global_variables.BOUNDARY_FCT
-BOUNDARY_COND=Global_variables.BOUNDARY_COND
-ROUNDDIGIT=Global_variables.ROUNDDIGIT
-C_speed=Global_variables.C_speed
-DIM_Numb=Global_variables.DIM_Numb
-dt=Global_variables.dt
-Vmax=Global_variables.Vmax
-
+BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
+BOUNDARY_COND = Global_variables.BOUNDARY_COND
+ROUNDDIGIT = Global_variables.ROUNDDIGIT
+C_speed = Global_variables.C_speed
+DIM_Numb = Global_variables.DIM_Numb
+dt = Global_variables.dt
+Vmax = Global_variables.Vmax
 
 
-
-def COLLIDE(FirstAnn,F,COEFSlist,t):
+def COLLIDE(FirstAnn, F, COEFSlist, t):
     """update tracking information after collision point.
 
     Args:
@@ -33,13 +30,13 @@ def COLLIDE(FirstAnn,F,COEFSlist,t):
     """
 
     # Extract information about the collision
-    ti,xo,coltype,z1,z2,p1,id1,p2,id2=FirstAnn
+    ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
 
     Global_variables.ALL_TIME.append(ti)
-    Global_variables.COLPTS.append([ti,xo,coltype])#FirstAnn)
-    
-    return(F,COEFSlist)
-    '''
+    Global_variables.COLPTS.append([ti, xo, coltype])  # FirstAnn)
+
+    return (F, COEFSlist)
+    """
     partORAnti1=p1[0]
     partORAnti2=p2[0]
 
@@ -249,4 +246,4 @@ def COLLIDE(FirstAnn,F,COEFSlist,t):
 
 
     return(F,COEFSlist)
-    '''
+    """
