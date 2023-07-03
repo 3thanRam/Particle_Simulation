@@ -13,6 +13,7 @@ Choice between only showing evolution of the particles' densities or also visual
 
 
 To do: 
+-Redo comments
 
 -Collisions(relativistic)
 
