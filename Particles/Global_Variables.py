@@ -155,30 +155,3 @@ def init(DIM_Numb, BOUNDARY_COND, L_FCT):
                 for i in range(Nantipart)
             ]
     Global_variables.SYSTEM = SYSTEM
-
-
-"""def __init__(self,DIM_Numb,BOUNDARY_COND,L_FCT):
-        self.DIM_Numb=DIM_Numb
-        self.File_path_name=''
-        self.ROUNDDIGIT=15
-        self.V0=C_speed*np.ones(DIM_Numb)
-        self.Vmax=self.V0/3
-        self.C_speed=C_speed
-        self.L_FCT=L_FCT
-        self.L,self.Linf=L_FCT[0](0),L_FCT[1](0)
-        self.BoundSup_V,self.BoundSup_b,self.BoundInf_V,self.BoundInf_b=0,0,0,0
-        self.Dist_min=float(DistList[DIM_Numb-1])
-        
-        Ntot=[[0,0] for Ntype in range(Numb_of_TYPES)]
-        Ntot[0]=[51,28]#electrons/positrons
-        Ntot[2]=[35,47]#muons/anti-muons
-
-        self.Ntot=Ntot
-        self.dt=DT[DIM_Numb-1]
-        self.BOUNDARY_COND=BOUNDARY_COND
-        self.TRACKING,self.Vflipinfo=[[[[] for ni in range(numbpart)],[[] for ni in range(numbanti)]] for numbpart,numbanti in Ntot],[[[[] for ni in range(numbpart)],[[] for ni in range(numbanti)]] for numbpart,numbanti in Ntot]
-        
-        
-        self.MaxIDperPtype=[[ntot_part-1,ntot_anti-1] for (ntot_part,ntot_anti) in Ntot ]
-        self.Field_DICT={}
-        self.ALL_TIME,self.FIELD,self.DOINFOLIST,self.COLPTS=[],[],[],[]"""

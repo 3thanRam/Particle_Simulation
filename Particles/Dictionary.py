@@ -9,6 +9,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "blue",
         "Strong_Charge": 0,
+        "size": 1,
     },
     "electron_neutrino": {
         "index": 1,
@@ -16,14 +17,16 @@ PARTICLE_DICT = {
         "charge": 0,
         "spin": 1 / 2,
         "Strong_Charge": 0,
+        "size": 1,
     },
     "muon": {
         "index": 2,
-        "mass": 0.511,  # 105.66,
+        "mass": 0.511,
         "charge": -1,
         "spin": 1 / 2,
         "color": "red",
         "Strong_Charge": 0,
+        "size": 1,
     },
     "muon_neutrino": {
         "index": 3,
@@ -31,6 +34,7 @@ PARTICLE_DICT = {
         "charge": 0,
         "spin": 1 / 2,
         "Strong_Charge": 0,
+        "size": 1,
     },
     "tau": {
         "index": 4,
@@ -39,6 +43,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "green",
         "Strong_Charge": 0,
+        "size": 1,
     },
     "tau_neutrino": {
         "index": 5,
@@ -46,6 +51,7 @@ PARTICLE_DICT = {
         "charge": 0,
         "spin": 1 / 2,
         "Strong_Charge": 0,
+        "size": 1,
     },
     "up_Quark": {
         "index": 6,
@@ -54,6 +60,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "brown",
         "Strong_Charge": 1,
+        "size": 1,
     },
     "down_Quark": {
         "index": 7,
@@ -62,6 +69,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "cyan",
         "Strong_Charge": 1,
+        "size": 1,
     },
     "charm_Quark": {
         "index": 8,
@@ -70,6 +78,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "grey",
         "Strong_Charge": 1,
+        "size": 1,
     },
     "strange_Quark": {
         "index": 9,
@@ -78,6 +87,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "pink",
         "Strong_Charge": 1,
+        "size": 1,
     },
     "top_Quark": {
         "index": 10,
@@ -86,6 +96,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "lime",
         "Strong_Charge": 1,
+        "size": 1,
     },
     "bottom_Quark": {
         "index": 11,
@@ -94,8 +105,16 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "tan",
         "Strong_Charge": 1,
+        "size": 1,
     },
-    "gluon": {"index": 12, "mass": 0, "charge": 0, "spin": 1, "Strong_Charge": 0},
+    "gluon": {
+        "index": 12,
+        "mass": 0,
+        "charge": 0,
+        "spin": 1,
+        "Strong_Charge": 0,
+        "size": 1,
+    },
     "photon": {
         "index": 13,
         "mass": 0,
@@ -103,14 +122,23 @@ PARTICLE_DICT = {
         "spin": 1,
         "color": "orange",
         "Strong_Charge": 0,
+        "size": 1,
     },
-    "zboson": {"index": 14, "mass": 91187, "charge": 0, "spin": 1, "Strong_Charge": 0},
+    "zboson": {
+        "index": 14,
+        "mass": 91187,
+        "charge": 0,
+        "spin": 1,
+        "Strong_Charge": 0,
+        "size": 1,
+    },
     "w-boson": {
         "index": 15,
         "mass": 80377,
         "charge": -1,
         "spin": 1,
         "Strong_Charge": 0,
+        "size": 1,
     },
     "w+boson": {
         "index": 16,
@@ -118,6 +146,7 @@ PARTICLE_DICT = {
         "charge": +1,
         "spin": 1,
         "Strong_Charge": 0,
+        "size": 1,
     },
     "higgs": {"index": 17, "mass": 125250, "charge": 0, "spin": 0, "Strong_Charge": 0},
 }

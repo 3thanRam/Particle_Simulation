@@ -3,8 +3,10 @@ import numpy as np
 
 from Particles.Interactions.INTERACTION_DEF import COLTYPE
 from Particles.Global_Variables import Global_variables
+from Particles.Dictionary import PARTICLE_DICT
 
-Dist_min = Global_variables.Dist_min
+Numb_of_TYPES = len(PARTICLE_DICT)
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 DIM_Numb = Global_variables.DIM_Numb
@@ -52,7 +54,7 @@ def ROUND(x):
     return round(x, ROUNDDIGIT)
 
 
-def MINIMISE(difA, difB, t, Sa, Sb):
+def MINIMISE(difA, difB, t, Sa, Sb, Dist_min):
     """
     This function takes in five arguments, `difA`, `difB`, `t`, `Sa`, and `Sb`, and returns a float value.
 
@@ -146,8 +148,11 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
     # Check if the lines are parallel
     if has_any_nonzero(difA):
         # Find the time t for the intersection point with minimum distance between the lines
-
-        tmini = MINIMISE(difA, difB, t, SA, SB)
+        Dist_min = (
+            PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"]
+            + PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"]
+        )
+        tmini = MINIMISE(difA, difB, t, SA, SB, Dist_min)
 
         # Calculate the minimum distance D between the lines at the intersection point
         D = np.sqrt(np.sum((difA * tmini + difB) ** 2))
@@ -157,6 +162,7 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
         xo = np.round(xo, decimals=ROUNDDIGIT)
 
         # Check if the intersection point is valid
+
         if 0 < Tstart <= tmini <= Tend and D <= Dist_min and in_all_bounds(xo, tmini):
             return [COLTYPE(p1, p2), tmini, xo, z1, z2]
 

@@ -61,11 +61,12 @@ def COLOR_ERROR(Colour_group):
 
 
 # STRONG FORCE PARAMS#
-LO_strg = Global_variables.Dist_min * 3  # L_strong_cutoff/2
+LO_strg = Global_variables.Dist_min * 2  # L_strong_cutoff/2
 
-L_strong_cutoff = LO_strg * 10
+L_strong_cutoff = LO_strg * 3
 
-k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
+k_strong = 2.3 / ((L_strong_cutoff - LO_strg))
+# k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
 
 
 def STRONG_FORCE_GROUP(SystemList, TotnumbAllpart):

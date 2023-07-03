@@ -403,24 +403,7 @@ def Gen_Field(Xarray, SystemList):
     np.divide(Tot_matrix, distances**2, out=EG_force, where=Non_zero_mask)
 
     Quark_ind_LIST = [6, 7, 8, 9, 10, 11]
-    QUARK_SPONT_NAMES = [
-        "up_Quark",
-        "down_Quark",
-        "strange_Quark",
-        "charm_Quark",
-        "bottom_Quark",
-        "top_Quark",
-    ]
-    EcreateLIST = [
-        2 * PARTICLE_DICT[partName]["mass"] * C_speed**2
-        for partName in QUARK_SPONT_NAMES
-    ]
 
-    # STRONG FORCE PARAMS#
-    L_strong_cutoff = 3
-    LO_strg = L_strong_cutoff / 2
-    k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
-    #
     SystemList = []
     SYST = Global_variables.SYSTEM
     TotnumbAllpart, Quark_Numb = 0, 0
@@ -434,46 +417,14 @@ def Gen_Field(Xarray, SystemList):
         STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(SystemList, TotnumbAllpart)
     else:
         STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
-
-    """strong_charge_matrix=np.array([s.Strong_Charge for s in SystemList])
-    Strong_DIST=np.where((0!=distances)&(np.abs(distances)<L_strong_cutoff),distances,0)*np.outer(strong_charge_matrix, strong_charge_matrix)
-
-    def SUBLIST_SEARCH(LIST,element):
-        for sb_ind,SUBLIST in enumerate(LIST):
-            if element in SUBLIST:
-                return(sb_ind)
-        return(-1)
-
-    COLOR_GROUP=[]
-    for I_ind,distI in enumerate(Strong_DIST):
-        for J_ind,distJ in enumerate(distI):
-            if I_ind==J_ind or distJ==0:
-                continue
-            
-            SubgroupIndi=SUBLIST_SEARCH(COLOR_GROUP,I_ind)
-            SubgroupIndj=SUBLIST_SEARCH(COLOR_GROUP,J_ind)
-
-            if SubgroupIndi!=-1:
-                if SubgroupIndj==-1:
-                    COLOR_GROUP[SubgroupIndi].append(J_ind)
-            elif SubgroupIndj!=-1:
-                COLOR_GROUP[SubgroupIndj].append(I_ind)
-            else:
-                COLOR_GROUP.append([I_ind,J_ind])
-
-    STRONG_FORCE=np.zeros((TotnumbAllpart,TotnumbAllpart))  
-
-
-    for Col_group in COLOR_GROUP:
-        for quark_ind_A in Col_group:
-            for quark_ind_B in Col_group:
-                if quark_ind_A==quark_ind_B:
-                    continue
-                DIST=distances[quark_ind_A,quark_ind_B]
-                STRONG_FORCE[quark_ind_A][quark_ind_B]=-k_strong*(DIST-LO_strg)"""
-    # strong_charge_matrix=np.array([s.Strong_Charge for s in SystemList])
-    # S_Force=np.where(Strong_DIST!=0,-k_strong*(Strong_DIST-LO_strg),0)
-
+    print(
+        "ELM",
+        np.trim_zeros(EG_force.flatten()),
+        "\n",
+        "Strong",
+        np.trim_zeros(STRONG_FORCE.flatten()),
+        "\n",
+    )
     force = EG_force + STRONG_FORCE
 
     acc_i = np.zeros((1, 100, 100))  # unit_vector* force
@@ -571,22 +522,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
     dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
     get = itemgetter(1, 2)
     get2 = itemgetter(3, 4, 5, 6)
-
-    """NAMELIST=['up_Quark','up_Quark','down_Quark']
-    PosCenter=
-    CREATEparam1='Spont_Create',PosParam1,VParam1,t,Energyval
-    CREATEparam2='Spont_Create',PosParam1,VParam2,t,Energyval
-    CREATEparam3='Spont_Create',PosParam1,VParam3,t,Energyval
-
-    CREATEPARAMS=[CREATEparam1,CREATEparam2,CREATEparam3]
-    for i,NewpartName in enumerate(NAMELIST):
-
-        Typeindex=PARTICLE_DICT[NewpartName]['index']
-        Global_variables.MaxIDperPtype[Typeindex][0]+=1
-        Global_variables.Ntot[Typeindex][0]+=1
-        idi=Global_variables.MaxIDperPtype[Typeindex][0]
-        Global_variables.SYSTEM[Typeindex][0].append(Particle(name=NewpartName,parity=(0,Typeindex),ID=idi,ExtraParams=CREATEPARAMS[i]))
-        Global_variables.TRACKING[Typeindex][0][idi].insert(0,[t,CREATEPARAMS[i][1]])"""
 
     SpontaneousEvents(0)
 

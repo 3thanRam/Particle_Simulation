@@ -13,9 +13,6 @@ DIM_Numb = 2
 
 from Particles.Global_Variables import Global_variables
 
-# radius=Global_variables.Dist_min/2
-PART_SIZE = Global_variables.Dist_min  # 4*radius**2
-
 
 def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
     """
@@ -158,7 +155,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
 
     # initialise pens
     PARTICLE_PENS = []
+
     for antiOrpartind, Pindex in ACTIVE_PARTS:
+        PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["size"]
         PARTICLE_PENS.append(
             matplotlib.collections.EllipseCollection(
                 PART_SIZE,
@@ -173,11 +172,14 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         # PARTICLE_PENS.append(ax.scatter([], [],s=PART_SIZE,marker=PART_OR_ANTI_MARKER[antiOrpartind],color=PARTICLE_DICT[PARTICLE_NAMES[Pindex]]['color'],label='anti'*antiOrpartind+PARTICLE_NAMES[Pindex]))
 
     # COLLISION =matplotlib.collections.EllipseCollection(widths=PART_SIZE, heights=PART_SIZE,angles=np.zeros_like(PART_SIZE),offsets=[], units='x',transOffset=ax.transData, facecolors='black')
+
+    Interaction_Size = 200 * Global_variables.Dist_min**2
+
     COLLISION = matplotlib.collections.StarPolygonCollection(
         numsides=7,
         offsets=[],
         transOffset=ax.transData,
-        sizes=(200 * PART_SIZE**2,),
+        sizes=(Interaction_Size,),
         zorder=2.5,
         facecolors="black",
     )
@@ -185,7 +187,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         numsides=7,
         offsets=[],
         transOffset=ax.transData,
-        sizes=(200 * PART_SIZE**2,),
+        sizes=(Interaction_Size,),
         zorder=2.5,
         facecolors="yellow",
     )
@@ -193,7 +195,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         numsides=7,
         offsets=[],
         transOffset=ax.transData,
-        sizes=(200 * PART_SIZE**2,),
+        sizes=(Interaction_Size,),
         zorder=2.5,
         facecolors="green",
     )
@@ -201,7 +203,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         numsides=7,
         offsets=[],
         transOffset=ax.transData,
-        sizes=(200 * PART_SIZE**2,),
+        sizes=(Interaction_Size,),
         zorder=2.5,
         facecolors="purple",
     )

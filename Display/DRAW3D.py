@@ -75,8 +75,6 @@ def TRAJ_3D(
 
     from Particles.Global_Variables import Global_variables
 
-    PartSize = Global_variables.Dist_min / 2
-
     ExtTparam_min = 3 * dt
     ExtTparam_max = 3 * dt
 
@@ -131,9 +129,11 @@ def TRAJ_3D(
     s = sph_harm(m, n, theta, phi).real
     s[s < 0] *= 0.97
     s /= s.max()
-    x_v = PartSize * s * r * sin(phi) * cos(theta)
-    y_v = PartSize * s * r * sin(phi) * sin(theta)
-    z_v = PartSize * s * r * cos(phi)
+
+    Interaction_Size = Global_variables.Dist_min / 2
+    x_v = Interaction_Size * s * r * sin(phi) * cos(theta)
+    y_v = Interaction_Size * s * r * sin(phi) * sin(theta)
+    z_v = Interaction_Size * s * r * cos(phi)
 
     def GEN_CUBOID(L_up, L_down):
         """
@@ -213,7 +213,7 @@ def TRAJ_3D(
                 ),
                 mode=PART_OR_ANTI_MARKER[antiorpartindex],
                 scale_mode="scalar",
-                scale_factor=PartSize,
+                scale_factor=PARTICLE_DICT[PARTICLE_NAMES[particleindex]]["size"],
             ).mlab_source
         )
 
