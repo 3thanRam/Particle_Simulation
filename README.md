@@ -13,6 +13,9 @@ Choice between only showing evolution of the particles' densities or also visual
 
 
 To do: 
+
+-Fix bounds to take into account particle size
+
 -Redo comments
 
 -Collisions(relativistic)
