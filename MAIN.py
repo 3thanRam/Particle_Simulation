@@ -62,9 +62,7 @@ def COUNTFCT(LIST, elem, mode=None):
         if LIST.size == 0:
             return 0
         elif LIST.shape[0] == 1:
-            Testequal = np.array_equal(
-                LIST[0], elem
-            )  # =LIST[0]==elem #Testequal=np.equal(LIST[0],elem)
+            Testequal = np.array_equal(LIST[0], elem)
             if isinstance(Testequal, bool):
                 return Testequal
             else:
@@ -78,7 +76,7 @@ def COUNTFCT(LIST, elem, mode=None):
         if isinstance(elem, np.ndarray):
             elem = list(elem)
 
-        if isinstance(elem[1], np.ndarray):  # if mode==None:
+        if isinstance(elem[1], np.ndarray):
             elem[1] = list(elem[1])
         for sublist in LIST:
             if isinstance(sublist, np.ndarray):
@@ -247,7 +245,6 @@ def GetCoefs(F, t):
                         flipindex, flipvalue = Global_variables.Vflipinfo[
                             id_type[ind0][2]
                         ][id_type[ind0][1]][id_type[ind0][0]][r]
-                        # flipindex,flipvalue=Vflipinfo[TYPE_to_index_Dict[id_type[ind0][2]]][id_type[ind0][1]][id_type[ind0][0]][r]#Vflipinfo[TYPE_to_index_Dict[id_type[ind0][2]]][id_type[ind0][0]][r]
                         A[flipindex] = flipvalue
                     b.append(xfs[ind0] - A * float(ts[ind0][0]))
             COEFS.append(
@@ -281,7 +278,7 @@ def COLLISIONS(F, t, CHG_particle_Params):
     kill_list = []
     INTERACT_HIST = []
     NumbDone, NumbCols = 0, -1
-    while NumbCols != 0:  # NumbDone!=NumbCols:
+    while NumbCols != 0:
         NumbCols = 0
         INTERACT_HIST = []  # gather history of Collisions
         INTERACT_SEARCH = []  # list with less info for faster search
@@ -293,7 +290,7 @@ def COLLISIONS(F, t, CHG_particle_Params):
                 A2, B2, t2params, p2, id2 = particle2[:5]
                 if COLTYPE(p1, p2) == 0 or (id1 == id2 and p1 == p2):
                     continue
-                for z1, b1 in enumerate(B1):  # try saving as (0,b1),(1,b2)
+                for z1, b1 in enumerate(B1):
                     if isinstance(b1, str):
                         continue
                     a1 = BOUNDARY_FCT(A1, p1, id1, z1)
@@ -469,8 +466,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
     init(Numb_Dimensions, BoundsCond, L_FCT)
     from Particles.Global_Variables import Global_variables
 
-    # from Particles.ParticleClass import Particle
-
     from Particles.Interactions.TYPES.ANNIHILATION import ANNIHILATE
     from Particles.Interactions.TYPES.COLLISION import COLLIDE
     from Particles.Interactions.TYPES.ABSORPTION import ABSORBE
@@ -609,8 +604,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
             )
             for d in range(DIM_Numb)
         ]
-        # CHANGESdim=[np.where((Xi[d]['index'][:]!=Xf[d]['index'][:]) | (Xi[d]['Type'][np.newaxis,0]!=TYPE_PARTorANTI[d][:])| (Xi[d]['Type'][np.newaxis,1]!=TYPE_CHARGE[d][:])) for d in range(DIM_Numb)]
-        # CHANGESdim=[np.where((Xi[d]['index'][:]!=Xf[d]['index'][:]) | (Xi[d]['Type'][:][0]!=Xf[d]['Type'][:][0])| (Xi[d]['Type'][:][1]!=Xf[d]['Type'][:][1])) for d in range(DIM_Numb)]
         if DIM_Numb == 1:
             CHANGES = CHANGESdim[0][0]
         elif DIM_Numb == 2:
@@ -648,8 +641,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
                     & (INI_TYPE_PARTorANTI[d][chg] == END_TYPE_PARTorANTI[d])
                     & (INI_TYPE_CHARGE[d][chg] == END_TYPE_CHARGE[d])
                 )[0][0]
-                # matchval=np.where((Xf[d]['index'][:]==Xi[d]['index'][chg]) & (Xi[d]['Type'][chg][0]==TYPE_PARTorANTI[d][:])&(Xi[d]['Type'][chg][1]==TYPE_CHARGE[d][:]))[0][0]
-                # matchval=np.where((Xf[d]['index']==Xi[d]['index'][chg]) & (Xi[d]['Type'][chg]==Xf[d]['Type']))[0][0]
 
                 Xa, Xb = Xf[d]["Pos"][matchval], Xi[d]["Pos"][chg]
                 if abs(Xa - Xb) <= distmax[d]:
@@ -682,7 +673,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
                         & (DO_TYPE_PARTorANTI == Xf[d]["TypeID0"][elem_ind])
                         & (DO_TYPE_CHARGE == Xf[d]["TypeID1"][elem_ind])
                     )[0][0]
-                    # doindex=np.where((DOINFOLIST[:,2]==Xf[d]['index'][elem_ind])&(DOINFOLIST[:,1][0]==Xf[d]['Type'][elem_ind][0])&(DOINFOLIST[:,1][1]==Xf[d]['Type'][elem_ind][1]))[0][0]
 
                     InterPos, Velocity, TimeParams, Endtype = get2(DOINFOLIST[doindex])
                     POS, TYPE0, TYPE1, ID = (
@@ -702,12 +692,11 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
                             & (Xf[d2]["TypeID0"] == TYPE0)
                             & (Xf[d2]["TypeID1"] == TYPE1)
                         )[0][0]
-                        # posind2=np.where((Xf[d2]['index']==ID) & (Xf[d2]['Type']==TYPE))[0][0]
                         POSLIST[d2] = Xf[d2]["Pos"][posind2]
                     if (
                         CHGind[-1] == []
                         or COUNTFCT(Param_ID_TYPE[-1], [ID, TYPE0, TYPE1], 1) == 0
-                    ):  #
+                    ):
                         CHGind[-1].append(elem_ind)
                         Param_INTERPOS[-1].append(InterPos)
                         Param_POS[-1].append(POSLIST)
@@ -815,7 +804,7 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
             Param_Time,
             Param_ID_TYPE,
             Param_endtype,
-        ]  # [Param_INTERPOS,Param_POS,Param_Velocity,Param_Time,Param_ID_TYPE,Param_endtype]
+        ]
 
         for I1, I2 in combinations(range(len(Param_ID_TYPE)), 2):
             if I1 in REMOVELIST or I2 in REMOVELIST:
@@ -884,8 +873,7 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
                 continue
             pos_search = [Xf[0][indUpdate][0]]
             type_search = [Xf[0][indUpdate][1], Xf[0][indUpdate][2]]
-            # type_search=Xf[0][indUpdate][1]
-            id_search = Xf[0][indUpdate][3]  # [2]
+            id_search = Xf[0][indUpdate][3]
             for d in range(1, DIM_Numb):
                 Pos_d_index = np.where(
                     (Xf[d]["index"] == id_search)
@@ -904,7 +892,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
                         & (DO_TYPE_PARTorANTI == type_search[0])
                         & (DO_TYPE_CHARGE == type_search[1])
                     )[0][0]
-                    # doindex=np.where((DOINFOLIST[:,2]==id_search)&(DOINFOLIST[:,1]==type_search))[0][0]
                     xinterargs, Velocity, targs, Endtype = get2(DOINFOLIST[doindex])
                     if Endtype > 0:
                         for nz in range(len(targs) - 1):
