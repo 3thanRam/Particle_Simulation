@@ -450,8 +450,6 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
 
     """
 
-    # global dt,Dist_min,DIM_Numb,Numb_part,Numb_antipart,Global_variables.ALL_TIME,V0,L,BOUNDARY_COND,Global_variables.TRACKING,Global_variables.SYSTEM,Global_variables.ALL_TIME,Vflipinfo,INTERCHECK,BOUNDARY_FCT,Linf,sd,KeepV,Vmax,L_FCT,BoundSup_V,BoundSup_b,BoundInf_V,BoundInf_b,Global_variables.MaxIDperPtype,DOINFOLIST,Global_variables.FIELD,EcreationMin
-
     global ROUNDDIGIT, Numb_of_TYPES, DIM_Numb, distmax, PARTICLE_DICT, PARTICLE_NAMES, Dist_min, INTERCHECK, BOUNDARY_FCT, BOUNDARY_COND, COLTYPE, ANNIHILATE, COLLIDE, ABSORBE, SpontaneousEvents, STRONG_FORCE_GROUP, L_FCT, Vmax, dt, Global_variables
 
     # import  as Global_var
@@ -527,11 +525,9 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
         L, Linf = L_FCT[0](t), L_FCT[1](t)
         Lo, Loinf = L_FCT[0](t - dt), L_FCT[1](t - dt)
 
-        Global_variables.BoundSup_V = (L - Lo) / dt
-        Global_variables.BoundSup_b = L - Global_variables.BoundSup_V * t
-
-        Global_variables.BoundInf_V = (Linf - Loinf) / dt
-        Global_variables.BoundInf_b = Linf - Global_variables.BoundInf_V * t
+        Vsup = (L - Lo) / dt
+        Vinf = (Linf - Loinf) / dt
+        Global_variables.Bound_Params = [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
 
         Global_variables.Vflipinfo = [
             [

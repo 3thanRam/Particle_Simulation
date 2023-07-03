@@ -126,21 +126,16 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
 
     # Check if the particle hits any boundary
     Vchgsign = V.copy()
+    BoundSup_V, BoundSup_b, BoundInf_V, BoundInf_b = Global_variables.Bound_Params
     for d in range(DIM_Numb):
         b = Xfin[d] - V[d] * t
 
         CONDsup, CONDinf = False, False
-        if Global_variables.BoundSup_V[d] != V[d]:
-            SOL_sup = ROUND(
-                (b - (Global_variables.BoundSup_b[d] - PART_SIZE))
-                / (Global_variables.BoundSup_V[d] - V[d])
-            )
+        if BoundSup_V[d] != V[d]:
+            SOL_sup = ROUND((b - (BoundSup_b[d] - PART_SIZE)) / (BoundSup_V[d] - V[d]))
             CONDsup = t - dt <= SOL_sup <= t
-        if Global_variables.BoundInf_V[d] != V[d]:
-            SOL_inf = ROUND(
-                (b - (Global_variables.BoundInf_b[d] + PART_SIZE))
-                / (Global_variables.BoundInf_V[d] - V[d])
-            )
+        if BoundInf_V[d] != V[d]:
+            SOL_inf = ROUND((b - (BoundInf_b[d] + PART_SIZE)) / (BoundInf_V[d] - V[d]))
             CONDinf = t - dt <= SOL_inf <= t
 
         if CONDinf:
@@ -159,15 +154,10 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
                 bi = L_t0 - V[d] * t0
                 # bi=b+(L_t0[d]-Linf_t0[d])
             else:
-                if (
-                    -V[d] + (Global_variables.BoundInf_V[d])
-                    < Global_variables.BoundInf_V[d]
-                ):
-                    Vchgsign[d] = np.sign(Global_variables.BoundInf_V[d]) * abs(
-                        V[d]
-                    ) + (Global_variables.BoundInf_V[d])
+                if -V[d] + (BoundInf_V[d]) < BoundInf_V[d]:
+                    Vchgsign[d] = np.sign(BoundInf_V[d]) * abs(V[d]) + (BoundInf_V[d])
                 else:
-                    Vchgsign[d] = -V[d] + (Global_variables.BoundInf_V[d])
+                    Vchgsign[d] = -V[d] + (BoundInf_V[d])
 
                 bi = Xinterd[d] - Vchgsign[d] * t0
                 Li_0, Li_1 = Linf_t0, Linf_t0
@@ -177,15 +167,10 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
                 bi = Linf_t0 - V[d] * t0
                 # bi=b-(L_t0[d]-Linf_t0[d])
             else:
-                if (
-                    -V[d] + (Global_variables.BoundSup_V[d])
-                    > Global_variables.BoundSup_V[d]
-                ):
-                    Vchgsign[d] = np.sign(Global_variables.BoundSup_V[d]) * abs(
-                        V[d]
-                    ) + (Global_variables.BoundSup_V[d])
+                if -V[d] + (BoundSup_V[d]) > BoundSup_V[d]:
+                    Vchgsign[d] = np.sign(BoundSup_V[d]) * abs(V[d]) + (BoundSup_V[d])
                 else:
-                    Vchgsign[d] = -V[d] + (Global_variables.BoundSup_V[d])
+                    Vchgsign[d] = -V[d] + (BoundSup_V[d])
 
                 bi = Xinterd[d] - Vchgsign[d] * t0
                 Li_0, Li_1 = L_t0, L_t0

@@ -27,10 +27,7 @@ class Global_var:
     V0: np.ndarray = field(init=False)
     Vmax: np.ndarray = field(init=False)
 
-    BoundSup_V: float = field(init=False)
-    BoundSup_b: float = field(init=False)
-    BoundInf_V: float = field(init=False)
-    BoundInf_b: float = field(init=False)
+    Bound_Params: list = field(init=False)
 
     C_speed: float = Speed_light
     Dist_min: float = field(init=False)
@@ -62,7 +59,7 @@ class Global_var:
         self.V0 = Speed_light * np.ones(self.DIM_Numb)
         self.Vmax = self.V0 / 3
 
-        self.BoundSup_V, self.BoundSup_b, self.BoundInf_V, self.BoundInf_b = 0, 0, 0, 0
+        self.Bound_Params = [0, 0, 0, 0]
         self.Dist_min = float(DistList[self.DIM_Numb - 1])
         self.dt = DT[self.DIM_Numb - 1]
 
