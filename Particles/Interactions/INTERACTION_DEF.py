@@ -13,22 +13,22 @@ def COLTYPE(pA, pB):
 
     if IndexA == IndexB and IndexA != 13:  # photons dont interact with each other
         if partORantiA == partORantiB:
-            if IndexA in QUARK_INDEXES:
+            if 5 < IndexA < 12:
                 return 0  # quark-quark Collision should depend on colour (annihilation also)
             else:
                 return 3  # Collision
         else:
             return 2  # Annihilation
     elif IndexA != IndexB:
-        if IndexA in FERMION_INDEXES:
-            if IndexB in FERMION_INDEXES:
-                if IndexA in QUARK_INDEXES and IndexB in QUARK_INDEXES:
+        if IndexA < 12:
+            if IndexB < 12:
+                if 5 < IndexA < 12 and 5 < IndexB < 12:
                     return 0  # Collision
                 else:
                     return 3  # Collision
             elif IndexB == 13:
                 return 1  # absorption of photon
-        elif IndexB in FERMION_INDEXES and IndexA == 13:
+        elif IndexB < 12 and IndexA == 13:
             return 1  # absorption of photon
     return 0  # no interaction
 
