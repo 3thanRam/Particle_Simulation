@@ -109,7 +109,7 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
         - id (int): The ID of the particle.
         - NZ (int): The number of intermediate positions.
     """
-    # PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"]
+    PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
 
     Xini = xi
     Xfin = xf
@@ -117,7 +117,7 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
     t_list = [t]
 
     # Check if the final position is inside the boundaries
-    if in_all_bounds(Xfin, t):
+    if in_all_bounds(Xfin, t, PART_SIZE):
         return [Xfin, p, id, Xinter, V, t_list, 0]
 
     # Initialize parameters
@@ -132,13 +132,13 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
         CONDsup, CONDinf = False, False
         if Global_variables.BoundSup_V[d] != V[d]:
             SOL_sup = ROUND(
-                (b - Global_variables.BoundSup_b[d])
+                (b - (Global_variables.BoundSup_b[d] - PART_SIZE))
                 / (Global_variables.BoundSup_V[d] - V[d])
             )
             CONDsup = t - dt <= SOL_sup <= t
         if Global_variables.BoundInf_V[d] != V[d]:
             SOL_inf = ROUND(
-                (b - Global_variables.BoundInf_b[d])
+                (b - (Global_variables.BoundInf_b[d] + PART_SIZE))
                 / (Global_variables.BoundInf_V[d] - V[d])
             )
             CONDinf = t - dt <= SOL_inf <= t
@@ -150,7 +150,7 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
         else:
             continue
 
-        L_t0, Linf_t0 = L_FCT[0](t0)[d], L_FCT[1](t0)[d]
+        L_t0, Linf_t0 = L_FCT[0](t0)[d] - PART_SIZE, L_FCT[1](t0)[d] + PART_SIZE
         Xinterd = b + V * t0
 
         if CONDinf:
@@ -208,8 +208,8 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
             d_arg = mask[0][t_params[mask].argmin()]
             t_val = t_params[d_arg]
             t_list.append(t_val)
-            L_tv_d = L_FCT[0](t_val)[d_arg]
-            Linf_tv_d = L_FCT[1](t_val)[d_arg]
+            L_tv_d = L_FCT[0](t_val)[d_arg] - PART_SIZE
+            Linf_tv_d = L_FCT[1](t_val)[d_arg] + PART_SIZE
 
             if nz == 0:
                 Xinter[nz][0] = np.where(
@@ -244,18 +244,20 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
     return [Xfin, p, id, Xinter, V, t_list, NZ]
 
 
-def in_all_bounds(List, t=None):
+def in_all_bounds(List, t=None, ParticleSize=0):
     if t == None:
         Lmaxi, Lmini = Global_variables.L, Global_variables.Linf
     else:
         Lmaxi, Lmini = L_FCT[0](t), L_FCT[1](t)
+    Lmaxi -= ParticleSize
+    Lmini += ParticleSize
     for indV, value in enumerate(List):
         if value > Lmaxi[indV] or value < Lmini[indV]:
             return False
     return True
 
 
-def Pos_fct(min_value, max_value, EXtraparams=None):
+def Pos_fct(min_value, max_value):
     """Generate a random position vector with DIM_Numb dimensions and values between min_value and max_value (both inclusive)
 
     Args:
@@ -266,13 +268,7 @@ def Pos_fct(min_value, max_value, EXtraparams=None):
         A list of length DIM_Numb representing the position vector
     """
     # Create a list of DIM_Numb random values between min_value and max_value (both excluded)
-    if EXtraparams == None:
-        pos = rng.uniform(min_value + 1e-12, max_value)
-    else:
-        Center, Gaussparam = EXtraparams
-        pos = [np.inf, np.inf, np.inf]
-        while not in_all_bounds(pos):
-            pos = np.round(rng.normal(Center, Gaussparam, DIM_Numb), ROUNDDIGIT)
+    pos = rng.uniform(min_value + 1e-12, max_value)
     return pos
 
 
@@ -297,7 +293,7 @@ def CHECKstartPos(testPOS):
         return True
 
 
-def GEN_X(XtraParam=None):
+def GEN_X(Part_size):
     """Generates a random position within a given distance of minimum separation from other particles.
 
     Args:
@@ -310,16 +306,17 @@ def GEN_X(XtraParam=None):
     - List[int]: a new particle position that meets the minimum distance requirement from other particles.
     """
     # Generate a new position randomly within the bounds of Global_variables.L.
-    if XtraParam == None:
-        POS = Pos_fct(L_FCT[1](0), L_FCT[0](0))
-        # While the generated position is not far enough from existing positions,
-        # generate a new position.
-        while not CHECKstartPos(np.array(POS)):
-            POS = Pos_fct(L_FCT[1](0), L_FCT[0](0))
-        # Add the new position to the list of existing positions.
-        Xini.append(POS)
-    else:
-        POS = Pos_fct(L_FCT[1](0), L_FCT[0](0), XtraParam)
+    SizeArray = Part_size * np.ones(DIM_Numb)
+
+    Lmin = L_FCT[1](0) + SizeArray
+    Lmax = L_FCT[0](0) - SizeArray
+    POS = Pos_fct(Lmin, Lmax)
+    # While the generated position is not far enough from existing positions,
+    # generate a new position.
+    while not CHECKstartPos(np.array(POS)):
+        POS = Pos_fct(Lmin, Lmax)
+    # Add the new position to the list of existing positions.
+    Xini.append(POS)
     return POS
 
 
@@ -369,6 +366,7 @@ class Particle:
     ExtraParams: list = field(default_factory=list)
     M: float = field(init=False)
     Strong_Charge: float = field(init=False)
+    Size: float = field(init=False)
     Colour_Charge: list = field(default_factory=list)
 
     X: np.ndarray = field(init=False)
@@ -380,7 +378,7 @@ class Particle:
     def __post_init__(self):
         self.M = PARTICLE_DICT[self.name]["mass"]
         self.Strong_Charge = PARTICLE_DICT[self.name]["Strong_Charge"]
-
+        self.Size = PARTICLE_DICT[self.name]["size"] / 2
         if self.Strong_Charge != 0:
             if not self.Colour_Charge or self.Colour_Charge == 0:
                 print("Error:Colour_Charge of quark ill defined at creation ")
@@ -391,7 +389,7 @@ class Particle:
 
         if not self.ExtraParams:
             # creation of particles at t=0
-            X = GEN_X()
+            X = GEN_X(self.Size)
             self.X = X
             Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
             if self.M != 0:
@@ -451,9 +449,9 @@ class Particle:
         Vt = np.where(abs(Vt) > Vmax, Vmax * np.sign(Vt), Vt)
         xf = np.round(xi + dt * Vt, ROUNDDIGIT)
         self.V = np.where(
-            (xf > Global_variables.L),
+            (xf > Global_variables.L - self.Size),
             -np.abs(Vt),
-            np.where((xf < Global_variables.Linf), np.abs(Vt), Vt),
+            np.where((xf < Global_variables.Linf + self.Size), np.abs(Vt), Vt),
         )
 
         return BOUNDS(xi, xf, Vt, t, self.ID, self.parity, self.M)
