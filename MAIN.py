@@ -517,11 +517,14 @@ def main(T, n1, n2, vo, l, Numb_Dimensions, BoundsCond, D, File_path_name=None):
             print(Dper, "%", end="\r")
 
         t = ROUND(ti * dt)
-        L, Linf = L_FCT[0](t), L_FCT[1](t)
-        Lo, Loinf = L_FCT[0](t - dt), L_FCT[1](t - dt)
+        L, Linf, Lo, Loinf = (
+            L_FCT[0](t),
+            L_FCT[1](t),
+            L_FCT[0](t - dt),
+            L_FCT[1](t - dt),
+        )
 
-        Vsup = (L - Lo) / dt
-        Vinf = (Linf - Loinf) / dt
+        Vsup, Vinf = (L - Lo) / dt, (Linf - Loinf) / dt
         Global_variables.Bound_Params = [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
 
         Global_variables.Vflipinfo = [

@@ -203,7 +203,11 @@ def SpontaneousEvents(t):
     ##########
     # ELM######
     ##########
+    # PARTICLE_SPONT_NAMES=['electron','muon','tau']
     PARTICLE_SPONT_NAMES = [
+        "electron",
+        "muon",
+        "tau",
         "up_Quark",
         "down_Quark",
         "strange_Quark",
@@ -211,8 +215,6 @@ def SpontaneousEvents(t):
         "bottom_Quark",
         "top_Quark",
     ]
-    # PARTICLE_SPONT_NAMES=['electron','muon','tau']
-    # PARTICLE_SPONT_NAMES=['electron','muon','tau','up_Quark','down_Quark','strange_Quark','charm_Quark','bottom_Quark','top_Quark']
     EcreationMinList = [
         2 * PARTICLE_DICT[partName]["mass"] * C_speed**2
         for partName in PARTICLE_SPONT_NAMES
