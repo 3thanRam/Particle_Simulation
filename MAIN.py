@@ -417,14 +417,6 @@ def Gen_Field(Xarray, SystemList):
         STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(SystemList, TotnumbAllpart)
     else:
         STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
-    print(
-        "ELM",
-        np.trim_zeros(EG_force.flatten()),
-        "\n",
-        "Strong",
-        np.trim_zeros(STRONG_FORCE.flatten()),
-        "\n",
-    )
     force = EG_force + STRONG_FORCE
 
     acc_i = np.zeros((1, 100, 100))  # unit_vector* force

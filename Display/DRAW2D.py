@@ -155,9 +155,11 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
 
     # initialise pens
     PARTICLE_PENS = []
+    from matplotlib import colors
 
     for antiOrpartind, Pindex in ACTIVE_PARTS:
         PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["size"]
+        PartColour = [PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["color"], "white"]
         PARTICLE_PENS.append(
             matplotlib.collections.EllipseCollection(
                 PART_SIZE,
@@ -166,14 +168,15 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
                 offsets=[],
                 units="x",
                 transOffset=ax.transData,
-                facecolors=PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["color"],
+                edgecolors=[PartColour[0], PartColour[0]],
+                facecolors=PartColour[antiOrpartind],
             )
         )
         # PARTICLE_PENS.append(ax.scatter([], [],s=PART_SIZE,marker=PART_OR_ANTI_MARKER[antiOrpartind],color=PARTICLE_DICT[PARTICLE_NAMES[Pindex]]['color'],label='anti'*antiOrpartind+PARTICLE_NAMES[Pindex]))
 
     # COLLISION =matplotlib.collections.EllipseCollection(widths=PART_SIZE, heights=PART_SIZE,angles=np.zeros_like(PART_SIZE),offsets=[], units='x',transOffset=ax.transData, facecolors='black')
 
-    Interaction_Size = 200 * Global_variables.Dist_min**2
+    Interaction_Size = 100 * Global_variables.Dist_min**2
 
     COLLISION = matplotlib.collections.StarPolygonCollection(
         numsides=7,
@@ -239,15 +242,16 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
     lines = []
 
     # PARTICLE LEGEND
-    PART_Style = []
-    Part_Anti_style = ["o", "^"]
     PART_LStyle = "None"
     Particle_Colors = []
-
+    Particle_EdgeColors = []
     for antiOrpartind, Pindex in ACTIVE_PARTS:
         labels.append("anti" * antiOrpartind + PARTICLE_NAMES[Pindex])
-        PART_Style.append(Part_Anti_style[antiOrpartind])
-        Particle_Colors.append(PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["color"])
+        Particle_EdgeColors.append(PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["color"])
+        if antiOrpartind == 0:
+            Particle_Colors.append(PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["color"])
+        else:
+            Particle_Colors.append("white")
 
     lines.extend(
         [
@@ -255,8 +259,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
                 [],
                 [],
                 color=Particle_Colors[c],
+                markeredgecolor=Particle_EdgeColors[c],
                 linewidth=3,
-                marker=PART_Style[c],
+                marker="o",
                 linestyle=PART_LStyle,
             )
             for c in range(len(ACTIVE_PARTS))

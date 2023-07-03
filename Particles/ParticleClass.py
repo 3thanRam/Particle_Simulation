@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from Particles.Dictionary import PARTICLE_DICT
 
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 # from MAIN import GEN_V
 
 from Particles.Global_Variables import Global_variables
@@ -108,6 +109,8 @@ def BOUNDS(xi, xf, V, t, id, p, Mass):
         - id (int): The ID of the particle.
         - NZ (int): The number of intermediate positions.
     """
+    # PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"]
+
     Xini = xi
     Xfin = xf
     Xinter = []
@@ -405,11 +408,11 @@ class Particle:
             else:
                 v = GEN_V()
                 self.V = C_speed * v / np.linalg.norm(v)
-                self.P = 50 * v
+                self.P = 150 * v
                 self.Energy = np.linalg.norm(self.P * C_speed)
         elif self.ExtraParams[0] == "INIT_Quark_CREATION":
             PosParam = self.ExtraParams[1]
-            self.X = PosParam * (1 + 0.1 * rng.uniform(-1, 1))
+            self.X = PosParam * (1 + 0.01 * rng.uniform(-1, 1))
             V = GEN_V()
             while np.linalg.norm(V) > C_speed:
                 V = GEN_V()

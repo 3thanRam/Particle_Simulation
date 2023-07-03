@@ -61,11 +61,11 @@ def COLOR_ERROR(Colour_group):
 
 
 # STRONG FORCE PARAMS#
-LO_strg = Global_variables.Dist_min * 2  # L_strong_cutoff/2
+LO_strg = PARTICLE_DICT["up_Quark"]["size"] * 6  # L_strong_cutoff/2
 
-L_strong_cutoff = LO_strg * 3
+L_strong_cutoff = LO_strg * 2
 
-k_strong = 2.3 / ((L_strong_cutoff - LO_strg))
+k_strong = 5 / ((L_strong_cutoff - LO_strg))
 # k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
 
 
@@ -180,7 +180,7 @@ def STRONG_FORCE_GROUP(SystemList, TotnumbAllpart):
             NumMesons = int(len(Col_group) / 2)
             Neutral_Group = QUARK_REGROUP(NumMesons, Num3baryons, Col_group)
 
-            QUARK_SEPERATOR(Neutral_Group, 2, NumMesons)
+            QUARK_SEP_PARMS.append([Neutral_Group, 2, NumMesons])
         else:
             COLOR_ERROR(Col_group)
 

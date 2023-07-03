@@ -60,7 +60,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "brown",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "down_Quark": {
         "index": 7,
@@ -69,7 +69,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "cyan",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "charm_Quark": {
         "index": 8,
@@ -78,7 +78,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "grey",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "strange_Quark": {
         "index": 9,
@@ -87,7 +87,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "pink",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "top_Quark": {
         "index": 10,
@@ -96,7 +96,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "lime",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "bottom_Quark": {
         "index": 11,
@@ -105,7 +105,7 @@ PARTICLE_DICT = {
         "spin": 1 / 2,
         "color": "tan",
         "Strong_Charge": 1,
-        "size": 1,
+        "size": 0.2,
     },
     "gluon": {
         "index": 12,
@@ -122,7 +122,7 @@ PARTICLE_DICT = {
         "spin": 1,
         "color": "orange",
         "Strong_Charge": 0,
-        "size": 1,
+        "size": 0.5,
     },
     "zboson": {
         "index": 14,
