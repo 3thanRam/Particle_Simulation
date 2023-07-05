@@ -25,12 +25,6 @@ def main(T, Repr_type, File_path_name=None):
     Args:
     T (float): The time range to simulate.
     Repr_type (int): The type of representation: draw just densities/0 or also draw trajectories/1
-    n1 (int): The initial number of particles.
-    n2 (int): The initial number of antiparticles.
-    vo (float): The order of the velocities of the particles.
-    l (float): The length of the box.
-    Numb_Dimensions (int): The number of dimensions to simulate
-    BoundsCond(int): The type of boundaries periodic/0 or hard/1
     File_path_name: Where to save the video if the simulation is 3D and Repr_type=1
 
     Returns:
@@ -38,10 +32,6 @@ def main(T, Repr_type, File_path_name=None):
     draws the points if Repr_type=1.
 
     """
-    # global ROUNDDIGIT, Numb_of_TYPES, DIM_Numb, distmax, Dist_min, BOUNDARY_COND, SpontaneousEvents, L_FCT, Vmax, dt, Global_variables
-
-    # import  as Global_var
-
     from Particles.Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
     from Particles.Interactions.INTERACTION_LOOP import Interaction_Loop_Check
 
@@ -547,7 +537,6 @@ def main(T, Repr_type, File_path_name=None):
 if __name__ == "__main__":
     from Dialog.CHOICES import SET_PARAMETERS
 
-    # global ROUNDDIGIT, DIM_Numb, distmax, Dist_min, BOUNDARY_COND, Vmax, dt, Global_variables
     SET_Param = SET_PARAMETERS()
 
     T_param, Repr_mode, filename = SET_Param[0], SET_Param[7], SET_Param[8]

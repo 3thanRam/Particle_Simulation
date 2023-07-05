@@ -2,6 +2,11 @@ import numpy as np
 from Particles.Global_Variables import Global_variables
 
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
+V0 = Global_variables.V0
+DIM_Numb = Global_variables.DIM_Numb
+L_FCT = Global_variables.L_FCT
+
+rng = np.random.default_rng()
 
 
 def ROUND(x):
