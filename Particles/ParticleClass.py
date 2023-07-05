@@ -22,6 +22,28 @@ from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 GEN_V = UNIFORM
 
 
+def Gamma(vect):
+    return 1 / (np.sqrt(1 - (np.linalg.norm(vect) / C_speed) ** 2))
+
+
+def Energy_Calc(momentum, mass):
+    return (
+        (mass * C_speed**2) ** 2 + np.linalg.norm((momentum * C_speed) ** 2)
+    ) ** 0.5
+
+
+def Velocity_Momentum(mass):
+    velocity = GEN_V()
+    if mass != 0:
+        p = velocity * mass * Gamma(velocity)
+        v = velocity
+    else:
+        p = 150 * velocity
+        v = C_speed * velocity / np.linalg.norm(velocity)
+
+    return (v, p)
+
+
 @dataclass(slots=True)
 class Particle:
     """A class representing a particle in a simulation.
@@ -71,59 +93,26 @@ class Particle:
         partORanti, typeIndex = self.parity
         id = self.ID
 
-        if not self.ExtraParams:
+        if (not self.ExtraParams) or self.ExtraParams[0] == "INIT_Quark_CREATION":
             # creation of particles at t=0
-            X = GEN_X(self.Size)
-            self.X = X
-            Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
-            if self.M != 0:
-                V = GEN_V()
-                while np.linalg.norm(V) > C_speed:
-                    V = GEN_V()
-                self.V = V
-                gamma = 1 / (np.sqrt(1 - (np.linalg.norm(V) / C_speed) ** 2))
-                self.P = self.V * self.M * gamma
-                self.Energy = (
-                    (self.M * C_speed**2) ** 2
-                    + np.linalg.norm((self.P * C_speed) ** 2)
-                ) ** 0.5
+            if not self.ExtraParams:
+                X = GEN_X(self.Size)
             else:
-                v = GEN_V()
-                self.V = C_speed * v / np.linalg.norm(v)
-                self.P = 150 * v
-                self.Energy = np.linalg.norm(self.P * C_speed)
-        elif self.ExtraParams[0] == "INIT_Quark_CREATION":
-            PosParam = self.ExtraParams[1]
-            self.X = PosParam * (1 + 0.01 * rng.uniform(-1, 1))
-            V = GEN_V()
-            while np.linalg.norm(V) > C_speed:
-                V = GEN_V()
-            self.V = V
-            gamma = 1 / (np.sqrt(1 - (np.linalg.norm(V) / C_speed) ** 2))
-            self.P = self.V * self.M * gamma
-            self.Energy = (
-                (self.M * C_speed**2) ** 2 + np.linalg.norm((self.P * C_speed) ** 2)
-            ) ** 0.5
-        elif self.ExtraParams[0] == "Post_Interaction":
-            PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[
-                1:
-            ]  # PosParam,VParam,TStepsNumbParam=ExtraParams[1:]
-            X = PosParam
-            self.X = X
-            self.V = VParam
-            self.Energy = Energyval
-            self.P = Energyval / C_speed
-            Global_variables.TRACKING[typeIndex][partORanti].append([[TvalueParam, X]])
-            Global_variables.Vflipinfo[typeIndex][partORanti].append([])
-        elif self.ExtraParams[0] == "Spont_Create":
+                X = self.ExtraParams[1] * (1 + 0.01 * rng.uniform(-1, 1))
+            Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
+            V, P = Velocity_Momentum(self.M)
+            E = Energy_Calc(P, self.M)
+        elif (
+            self.ExtraParams[0] == "Post_Interaction"
+            or self.ExtraParams[0] == "Spont_Create"
+        ):
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
-            X = PosParam  # GEN_X(PosParam)
-            self.X = X
-            self.V = VParam
-            self.Energy = Energyval
-            self.P = Energyval / C_speed
+            X, V, E, P = PosParam, VParam, Energyval, Energyval / C_speed
+
             Global_variables.TRACKING[typeIndex][partORanti].append([[TvalueParam, X]])
             Global_variables.Vflipinfo[typeIndex][partORanti].append([])
+
+        self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def DO(self, t):
         xi = self.X.copy()

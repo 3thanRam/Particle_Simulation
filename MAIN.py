@@ -503,9 +503,10 @@ def main(T, Repr_type, File_path_name=None):
         print("Generating time:", Dt, "s")
         import Display.DisplayDRAW as DRAW_TRAJ
 
-        Global_variables.ALL_TIME.extend([ROUND(i * dt) for i in range(T)])
-        Global_variables.ALL_TIME = [*set(Global_variables.ALL_TIME)]
-        Global_variables.ALL_TIME.sort()
+        ALL_TIME = Global_variables.ALL_TIME
+        ALL_TIME.extend([ROUND(i * dt) for i in range(T)])
+        ALL_TIME = [*set(ALL_TIME)]
+        ALL_TIME.sort()
         DRAW_PARAMS = [
             T,
             dt,
@@ -516,7 +517,7 @@ def main(T, Repr_type, File_path_name=None):
             Dens,
             L_FCT,
             BOUNDARY_COND,
-            Global_variables.ALL_TIME,
+            ALL_TIME,
             PARTICLE_DICT,
         ]
         if File_path_name != None:
@@ -550,12 +551,10 @@ if __name__ == "__main__":
     init(Numb_Dimensions, BOUNDARY_COND, L_FCT)
     from Particles.Global_Variables import Global_variables
 
-    ROUNDDIGIT = Global_variables.ROUNDDIGIT
     DIM_Numb = Global_variables.DIM_Numb
     Vmax = Global_variables.Vmax
     dt = Global_variables.dt
     distmax = 1.5 * Vmax * dt
-    Dist_min = Global_variables.Dist_min
     L_FCT = Global_variables.L_FCT
 
     main(T_param, Repr_mode, filename)
