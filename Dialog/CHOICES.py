@@ -160,4 +160,4 @@ def SET_PARAMETERS():
             sys.exit()
         return (*PARAMS, DIM, Bounds, REPR, filename)
     else:
-        return (*PARAMS, DIM, Bounds, REPR)
+        return (*PARAMS, DIM, Bounds, REPR, filename)
