@@ -5,7 +5,6 @@ from Particles.Dictionary import PARTICLE_DICT
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 from Misc.Functions import ROUND
-from Misc.Position_Fcts import in_all_bounds
 
 from Particles.Global_Variables import Global_variables
 
@@ -43,10 +42,6 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
     Xfin = xf
     Xinter = []
     t_list = [t]
-
-    # Check if the final position is inside the boundaries
-    if in_all_bounds(Xfin, t, PART_SIZE):
-        return [Xfin, p, id, Xinter, V, t_list, 0]
 
     # Initialize parameters
     t_params = np.zeros(DIM_Numb)

@@ -5,29 +5,18 @@ from dataclasses import dataclass, field
 from Particles.Dictionary import PARTICLE_DICT
 
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-# from MAIN import GEN_V
 
 from Particles.Global_Variables import Global_variables
 
-
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
-
 C_speed = Global_variables.C_speed
-DIM_Numb = Global_variables.DIM_Numb
-
-
 dt = Global_variables.dt
 Vmax = Global_variables.Vmax
-L_FCT = Global_variables.L_FCT
-Dist_min = Global_variables.Dist_min
-BOUNDARY_COND = Global_variables.BOUNDARY_COND
-V0 = Global_variables.V0
-
 rng = np.random.default_rng()
 Xini = []
 
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
-from Misc.Position_Fcts import GEN_X
+from Misc.Position_Fcts import GEN_X, in_all_bounds
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 
 GEN_V = UNIFORM
@@ -154,4 +143,7 @@ class Particle:
             np.where((xf < Global_variables.Linf + self.Size), np.abs(Vt), Vt),
         )
 
-        return BOUNDS_Collision_Check(xi, xf, Vt, t, self.ID, self.parity, self.M)
+        if in_all_bounds(xf, t, self.Size):
+            return [xf, self.parity, self.ID, [], self.V, [t], 0]
+        else:
+            return BOUNDS_Collision_Check(xi, xf, Vt, t, self.ID, self.parity, self.M)
