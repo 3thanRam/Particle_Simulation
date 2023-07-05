@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 
 
 import numpy as np
-from Display import Density
-
-DENS_FCT = Density.Denfct
+from Display.Density import DENS_FCT
 
 
 PARTICLE_DICT = {}

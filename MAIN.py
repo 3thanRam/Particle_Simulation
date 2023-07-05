@@ -10,12 +10,39 @@ from Particles.Dictionary import PARTICLE_DICT
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
-from Display import Density
-
-DENS_FCT = Density.Denfct
+from Display.Density import DENS_FCT
 
 
-ROUNDDIGIT = 0
+def Update_Density(Dens, L, Linf):
+    Vol = 1
+    if DIM_Numb == 1:
+        Vol = L[0] - Linf[0]
+    else:
+        Vol = np.prod(L - Linf)
+    for p in range(len(Global_variables.SYSTEM)):
+        Dens[p][0].append(Global_variables.Ntot[p][0] / Vol)
+        Dens[p][1].append(Global_variables.Ntot[p][1] / Vol)
+    return Dens
+
+
+def Update_L_Lmin(t):
+    return (L_FCT[0](t), L_FCT[1](t))
+
+
+def Update_Bound_Params(L, Linf, t):
+    L_prev, Linf_prev = Update_L_Lmin(t - dt)
+    Vsup, Vinf = (L - L_prev) / dt, (Linf - Linf_prev) / dt
+    return [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
+
+
+def RESET_Vflipinfo(MAX_IDpType):
+    return [
+        [
+            [[] for ni in range(maxnumbpart + 1)],
+            [[] for ni in range(maxnumbanti + 1)],
+        ]
+        for maxnumbpart, maxnumbanti in MAX_IDpType
+    ]
 
 
 def main(T, Repr_type, File_path_name=None):
@@ -43,15 +70,10 @@ def main(T, Repr_type, File_path_name=None):
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
 
-    Vol = 1
     Dens = [[[], []] for num in range(Numb_of_TYPES)]
-    L, Linf = L_FCT[0](0), L_FCT[1](0)
-    for d in range(DIM_Numb):
-        Vol *= L[d] - Linf[d]  # Volume of box
-    for p in range(Numb_of_TYPES):
-        Dens[p][0].append(Global_variables.Ntot[p][0] / Vol)
-        Dens[p][1].append(Global_variables.Ntot[p][1] / Vol)
-        # Initializing density values
+    L, Linf = Update_L_Lmin(0)
+
+    Dens = Update_Density(Dens, L, Linf)
 
     Dper = 0
     if Repr_type == 0 or Repr_type == 1:
@@ -74,23 +96,9 @@ def main(T, Repr_type, File_path_name=None):
             print(Dper, "%", end="\r")
 
         t = ROUND(ti * dt)
-        L, Linf, Lo, Loinf = (
-            L_FCT[0](t),
-            L_FCT[1](t),
-            L_FCT[0](t - dt),
-            L_FCT[1](t - dt),
-        )
-
-        Vsup, Vinf = (L - Lo) / dt, (Linf - Loinf) / dt
-        Global_variables.Bound_Params = [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
-
-        Global_variables.Vflipinfo = [
-            [
-                [[] for ni in range(maxnumbpart + 1)],
-                [[] for ni in range(maxnumbanti + 1)],
-            ]
-            for maxnumbpart, maxnumbanti in Global_variables.MaxIDperPtype
-        ]
+        L, Linf = Update_L_Lmin(t)
+        Global_variables.Bound_Params = Update_Bound_Params(L, Linf, t)
+        Global_variables.Vflipinfo = RESET_Vflipinfo(Global_variables.MaxIDperPtype)
 
         SYST = []
 
@@ -135,8 +143,6 @@ def main(T, Repr_type, File_path_name=None):
             dtype=dtype,
         )
         Xf.sort(order="Pos")
-
-        # [Xfin,p,id,Xinter,V,t_list,NZ]
 
         DO_TYPE_PARTorANTI = np.array([elem[1][0] for elem in DOINFOLIST])
         DO_TYPE_CHARGE = np.array([elem[1][1] for elem in DOINFOLIST])
@@ -471,13 +477,7 @@ def main(T, Repr_type, File_path_name=None):
                     break
 
         # Update the densities of particles
-        if DIM_Numb == 1:
-            Vol = L[0] - Linf[0]
-        else:
-            Vol = np.prod(L - Linf)
-        for p in range(len(Global_variables.SYSTEM)):
-            Dens[p][0].append(Global_variables.Ntot[p][0] / Vol)
-            Dens[p][1].append(Global_variables.Ntot[p][1] / Vol)
+        Dens = Update_Density(Dens, L, Linf)
 
         # SYST=[]
         # for PartTypegroup in Global_variables.SYSTEM:

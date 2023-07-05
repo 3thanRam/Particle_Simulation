@@ -50,7 +50,7 @@ def fct_fit2(to, ko):
     return RES
 
 
-def Denfct(DIM_Numb0, Density, Trange, ax, PARTICLE_DICT0):
+def DENS_FCT(DIM_Numb0, Density, Trange, ax, PARTICLE_DICT0):
     """
     Plots the particle densities in a DIM_Numb-dimensional box as a function of time.
 
