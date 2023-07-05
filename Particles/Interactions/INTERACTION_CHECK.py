@@ -151,7 +151,7 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
         Dist_min = (
             PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"] ** 2
             + PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"] ** 2
-        ) ** 2
+        ) ** 0.5
         tmini = MINIMISE(difA, difB, t, SA, SB, Dist_min)
 
         # Calculate the minimum distance D between the lines at the intersection point

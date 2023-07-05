@@ -189,18 +189,23 @@ def main(T, Repr_type, File_path_name=None):
         Param_ID_TYPE = []
         Param_endtype = []
 
+        PARAMS = [
+            Param_INTERPOS,
+            Param_POS,
+            Param_Velocity,
+            Param_Time,
+            Param_ID_TYPE,
+            Param_endtype,
+        ]
         for (
             chg
         ) in (
             CHANGES
         ):  #  particles of index between ini and end could interact with the particle
             CHGind.append([])
-            Param_INTERPOS.append([])
-            Param_POS.append([])
-            Param_Velocity.append([])
-            Param_Time.append([])
-            Param_ID_TYPE.append([])
-            Param_endtype.append([])
+            for parametr in PARAMS:
+                parametr.append([])
+
             for d in range(DIM_Numb):
                 matchval = np.where(
                     (Xi[d]["index"][chg] == Xf[d]["index"])
@@ -264,21 +269,20 @@ def main(T, Repr_type, File_path_name=None):
                         or COUNTFCT(Param_ID_TYPE[-1], [ID, TYPE0, TYPE1], 1) == 0
                     ):
                         CHGind[-1].append(elem_ind)
-                        Param_INTERPOS[-1].append(InterPos)
-                        Param_POS[-1].append(POSLIST)
-                        Param_Velocity[-1].append(Velocity)
-                        Param_Time[-1].append(TimeParams)
-                        Param_ID_TYPE[-1].append(np.array([ID, TYPE0, TYPE1]))
-                        Param_endtype[-1].append(Endtype)
-
+                        ADD_params = [
+                            InterPos,
+                            POSLIST,
+                            Velocity,
+                            TimeParams,
+                            np.array([ID, TYPE0, TYPE1]),
+                            Endtype,
+                        ]
+                        for param_numb, parametr in enumerate(PARAMS):
+                            parametr[-1].append(ADD_params[param_numb])
             if len(Param_INTERPOS[-1]) == 0:
+                for parametr in PARAMS:
+                    parametr.remove([])
                 CHGind.remove([])
-                Param_INTERPOS.remove([])
-                Param_POS.remove([])
-                Param_Velocity.remove([])
-                Param_Time.remove([])
-                Param_ID_TYPE.remove([])
-                Param_endtype.remove([])
 
         # if part interact with bounds then they interact with particles differently than those above
         if BOUNDARY_COND == 1:
@@ -308,13 +312,9 @@ def main(T, Repr_type, File_path_name=None):
 
         for Bcheck in BOUNDARYCHECKS:
             if len(Bcheck) > 0:
+                for parametr in PARAMS:
+                    parametr.append([])
                 CHGind.append([])
-                Param_INTERPOS.append([])
-                Param_POS.append([])
-                Param_Velocity.append([])
-                Param_Time.append([])
-                Param_ID_TYPE.append([])
-                Param_endtype.append([])
                 for PART_B_inf_index in Bcheck:
                     for d in range(DIM_Numb):
                         elem_ind = np.where(
@@ -354,23 +354,18 @@ def main(T, Repr_type, File_path_name=None):
                                 & (END_TYPE_CHARGE[d2] == TYPE1)
                             )[0][0]
                             POSLIST[d2] = Xf[d2]["Pos"][posind2]
+                        ADD_params = [
+                            InterPos,
+                            POSLIST,
+                            Velocity,
+                            TimeParams,
+                            np.array([ID, TYPE0, TYPE1]),
+                            Endtype,
+                        ]
+                        for param_numb, parametr in enumerate(PARAMS):
+                            parametr[-1].append(ADD_params[param_numb])
                         CHGind[-1].append(elem_ind)
-                        Param_INTERPOS[-1].append(InterPos)
-                        Param_POS[-1].append(POSLIST)
-                        Param_Velocity[-1].append(Velocity)
-                        Param_Time[-1].append(TimeParams)
-                        Param_ID_TYPE[-1].append(np.array([ID, TYPE0, TYPE1]))
-                        Param_endtype[-1].append(Endtype)
         REMOVELIST = []
-
-        PARAMS = [
-            Param_INTERPOS,
-            Param_POS,
-            Param_Velocity,
-            Param_Time,
-            Param_ID_TYPE,
-            Param_endtype,
-        ]
 
         for I1, I2 in combinations(range(len(Param_ID_TYPE)), 2):
             if I1 in REMOVELIST or I2 in REMOVELIST:

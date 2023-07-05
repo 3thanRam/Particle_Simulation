@@ -19,7 +19,14 @@ from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
 from Misc.Position_Fcts import GEN_X, in_all_bounds
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 
-GEN_V = UNIFORM
+V_fct = UNIFORM
+
+
+def GEN_V():
+    v = V_fct()
+    while np.linalg.norm(v) > C_speed:
+        v = V_fct()
+    return v
 
 
 def Gamma(vect):
@@ -85,10 +92,8 @@ class Particle:
         self.M = PARTICLE_DICT[self.name]["mass"]
         self.Strong_Charge = PARTICLE_DICT[self.name]["Strong_Charge"]
         self.Size = PARTICLE_DICT[self.name]["size"] / 2
-        if self.Strong_Charge != 0:
-            if not self.Colour_Charge or self.Colour_Charge == 0:
-                print("Error:Colour_Charge of quark ill defined at creation ")
-                print(5 / 0)
+        if self.Strong_Charge != 0 and (not self.Colour_Charge):
+            raise ValueError("Colour_Charge of quark ill defined at creation")
 
         partORanti, typeIndex = self.parity
         id = self.ID
@@ -99,9 +104,10 @@ class Particle:
                 X = GEN_X(self.Size)
             else:
                 X = self.ExtraParams[1] * (1 + 0.01 * rng.uniform(-1, 1))
-            Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
             V, P = Velocity_Momentum(self.M)
             E = Energy_Calc(P, self.M)
+
+            Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
         elif (
             self.ExtraParams[0] == "Post_Interaction"
             or self.ExtraParams[0] == "Spont_Create"
@@ -115,7 +121,7 @@ class Particle:
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def DO(self, t):
-        xi = self.X.copy()
+        xi = self.X
         Vt = self.V.copy()
         if self.name != "photon":
             Vt += (
