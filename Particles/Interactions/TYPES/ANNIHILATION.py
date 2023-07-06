@@ -7,6 +7,7 @@ rng = np.random.default_rng()
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
+from Particles.SystemClass import SYSTEM
 
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
@@ -40,7 +41,6 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
-    from Particles.SystemClass import SYSTEM
 
     partORAnti1 = p1[0]
     partORAnti2 = p2[0]
@@ -77,13 +77,6 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         Etot += SYSTEM.Get_Energy_velocity_Remove_particle(pindex, partORAnti, kill_id)[
             0
         ]
-        """for s in range(len(Global_variables.SYSTEM[pindex][partORAnti])):
-            if Global_variables.SYSTEM[pindex][partORAnti][s].ID == kill_id:
-                Etot += Global_variables.SYSTEM[pindex][partORAnti][s].Energy
-                Global_variables.SYSTEM[pindex][partORAnti].remove(
-                    Global_variables.SYSTEM[pindex][partORAnti][s]
-                )
-                break"""
 
     # create photons
     if z1 != 0:
@@ -122,15 +115,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         Crindex = typeindex
 
         SYSTEM.Add_Particle(Crindex, partoranti, Create_particle_param)
-        """Global_variables.SYSTEM[Crindex][partoranti].append(
-            Particle(
-                name="photon",
-                parity=(0, 13),
-                ID=Cr_id,
-                ExtraParams=Create_particle_param,
-                Colour_Charge=COLOUR,
-            )
-        )"""
+
         D = SYSTEM.Particles_List[-1].DO(t)
         New_Xend, New_p, New_id, New_Xinter, New_V, New_Tpara, New_end = D
         if New_end == 0:

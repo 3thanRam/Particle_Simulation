@@ -1,12 +1,13 @@
 import numpy as np
 
 rng = np.random.default_rng()
-from itertools import product, permutations
-from collections import Counter
+# from itertools import product, permutations
+# from collections import Counter
 
 from Particles.Dictionary import PARTICLE_DICT
-from Particles.ParticleClass import Particle
+
 from Particles.Global_Variables import Global_variables
+from Particles.SystemClass import SYSTEM
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 
@@ -70,8 +71,6 @@ k_strong = 5 / ((L_strong_cutoff - LO_strg))
 
 
 def STRONG_FORCE_GROUP(TotnumbAllpart):
-    from Particles.SystemClass import SYSTEM
-
     dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
     Xarray = np.array(
         [
@@ -224,8 +223,6 @@ def SpontaneousEvents(t):
 
     RemoveTypeInd = PARTICLE_DICT["photon"]["index"]
 
-    from Particles.SystemClass import SYSTEM
-
     PHOTON_LIST = [part for part in SYSTEM.Particles_List if part.name == "photon"]
 
     PHOTON_ID_LIST = [photon.ID for photon in PHOTON_LIST]
@@ -295,7 +292,6 @@ def SpontaneousEvents(t):
         CREATEPARAMS = [CREATEparam1, CREATEparam2]
         # remove photon
         SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
-        # Global_variables.SYSTEM[RemoveTypeInd][0].pop(killind)
         Global_variables.Ntot[RemoveTypeInd][0] -= 1
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
@@ -307,16 +303,7 @@ def SpontaneousEvents(t):
 
         for i in range(2):
             SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
-            """Global_variables.SYSTEM[Typeindex][i].append(
-                Particle(
-                    name=NewpartName,
-                    parity=(i, Typeindex),
-                    ID=idi,
-                    ExtraParams=CREATEPARAMS[i],
-                    Colour_Charge=COLOUR[i],
-                )
-            )"""
-            # SYSTEM.TRACKING[Typeindex][i][idi].insert(0, [t, PosCenter])
+
     ##############
     # STRONG FORCE#
     ##############

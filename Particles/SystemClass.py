@@ -8,11 +8,25 @@ PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
 from Particles.Global_Variables import Global_variables
 from Particles.ParticleClass import Particle
+from Misc.Functions import COUNTFCT
 
 DIM_Numb = Global_variables.DIM_Numb
 Vmax = Global_variables.Vmax
+BOUNDARY_COND = Global_variables.BOUNDARY_COND
+Linf = Global_variables.Linf
+L = Global_variables.L
+dt = Global_variables.dt
+
+from itertools import combinations
+
+from operator import itemgetter
+
+distmax = 1.5 * Vmax * dt
+
+get2 = itemgetter(3, 4, 5, 6)
+
 POSCENTER = np.array([1 for d in range(DIM_Numb)])
-from ENVIRONMENT.FIELDS import Gen_Field
+
 
 SYSTEM = []
 
@@ -97,15 +111,8 @@ class SYSTEM_CLASS:
                 self.Particles_List[p_numb].Energy += E_add
                 Vboost = V_add * E_add / (np.linalg.norm(Vmax) * particle.M)
                 self.Particles_List[p_numb].V += Vboost
-                # E, V = particle.Energy, particle.V
-                # self.Particles_List.pop(p_numb)
-                # return [E, V]
+                break
 
-    # Global_variables.SYSTEM[p2index][partORAnti2][s].Energy += Etot
-    # Vboost = (vect_direct* Etot/ (np.linalg.norm(Vmax)* Global_variables.SYSTEM[p2index][partORAnti2][s].M))
-    # Global_variables.SYSTEM[p2index][partORAnti2][s].V += Vboost
-    # def __getitem__(self, index, PartOrAnti):
-    #    return self.Particles_List[index][PartOrAnti]
     def Get_Particle(self, index, PartOrAnti, ID):
         for p_numb, particle in enumerate(self.Particles_List):
             if (
@@ -119,6 +126,8 @@ class SYSTEM_CLASS:
         return np.array([particle.M for particle in self.Particles_List])
 
     def Get_XI(self):
+        from ENVIRONMENT.FIELDS import Gen_Field
+
         Xi = np.array(
             [
                 [
@@ -162,6 +171,289 @@ class SYSTEM_CLASS:
         )
         Xf.sort(order="Pos")
         self.Xf = Xf
+
+    def PREPARE_PARAMS(self):
+        DOINFOLIST = self.DOINFOLIST
+        DO_TYPE_PARTorANTI = self.DO_TYPE_PARTorANTI
+        DO_TYPE_CHARGE = self.DO_TYPE_CHARGE
+        DO_INDEX = self.DO_INDEX
+        Xi = self.Xi
+        Xf = self.Xf
+
+        INI_TYPE_PARTorANTI = [
+            np.array([elem[1] for elem in Xi[d]]) for d in range(DIM_Numb)
+        ]
+        INI_TYPE_CHARGE = [
+            np.array([elem[2] for elem in Xi[d]]) for d in range(DIM_Numb)
+        ]
+
+        END_TYPE_PARTorANTI = [
+            np.array([elem[1] for elem in Xf[d]]) for d in range(DIM_Numb)
+        ]
+        END_TYPE_CHARGE = [
+            np.array([elem[2] for elem in Xf[d]]) for d in range(DIM_Numb)
+        ]
+
+        CHANGESdim = [
+            np.where(
+                (Xi[d]["index"] != Xf[d]["index"])
+                | (INI_TYPE_PARTorANTI[d] != END_TYPE_PARTorANTI[d])
+                | (INI_TYPE_CHARGE[d] != END_TYPE_CHARGE[d])
+            )
+            for d in range(DIM_Numb)
+        ]
+        if DIM_Numb == 1:
+            CHANGES = CHANGESdim[0][0]
+        elif DIM_Numb == 2:
+            CHANGES = np.intersect1d(*CHANGESdim)
+        elif DIM_Numb == 3:
+            CHANGES = np.intersect1d(
+                np.intersect1d(CHANGESdim[0], CHANGESdim[1]), CHANGESdim[2]
+            )
+
+        CHGind = []  # index in Xi/Xf
+
+        # particle involved in interactions parameters
+        Param_INTERPOS = []
+        Param_POS = []
+        Param_Velocity = []
+        Param_Time = []
+        Param_ID_TYPE = []
+        Param_endtype = []
+
+        PARAMS = [
+            Param_INTERPOS,
+            Param_POS,
+            Param_Velocity,
+            Param_Time,
+            Param_ID_TYPE,
+            Param_endtype,
+        ]
+        for (
+            chg
+        ) in (
+            CHANGES
+        ):  #  particles of index between ini and end could interact with the particle
+            CHGind.append([])
+            for parametr in PARAMS:
+                parametr.append([])
+
+            for d in range(DIM_Numb):
+                matchval = np.where(
+                    (Xi[d]["index"][chg] == Xf[d]["index"])
+                    & (INI_TYPE_PARTorANTI[d][chg] == END_TYPE_PARTorANTI[d])
+                    & (INI_TYPE_CHARGE[d][chg] == END_TYPE_CHARGE[d])
+                )[0][0]
+
+                Xa, Xb = Xf[d]["Pos"][matchval], Xi[d]["Pos"][chg]
+                if abs(Xa - Xb) <= distmax[d]:
+                    mini = min(chg, matchval)
+                    maxi = max(chg, matchval) + 1
+                else:
+                    # fast particles could "skip" the intermediate zone and not be seen
+                    # we need to extend the range to account for this
+                    Xinf = np.min((Xa, Xb))
+                    Xsup = np.max((Xa, Xb))
+
+                    Inflist = np.where(
+                        (Xf[d]["Pos"] <= Xinf) & (Xf[d]["Pos"] >= Xsup - distmax[d])
+                    )[0]
+                    Suplist = np.where(
+                        (Xf[d]["Pos"] >= Xsup) & (Xf[d]["Pos"] <= Xinf + distmax[d])
+                    )[0]
+                    if Suplist.size == 0:
+                        maxi = max(chg, matchval) + 1
+                    else:
+                        maxi = Suplist[Xf[d]["Pos"][Suplist].argmax()] + 2
+                    if Inflist.size == 0:
+                        mini = min(chg, matchval)
+                    else:
+                        mini = Inflist[Xf[d]["Pos"][Inflist].argmin()] - 1
+
+                for elem_ind in range(mini, maxi):
+                    doindex = np.where(
+                        (DO_INDEX == Xf[d]["index"][elem_ind])
+                        & (DO_TYPE_PARTorANTI == Xf[d]["TypeID0"][elem_ind])
+                        & (DO_TYPE_CHARGE == Xf[d]["TypeID1"][elem_ind])
+                    )[0][0]
+
+                    InterPos, Velocity, TimeParams, Endtype = get2(DOINFOLIST[doindex])
+                    POS, TYPE0, TYPE1, ID = (
+                        Xf[d]["Pos"][elem_ind],
+                        Xf[d]["TypeID0"][elem_ind],
+                        Xf[d]["TypeID1"][elem_ind],
+                        Xf[d]["index"][elem_ind],
+                    )
+                    POSLIST = [[] for d in range(DIM_Numb)]
+                    POSLIST[d] = POS
+                    for d2 in range(1, DIM_Numb):
+                        d2 += d
+                        if d2 >= DIM_Numb:
+                            d2 -= DIM_Numb
+                        posind2 = np.where(
+                            (Xf[d2]["index"] == ID)
+                            & (Xf[d2]["TypeID0"] == TYPE0)
+                            & (Xf[d2]["TypeID1"] == TYPE1)
+                        )[0][0]
+                        POSLIST[d2] = Xf[d2]["Pos"][posind2]
+                    if (
+                        CHGind[-1] == []
+                        or COUNTFCT(Param_ID_TYPE[-1], [ID, TYPE0, TYPE1], 1) == 0
+                    ):
+                        CHGind[-1].append(elem_ind)
+                        ADD_params = [
+                            InterPos,
+                            POSLIST,
+                            Velocity,
+                            TimeParams,
+                            np.array([ID, TYPE0, TYPE1]),
+                            Endtype,
+                        ]
+                        for param_numb, parametr in enumerate(PARAMS):
+                            parametr[-1].append(ADD_params[param_numb])
+            if len(Param_INTERPOS[-1]) == 0:
+                for parametr in PARAMS:
+                    parametr.remove([])
+                CHGind.remove([])
+
+        # if part interact with bounds then they interact with particles differently than those above
+        if BOUNDARY_COND == 1:
+            BOUNDARYCHECKS = [
+                np.where(
+                    (
+                        Xi[:]["Pos"] < (Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
+                    ).any(axis=0)
+                )[0],
+                np.where(
+                    (Xi[:]["Pos"] > (L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)).any(
+                        axis=0
+                    )
+                )[0],
+            ]
+        else:
+            BOUNDARYCHECKS = [
+                np.where(
+                    (Xi["Pos"] < (Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)).any(
+                        axis=0
+                    )
+                    | (Xi["Pos"] > (L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)).any(
+                        axis=0
+                    )
+                )[0]
+            ]
+
+        for Bcheck in BOUNDARYCHECKS:
+            if len(Bcheck) > 0:
+                for parametr in PARAMS:
+                    parametr.append([])
+                CHGind.append([])
+                for PART_B_inf_index in Bcheck:
+                    for d in range(DIM_Numb):
+                        elem_ind = np.where(
+                            (Xf[d]["index"] == Xi[d]["index"][PART_B_inf_index])
+                            & (
+                                Xi[d]["TypeID0"][PART_B_inf_index]
+                                == END_TYPE_PARTorANTI[d]
+                            )
+                            & (Xi[d]["TypeID1"][PART_B_inf_index] == END_TYPE_CHARGE[d])
+                        )[0][0]
+                        doindex = np.where(
+                            (DO_INDEX == Xf[d]["index"][elem_ind])
+                            & (DO_TYPE_PARTorANTI == Xf[d]["TypeID0"][elem_ind])
+                            & (DO_TYPE_CHARGE == Xf[d]["TypeID1"][elem_ind])
+                        )[0][0]
+                        InterPos, Velocity, TimeParams, Endtype = get2(
+                            DOINFOLIST[doindex]
+                        )
+                        POS, TYPE0, TYPE1, ID = (
+                            Xf[d]["Pos"][elem_ind],
+                            Xf[d]["TypeID0"][elem_ind],
+                            Xf[d]["TypeID1"][elem_ind],
+                            Xf[d]["index"][elem_ind],
+                        )
+
+                        POSLIST = [[] for d in range(DIM_Numb)]
+                        POSLIST[d] = POS
+
+                        for d2 in range(1, DIM_Numb):
+                            d2 += d
+                            if d2 >= DIM_Numb:
+                                d2 -= DIM_Numb
+
+                            posind2 = np.where(
+                                (Xf[d2]["index"] == ID)
+                                & (END_TYPE_PARTorANTI[d2] == TYPE0)
+                                & (END_TYPE_CHARGE[d2] == TYPE1)
+                            )[0][0]
+                            POSLIST[d2] = Xf[d2]["Pos"][posind2]
+                        ADD_params = [
+                            InterPos,
+                            POSLIST,
+                            Velocity,
+                            TimeParams,
+                            np.array([ID, TYPE0, TYPE1]),
+                            Endtype,
+                        ]
+                        for param_numb, parametr in enumerate(PARAMS):
+                            parametr[-1].append(ADD_params[param_numb])
+                        CHGind[-1].append(elem_ind)
+        REMOVELIST = []
+
+        for I1, I2 in combinations(range(len(Param_ID_TYPE)), 2):
+            if I1 in REMOVELIST or I2 in REMOVELIST:
+                continue
+            indtypeGroup1, indtypeGroup2 = Param_ID_TYPE[I1], Param_ID_TYPE[I2]
+            A = np.array(indtypeGroup1)
+            B = np.array(indtypeGroup2)
+            nrows, ncols = A.shape
+            dtypeO = {
+                "names": ["f{}".format(i) for i in range(ncols)],
+                "formats": ncols * [A.dtype],
+            }
+
+            Overlap, inda, indb = np.intersect1d(
+                A.view(dtypeO), B.view(dtypeO), return_indices=True
+            )
+            Osize = Overlap.shape[0]
+            if Osize != 0:
+                A_s = A.shape[0]
+                B_s = B.shape[0]
+
+                if Osize == B_s:
+                    REMOVELIST.append(I2)
+                elif Osize == A_s:
+                    REMOVELIST.append(I1)
+                elif Osize >= 0.9 * B_s:
+                    RANGE = list(np.arange(B_s))
+                    indNotb = [indN for indN in RANGE if indN not in indb]
+                    getB = itemgetter(*indNotb)
+                    for parametr in PARAMS:
+                        if len(indNotb) > 1:
+                            parametr[I1].extend(getB(parametr[I2]))
+                        else:
+                            parametr[I1].append(getB(parametr[I2]))
+                    REMOVELIST.append(I2)
+                elif Osize >= 0.3 * A_s:
+                    RANGE = list(np.arange(A_s))
+                    indNota = [indN for indN in RANGE if indN not in inda]
+                    getA = itemgetter(*indNota)
+                    for parametr in PARAMS:
+                        if len(indNota) > 1:
+                            parametr[I2].extend(getA(parametr[I1]))
+                        else:
+                            parametr[I2].append(getA(parametr[I1]))
+                    REMOVELIST.append(I1)
+
+        REMOVELIST.sort(
+            reverse=True
+        )  # removing top to bottom to avoid index changes after each removal
+
+        for removeind in REMOVELIST:
+            for parametr in PARAMS:
+                parametr.pop(removeind)
+        Global_variables.DOINFOLIST = DOINFOLIST
+
+        return PARAMS
 
 
 def init():

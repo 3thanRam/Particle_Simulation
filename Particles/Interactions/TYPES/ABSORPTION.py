@@ -3,10 +3,8 @@ import vg
 
 rng = np.random.default_rng()
 
-from Particles.Dictionary import PARTICLE_DICT
-from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
-
+from Particles.SystemClass import SYSTEM
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -69,39 +67,13 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
 
     p1index = p1[1]
     p2index = p2[1]
-    # p1index=TYPE_to_index_Dict[p1[1]]
-    # p2index=TYPE_to_index_Dict[p2[1]]
 
     # Remove the particles involved in the collision from their respective particle lists
-    from Particles.SystemClass import SYSTEM
 
     Etot, Vpart = SYSTEM.Get_Energy_velocity_Remove_particle(p1index, partORAnti1, id1)
     vect_direct = Vpart / np.linalg.norm(Vpart)
-    """for s in range(len(Global_variables.SYSTEM[p1index][partORAnti1])):
-        if Global_variables.SYSTEM[p1index][partORAnti1][s].ID == id1:
-            Etot += Global_variables.SYSTEM[p1index][partORAnti1][s].Energy
-            Vpart = Global_variables.SYSTEM[p1index][partORAnti1][s].V
-            Global_variables.SYSTEM[p1index][partORAnti1].remove(
-                Global_variables.SYSTEM[p1index][partORAnti1][s]
-            )
-            vect_direct = Vpart / np.linalg.norm(Vpart)
-            break"""
 
     SYSTEM.Change_Particle_Energy_velocity(p2index, partORAnti2, id2, Etot, vect_direct)
-
-    """for s in range(len(Global_variables.SYSTEM[p2index][partORAnti2])):
-        if Global_variables.SYSTEM[p2index][partORAnti2][s].ID == id2:
-            Global_variables.SYSTEM[p2index][partORAnti2][s].Energy += Etot
-            Vboost = (
-                vect_direct
-                * Etot
-                / (
-                    np.linalg.norm(Vmax)
-                    * Global_variables.SYSTEM[p2index][partORAnti2][s].M
-                )
-            )
-            Global_variables.SYSTEM[p2index][partORAnti2][s].V += Vboost
-            break"""
 
     NewFO = [list(F[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
