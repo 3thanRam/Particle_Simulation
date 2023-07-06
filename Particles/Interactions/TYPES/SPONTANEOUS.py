@@ -69,11 +69,13 @@ k_strong = 5 / ((L_strong_cutoff - LO_strg))
 # k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
 
 
-def STRONG_FORCE_GROUP(SystemList, TotnumbAllpart):
+def STRONG_FORCE_GROUP(TotnumbAllpart):
+    from Particles.SystemClass import SYSTEM
+
     dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
     Xarray = np.array(
         [
-            [(s.X[d], s.parity[0], s.parity[1], s.ID) for s in SystemList]
+            [(s.X[d], s.parity[0], s.parity[1], s.ID) for s in SYSTEM.Particles_List]
             for d in range(DIM_Numb)
         ],
         dtype=dtype,
@@ -83,8 +85,8 @@ def STRONG_FORCE_GROUP(SystemList, TotnumbAllpart):
     )
     DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
     distances = np.linalg.norm(DELTA, axis=-1)
-    strong_charge_matrix = np.array([s.Strong_Charge for s in SystemList])
-    vel_matrix = np.array([np.linalg.norm(s.V) for s in SystemList])
+    strong_charge_matrix = np.array([s.Strong_Charge for s in SYSTEM.Particles_List])
+    vel_matrix = np.array([np.linalg.norm(s.V) for s in SYSTEM.Particles_List])
     BIG_vel_matrix = np.outer(vel_matrix, vel_matrix)
 
     Strong_DIST = np.where(
@@ -221,9 +223,14 @@ def SpontaneousEvents(t):
     ]
 
     RemoveTypeInd = PARTICLE_DICT["photon"]["index"]
-    Energy_List = np.array(
-        [photon.Energy for photon in Global_variables.SYSTEM[RemoveTypeInd][0]]
-    )
+
+    from Particles.SystemClass import SYSTEM
+
+    PHOTON_LIST = [part for part in SYSTEM.Particles_List if part.name == "photon"]
+
+    PHOTON_ID_LIST = [photon.ID for photon in PHOTON_LIST]
+    Energy_List = np.array([photon.Energy for photon in PHOTON_LIST])
+
     Energy_List_CUT = np.where(Energy_List > Emax, Emax, Energy_List)
     GEN_INFO = []
     GEN_INFO_search = []
@@ -249,7 +256,9 @@ def SpontaneousEvents(t):
     for nameind, killind in GEN_INFO:
         NewpartName = PARTICLE_SPONT_NAMES[nameind]  #'electron'
 
-        PosCenter = Global_variables.SYSTEM[RemoveTypeInd][0][killind].X
+        # PosCenter = Global_variables.SYSTEM[RemoveTypeInd][0][killind].X
+        Particle_Kill = SYSTEM.Get_Particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+        PosCenter = Particle_Kill.X
         Global_variables.COLPTS.append([t, PosCenter, 4])
 
         Posdeviation = min(
@@ -260,7 +269,7 @@ def SpontaneousEvents(t):
         PosParam2 = PosCenter + Posdeviation
 
         Energyval = Energy_List[killind] / 2
-        Vparam = Global_variables.SYSTEM[RemoveTypeInd][0][killind].V
+        Vparam = Particle_Kill.V
 
         photDirection = Vparam / np.linalg.norm(Vparam)
         NEWMASS = PARTICLE_DICT[NewpartName]["mass"]
@@ -285,7 +294,8 @@ def SpontaneousEvents(t):
         CREATEparam2 = "Spont_Create", PosParam2, VParam2, t, Energyval
         CREATEPARAMS = [CREATEparam1, CREATEparam2]
         # remove photon
-        Global_variables.SYSTEM[RemoveTypeInd][0].pop(killind)
+        SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+        # Global_variables.SYSTEM[RemoveTypeInd][0].pop(killind)
         Global_variables.Ntot[RemoveTypeInd][0] -= 1
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
@@ -296,10 +306,8 @@ def SpontaneousEvents(t):
             COLOUR = [None, None]
 
         for i in range(2):
-            Global_variables.MaxIDperPtype[Typeindex][i] += 1
-            Global_variables.Ntot[Typeindex][i] += 1
-            idi = Global_variables.MaxIDperPtype[Typeindex][i]
-            Global_variables.SYSTEM[Typeindex][i].append(
+            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+            """Global_variables.SYSTEM[Typeindex][i].append(
                 Particle(
                     name=NewpartName,
                     parity=(i, Typeindex),
@@ -307,8 +315,8 @@ def SpontaneousEvents(t):
                     ExtraParams=CREATEPARAMS[i],
                     Colour_Charge=COLOUR[i],
                 )
-            )
-            Global_variables.TRACKING[Typeindex][i][idi].insert(0, [t, PosCenter])
+            )"""
+            # SYSTEM.TRACKING[Typeindex][i][idi].insert(0, [t, PosCenter])
     ##############
     # STRONG FORCE#
     ##############
@@ -327,21 +335,13 @@ def SpontaneousEvents(t):
         for partName in QUARK_SPONT_NAMES
     ]
 
-    #                   #
-    SystemList = []
-    SYST = Global_variables.SYSTEM
-    TotnumbAllpart, Quark_Numb = 0, 0
-    for S_ind in range(Numb_of_TYPES):
-        SystemList += SYST[S_ind][0] + SYST[S_ind][1]
-        TotnumbAllpart += len(SYST[S_ind][0]) + len(SYST[S_ind][1])
-        if S_ind in Quark_ind_LIST:
-            Quark_Numb += len(SYST[S_ind][0]) + len(SYST[S_ind][1])
-
+    Quark_Numb = SYSTEM.Quarks_Numb
+    TotnumbAllpart = SYSTEM.Tot_Numb
     if Quark_Numb == 0:
         Global_variables.S_Force = np.zeros((TotnumbAllpart, TotnumbAllpart))
         return 0
 
-    STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(SystemList, TotnumbAllpart)
+    STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(TotnumbAllpart)
 
     SPRING_ENERGY = np.abs(STRONG_FORCE * BIG_vel_matrix * dt)
 
@@ -380,16 +380,16 @@ def SpontaneousEvents(t):
         NewpartName = QUARK_SPONT_NAMES[nameind]  # eg 'electron'
 
         parity1, id1, X1 = (
-            SystemList[ParentSystindex1].parity,
-            SystemList[ParentSystindex1].ID,
-            np.array(SystemList[ParentSystindex1].X),
+            SYSTEM.Particles_List[ParentSystindex1].parity,
+            SYSTEM.Particles_List[ParentSystindex1].ID,
+            np.array(SYSTEM.Particles_List[ParentSystindex1].X),
         )
         PartOrAnti1, ind1 = parity1
 
         parity2, id2, X2 = (
-            SystemList[ParentSystindex2].parity,
-            SystemList[ParentSystindex2].ID,
-            np.array(SystemList[ParentSystindex2].X),
+            SYSTEM.Particles_List[ParentSystindex2].parity,
+            SYSTEM.Particles_List[ParentSystindex2].ID,
+            np.array(SYSTEM.Particles_List[ParentSystindex2].X),
         )
         PartOrAnti2, ind2 = parity2
 
@@ -420,25 +420,7 @@ def SpontaneousEvents(t):
         CREATEPARAMS = [CREATEparam1, CREATEparam2]
 
         print("Strong Energy added", Energyval * 2)
-        if PARTICLE_DICT[NewpartName]["Strong_Charge"] != 0:
-            COLOUR = [[1, 0, 0], [-1, 0, 0]]
-        else:
-            COLOUR = [None, None]
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
         for i in range(2):
-            Global_variables.MaxIDperPtype[Typeindex][i] += 1
-            Global_variables.Ntot[Typeindex][i] += 1
-            idi = Global_variables.MaxIDperPtype[Typeindex][i]
-            Global_variables.SYSTEM[Typeindex][i].append(
-                Particle(
-                    name=NewpartName,
-                    parity=(i, Typeindex),
-                    ID=idi,
-                    ExtraParams=CREATEPARAMS[i],
-                    Colour_Charge=COLOUR[i],
-                )
-            )
-            Global_variables.TRACKING[Typeindex][i][idi].insert(
-                0, [t, CREATEPARAMS[i][1]]
-            )
+            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])

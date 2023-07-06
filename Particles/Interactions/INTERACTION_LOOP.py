@@ -3,9 +3,31 @@ from itertools import combinations
 
 from Particles.Global_Variables import Global_variables
 
-INTERCHECK = Global_variables.INTERCHECK
-BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
+# INTERCHECK = Global_variables.INTERCHECK
+
+# BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
+
+if Global_variables.DIM_Numb == 1:
+    from Particles.Interactions.INTERACTION_CHECK import INTERCHECK_1D
+
+    INTERCHECK = INTERCHECK_1D
+    # Global_variables.INTERCHECK = INTERCHECK_1D
+else:
+    from Particles.Interactions.INTERACTION_CHECK import INTERCHECK_ND
+
+    INTERCHECK = INTERCHECK_ND
+    # Global_variables.INTERCHECK = INTERCHECK_ND
+if BOUNDARY_COND == 0:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+
+    BOUNDARY_FCT = BOUNDARY_FCT_PER
+    # Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_PER
+else:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+
+    BOUNDARY_FCT = BOUNDARY_FCT_HARD
+    # Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_HARD
 
 from Particles.Interactions.INTERACTION_DEF import COLTYPE
 from Particles.Interactions.TYPES.ANNIHILATION import ANNIHILATE
@@ -32,6 +54,8 @@ def GetCoefs(F, t):
         f(t) = a * t + b[0]         if ends==0
         f(t) = a * t + b[0] + ... + b[ends] * (t - ts[1]) * ... * (t - ts[ends]) if ends>0
     """
+    from Particles.SystemClass import SYSTEM
+
     COEFLIST = []
     (
         Param_INTERPOS,
@@ -70,9 +94,9 @@ def GetCoefs(F, t):
                     A = np.copy(a)
                     for r in range(ends[ind0]):
                         b.append(xinters[ind0][r][0] - A * float(ts[ind0][1 + r]))
-                        flipindex, flipvalue = Global_variables.Vflipinfo[
-                            id_type[ind0][2]
-                        ][id_type[ind0][1]][id_type[ind0][0]][r]
+                        flipindex, flipvalue = SYSTEM.Vflipinfo[id_type[ind0][2]][
+                            id_type[ind0][1]
+                        ][id_type[ind0][0]][r]
                         A[flipindex] = flipvalue
                     b.append(xfs[ind0] - A * float(ts[ind0][0]))
             COEFS.append(

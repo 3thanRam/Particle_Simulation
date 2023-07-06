@@ -40,9 +40,9 @@ class Global_var:
     DOINFOLIST: list = field(default_factory=list)
     COLPTS: list = field(default_factory=list)
 
-    TRACKING: list = field(init=False)
-    Vflipinfo: list = field(init=False)
-    MaxIDperPtype: list = field(init=False)
+    # TRACKING: list = field(init=False)
+    # Vflipinfo: list = field(init=False)
+    # MaxIDperPtype: list = field(init=False)
 
     Ntot: list = field(default_factory=list)
 
@@ -51,7 +51,7 @@ class Global_var:
 
     INTERCHECK: Callable = field(init=False)
     BOUNDARY_FCT: Callable = field(init=False)
-    SYSTEM: list = field(init=False)
+    # SYSTEM: list = field(init=False)
     S_Force: np.ndarray = field(init=False)
 
     def __post_init__(self):
@@ -78,16 +78,16 @@ class Global_var:
 
         self.Ntot = Ntot
 
-        self.TRACKING, self.Vflipinfo = [
+        """self.TRACKING, self.Vflipinfo = [
             [[[] for ni in range(numbpart)], [[] for ni in range(numbanti)]]
             for numbpart, numbanti in Ntot
         ], [
             [[[] for ni in range(numbpart)], [[] for ni in range(numbanti)]]
             for numbpart, numbanti in Ntot
-        ]
-        self.MaxIDperPtype = [
+        ]"""
+        """self.MaxIDperPtype = [
             [ntot_part - 1, ntot_anti - 1] for (ntot_part, ntot_anti) in Ntot
-        ]
+        ]"""
 
 
 def init(DIM_Numb, BOUNDARY_COND, L_FCT):
@@ -97,7 +97,7 @@ def init(DIM_Numb, BOUNDARY_COND, L_FCT):
     )
     # INTERCHECK & BOUNDARY_FCT & Particle need certain values to be already defined and raise an error if definded during class init
     # maybe in future create init functions for them that accept needed variables as input
-    if Global_variables.DIM_Numb == 1:
+    """if Global_variables.DIM_Numb == 1:
         from Particles.Interactions.INTERACTION_CHECK import INTERCHECK_1D
 
         Global_variables.INTERCHECK = INTERCHECK_1D
@@ -112,12 +112,12 @@ def init(DIM_Numb, BOUNDARY_COND, L_FCT):
     else:
         from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
 
-        Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_HARD
+        Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_HARD"""
 
+    """
     from Particles.ParticleClass import Particle
-
-    SYSTEM = [[[], []] for partype in range(Numb_of_TYPES)]
     Ntot = Global_variables.Ntot
+    SYSTEM = [[[], []] for partype in range(Numb_of_TYPES)]
     POSCENTER = np.array([1 for d in range(DIM_Numb)])
     for (
         index,
@@ -151,4 +151,4 @@ def init(DIM_Numb, BOUNDARY_COND, L_FCT):
                 )
                 for i in range(Nantipart)
             ]
-    Global_variables.SYSTEM = SYSTEM
+    Global_variables.SYSTEM = SYSTEM"""

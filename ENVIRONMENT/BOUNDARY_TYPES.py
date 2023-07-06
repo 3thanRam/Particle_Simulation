@@ -1,9 +1,6 @@
 import numpy as np
 
 
-from Particles.Global_Variables import Global_variables
-
-
 def SIGNFLIP(a, p, id, z):
     """
     Flip the signs of selected elements of the input array a, based on the indices provided in Vflipinfo[p][id][:z].
@@ -18,8 +15,10 @@ def SIGNFLIP(a, p, id, z):
     array-like: The modified input array, with the signs of the selected elements flipped.
 
     """
+    from Particles.SystemClass import SYSTEM
+
     for find in range(z - 1 + 1):
-        flipindex, flipvalue = Global_variables.Vflipinfo[p[1]][p[0]][id][find]
+        flipindex, flipvalue = SYSTEM.Vflipinfo[p[1]][p[0]][id][find]
         # flipindex,flipvalue=Vflipinfo[TYPE_to_index_Dict[p[1]]][p[0]][id][find]
         a[flipindex] = flipvalue
         # a[Vflipinfo[TYPE_to_index_Dict[p]][id][find]] *= -1

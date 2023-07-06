@@ -8,8 +8,17 @@ from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
 
 
-BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
+if BOUNDARY_COND == 0:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+
+    BOUNDARY_FCT = BOUNDARY_FCT_PER
+else:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+
+    BOUNDARY_FCT = BOUNDARY_FCT_HARD
+
+
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb
@@ -64,9 +73,11 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
     # p2index=TYPE_to_index_Dict[p2[1]]
 
     # Remove the particles involved in the collision from their respective particle lists
+    from Particles.SystemClass import SYSTEM
 
-    Etot = 0
-    for s in range(len(Global_variables.SYSTEM[p1index][partORAnti1])):
+    Etot, Vpart = SYSTEM.Get_Energy_velocity_Remove_particle(p1index, partORAnti1, id1)
+    vect_direct = Vpart / np.linalg.norm(Vpart)
+    """for s in range(len(Global_variables.SYSTEM[p1index][partORAnti1])):
         if Global_variables.SYSTEM[p1index][partORAnti1][s].ID == id1:
             Etot += Global_variables.SYSTEM[p1index][partORAnti1][s].Energy
             Vpart = Global_variables.SYSTEM[p1index][partORAnti1][s].V
@@ -74,9 +85,11 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
                 Global_variables.SYSTEM[p1index][partORAnti1][s]
             )
             vect_direct = Vpart / np.linalg.norm(Vpart)
-            break
+            break"""
 
-    for s in range(len(Global_variables.SYSTEM[p2index][partORAnti2])):
+    SYSTEM.Change_Particle_Energy_velocity(p2index, partORAnti2, id2, Etot, vect_direct)
+
+    """for s in range(len(Global_variables.SYSTEM[p2index][partORAnti2])):
         if Global_variables.SYSTEM[p2index][partORAnti2][s].ID == id2:
             Global_variables.SYSTEM[p2index][partORAnti2][s].Energy += Etot
             Vboost = (
@@ -88,7 +101,7 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
                 )
             )
             Global_variables.SYSTEM[p2index][partORAnti2][s].V += Vboost
-            break
+            break"""
 
     NewFO = [list(F[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
@@ -102,7 +115,7 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
     # If the particles have a history of collisions, update the tracking information
     if z1 > 0:
         for zi in range(z1):
-            Global_variables.TRACKING[p1index][partORAnti1][id1].extend(
+            SYSTEM.TRACKING[p1index][partORAnti1][id1].extend(
                 [
                     [Targs1[zi + 1], Xinter1[zi][0]],
                     ["T", "X"],
@@ -111,8 +124,8 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
             )
             Global_variables.ALL_TIME.extend(Targs1[1:])
 
-    Global_variables.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    Global_variables.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+    SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
+    SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
     Global_variables.ALL_TIME.append(ti)
 
     # Remove the information about the particles involved in the collision from the collision point list and decrement the total number of particles

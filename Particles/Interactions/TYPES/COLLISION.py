@@ -9,8 +9,15 @@ from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
 
 
-BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
+if BOUNDARY_COND == 0:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+
+    BOUNDARY_FCT = BOUNDARY_FCT_PER
+else:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+
+    BOUNDARY_FCT = BOUNDARY_FCT_HARD
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb

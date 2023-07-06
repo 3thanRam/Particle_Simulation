@@ -13,15 +13,15 @@ PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 from Display.Density import DENS_FCT
 
 
-def Update_Density(Dens, L, Linf):
+def Update_Density(Dens, L, Linf, Numb_Per_TYPE):
     Vol = 1
     if DIM_Numb == 1:
         Vol = L[0] - Linf[0]
     else:
         Vol = np.prod(L - Linf)
-    for p in range(len(Global_variables.SYSTEM)):
-        Dens[p][0].append(Global_variables.Ntot[p][0] / Vol)
-        Dens[p][1].append(Global_variables.Ntot[p][1] / Vol)
+    for p in range(len(Numb_Per_TYPE)):
+        Dens[p][0].append(Numb_Per_TYPE[p][0] / Vol)
+        Dens[p][1].append(Numb_Per_TYPE[p][1] / Vol)
     return Dens
 
 
@@ -62,10 +62,8 @@ def main(T, Repr_type, File_path_name=None):
     from Particles.Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
     from Particles.Interactions.INTERACTION_LOOP import Interaction_Loop_Check
 
-    from ENVIRONMENT.FIELDS import Gen_Field
     from Misc.Functions import COUNTFCT, ROUND
-
-    # Interaction_Loop_Check
+    from Particles.SystemClass import init
 
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
@@ -73,22 +71,28 @@ def main(T, Repr_type, File_path_name=None):
     Dens = [[[], []] for num in range(Numb_of_TYPES)]
     L, Linf = Update_L_Lmin(0)
 
-    Dens = Update_Density(Dens, L, Linf)
-
     Dper = 0
     if Repr_type == 0 or Repr_type == 1:
         print("Generating Points")
         print(Dper, "%", end="\r")
 
     # Simulation loop
-
     ################
-    dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
-    get = itemgetter(1, 2)
     get2 = itemgetter(3, 4, 5, 6)
+    init()
+    from Particles.SystemClass import SYSTEM
+
+    for (
+        index,
+        (Npart, Nantipart),
+    ) in enumerate(Global_variables.Ntot):
+        for Np in range(Npart):
+            SYSTEM.Add_Particle(index, 0)
+        for Na in range(Nantipart):
+            SYSTEM.Add_Particle(index, 1)
 
     SpontaneousEvents(0)
-
+    Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
     for ti in range(1, T):
         perc = int(100 * ti / T)
         if perc > Dper and Repr_type == 0 or Repr_type == 1:  # and perc%5==0
@@ -98,55 +102,19 @@ def main(T, Repr_type, File_path_name=None):
         t = ROUND(ti * dt)
         L, Linf = Update_L_Lmin(t)
         Global_variables.Bound_Params = Update_Bound_Params(L, Linf, t)
-        Global_variables.Vflipinfo = RESET_Vflipinfo(Global_variables.MaxIDperPtype)
+        SYSTEM.Vflipinfo = RESET_Vflipinfo(SYSTEM.MAX_ID_PER_TYPE)
 
-        SYST = []
+        SYSTEM.Get_XI()
+        Xi = SYSTEM.Xi
 
-        for PartTypegroup in Global_variables.SYSTEM:
-            for PartOrAnti_group in PartTypegroup:
-                if PartOrAnti_group:
-                    SYST += PartOrAnti_group
+        SYSTEM.Get_DO(t)
+        SYSTEM.Get_XF()
+        Xf = SYSTEM.Xf
 
-        # ESYST_ini=[s.Energy for s in SYST]
-        # print('Esyst_i',t,sum(ESYST_ini),'\n')
-        Xi = np.array(
-            [
-                [(s.X[d], s.parity[0], s.parity[1], s.ID) for s in SYST]
-                for d in range(DIM_Numb)
-            ],
-            dtype=dtype,
-        )
-
-        Global_variables.FIELD = Gen_Field(
-            Xi, SYST
-        )  # update electric field according to positions and charges of particles
-
-        Xi.sort(order="Pos")
-        # Initializing list to track particle positions at time t
-
-        # Updating positions for all particles with info about id,position,type
-        DOINFOLIST = np.array([s.DO(t) for s in SYST], dtype="object")
-
-        Xf = np.array(
-            [
-                [
-                    (
-                        DOINFOLIST[s][0][d],
-                        DOINFOLIST[s][1][0],
-                        DOINFOLIST[s][1][1],
-                        DOINFOLIST[s][2],
-                    )
-                    for s in range(len(SYST))
-                ]
-                for d in range(DIM_Numb)
-            ],
-            dtype=dtype,
-        )
-        Xf.sort(order="Pos")
-
-        DO_TYPE_PARTorANTI = np.array([elem[1][0] for elem in DOINFOLIST])
-        DO_TYPE_CHARGE = np.array([elem[1][1] for elem in DOINFOLIST])
-        DO_INDEX = np.array([elem[2] for elem in DOINFOLIST])
+        DOINFOLIST = SYSTEM.DOINFOLIST
+        DO_TYPE_PARTorANTI = SYSTEM.DO_TYPE_PARTorANTI
+        DO_TYPE_CHARGE = SYSTEM.DO_TYPE_CHARGE
+        DO_INDEX = SYSTEM.DO_INDEX
 
         INI_TYPE_PARTorANTI = [
             np.array([elem[1] for elem in Xi[d]]) for d in range(DIM_Numb)
@@ -429,7 +397,8 @@ def main(T, Repr_type, File_path_name=None):
             DO_INDEX = np.array([elem[2] for elem in DOINFOLIST])
 
         # Update particle positions and track their movement
-        for indUpdate in range(len(Xf[0])):  # dimension 0
+
+        for indUpdate in range(len(Xf[0])):
             if not Xf[0][indUpdate]:
                 continue
             pos_search = [Xf[0][indUpdate][0]]
@@ -444,10 +413,15 @@ def main(T, Repr_type, File_path_name=None):
                 pos_search.append(Xf[d]["Pos"][Pos_d_index])
 
             Conv_search_Index = type_search[1]
-            for s in Global_variables.SYSTEM[Conv_search_Index][type_search[0]]:
-                if s.ID == id_search:
-                    partORanti = s.parity[0]
-                    s.X = pos_search
+            # for s in Global_variables.SYSTEM[Conv_search_Index][type_search[0]]:
+            for particle in SYSTEM.Particles_List:
+                if (
+                    (particle.ID == id_search)
+                    and (particle.parity[1] == Conv_search_Index)
+                    and (particle.parity[0] == type_search[0])
+                ):
+                    partORanti = particle.parity[0]
+                    particle.X = pos_search
                     doindex = np.where(
                         (DO_INDEX == id_search)
                         & (DO_TYPE_PARTorANTI == type_search[0])
@@ -456,7 +430,7 @@ def main(T, Repr_type, File_path_name=None):
                     xinterargs, Velocity, targs, Endtype = get2(DOINFOLIST[doindex])
                     if Endtype > 0:
                         for nz in range(len(targs) - 1):
-                            Global_variables.TRACKING[Conv_search_Index][partORanti][
+                            SYSTEM.TRACKING[Conv_search_Index][partORanti][
                                 id_search
                             ].extend(
                                 [
@@ -466,22 +440,14 @@ def main(T, Repr_type, File_path_name=None):
                                 ]
                             )
                         Global_variables.ALL_TIME.extend(targs[1:])
-                    Global_variables.TRACKING[Conv_search_Index][partORanti][
-                        id_search
-                    ].append([t, pos_search])
+                    SYSTEM.TRACKING[Conv_search_Index][partORanti][id_search].append(
+                        [t, pos_search]
+                    )
                     break
 
         # Update the densities of particles
-        Dens = Update_Density(Dens, L, Linf)
+        Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
 
-        # SYST=[]
-        # for PartTypegroup in Global_variables.SYSTEM:
-        #    for PartOrAnti_group in PartTypegroup:
-        #        if PartOrAnti_group:
-        #            SYST+=PartOrAnti_group
-
-        # ESYST_fin=[s.Energy for s in SYST]
-        # print('Esyst_f',t,sum(ESYST_fin),'\n')
         if Global_variables.Ntot == [[0, 0] for p in range(Numb_of_TYPES)]:
             T = ti
             break
@@ -508,7 +474,7 @@ def main(T, Repr_type, File_path_name=None):
             [Linf, L],
             DIM_Numb,
             Global_variables.COLPTS,
-            Global_variables.TRACKING,
+            SYSTEM.TRACKING,
             Dens,
             L_FCT,
             BOUNDARY_COND,

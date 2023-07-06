@@ -74,7 +74,7 @@ class Particle:
     """
 
     name: str
-    parity: int
+    parity: tuple
     ID: int
     ExtraParams: list = field(default_factory=list)
     M: float = field(init=False)
@@ -89,6 +89,8 @@ class Particle:
     P: float = field(init=False)
 
     def __post_init__(self):
+        from Particles.SystemClass import SYSTEM
+
         self.M = PARTICLE_DICT[self.name]["mass"]
         self.Strong_Charge = PARTICLE_DICT[self.name]["Strong_Charge"]
         self.Size = PARTICLE_DICT[self.name]["size"] / 2
@@ -106,17 +108,15 @@ class Particle:
                 X = self.ExtraParams[1] * (1 + 0.01 * rng.uniform(-1, 1))
             V, P = Velocity_Momentum(self.M)
             E = Energy_Calc(P, self.M)
-
-            Global_variables.TRACKING[typeIndex][partORanti][id].append([0.0, X])
+            SYSTEM.TRACKING[typeIndex][partORanti].append([[0.0, X]])
         elif (
             self.ExtraParams[0] == "Post_Interaction"
             or self.ExtraParams[0] == "Spont_Create"
         ):
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
             X, V, E, P = PosParam, VParam, Energyval, Energyval / C_speed
-
-            Global_variables.TRACKING[typeIndex][partORanti].append([[TvalueParam, X]])
-            Global_variables.Vflipinfo[typeIndex][partORanti].append([])
+            SYSTEM.TRACKING[typeIndex][partORanti].append([[TvalueParam, X]])
+            SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
 
         self.X, self.V, self.Energy, self.P = X, V, E, P
 

@@ -9,8 +9,17 @@ from Particles.ParticleClass import Particle
 from Particles.Global_Variables import Global_variables
 
 
-BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
+if BOUNDARY_COND == 0:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+
+    BOUNDARY_FCT = BOUNDARY_FCT_PER
+else:
+    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+
+    BOUNDARY_FCT = BOUNDARY_FCT_HARD
+
+
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb
@@ -31,6 +40,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
+    from Particles.SystemClass import SYSTEM
 
     partORAnti1 = p1[0]
     partORAnti2 = p2[0]
@@ -64,13 +74,16 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     Etot = 0
     SystKillparams = [[p1index, partORAnti1, id1], [p2index, partORAnti2, id2]]
     for pindex, partORAnti, kill_id in SystKillparams:
-        for s in range(len(Global_variables.SYSTEM[pindex][partORAnti])):
+        Etot += SYSTEM.Get_Energy_velocity_Remove_particle(pindex, partORAnti, kill_id)[
+            0
+        ]
+        """for s in range(len(Global_variables.SYSTEM[pindex][partORAnti])):
             if Global_variables.SYSTEM[pindex][partORAnti][s].ID == kill_id:
                 Etot += Global_variables.SYSTEM[pindex][partORAnti][s].Energy
                 Global_variables.SYSTEM[pindex][partORAnti].remove(
                     Global_variables.SYSTEM[pindex][partORAnti][s]
                 )
-                break
+                break"""
 
     # create photons
     if z1 != 0:
@@ -107,10 +120,9 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
         partoranti, typeindex = ParticleType
         Crindex = typeindex
-        # Crindex=TYPE_to_index_Dict[typeindex]
-        Global_variables.MaxIDperPtype[Crindex][partoranti] += 1
-        Cr_id = Global_variables.MaxIDperPtype[Crindex][partoranti]
-        Global_variables.SYSTEM[Crindex][partoranti].append(
+
+        SYSTEM.Add_Particle(Crindex, partoranti, Create_particle_param)
+        """Global_variables.SYSTEM[Crindex][partoranti].append(
             Particle(
                 name="photon",
                 parity=(0, 13),
@@ -118,8 +130,8 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                 ExtraParams=Create_particle_param,
                 Colour_Charge=COLOUR,
             )
-        )
-        D = Global_variables.SYSTEM[Crindex][partoranti][-1].DO(t)
+        )"""
+        D = SYSTEM.Particles_List[-1].DO(t)
         New_Xend, New_p, New_id, New_Xinter, New_V, New_Tpara, New_end = D
         if New_end == 0:
             b = [New_Xend - New_V * float(*New_Tpara)]
@@ -133,9 +145,9 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                 A = np.copy(New_V)
                 for r in range(New_end):
                     b.append(New_Xinter[r][0] - A * float(New_Tpara[1 + r]))
-                    flipindex, flipvalue = Global_variables.Vflipinfo[Crindex][
-                        partoranti
-                    ][New_id][r]
+                    flipindex, flipvalue = SYSTEM.Vflipinfo[Crindex][partoranti][
+                        New_id
+                    ][r]
                     A[flipindex] = flipvalue
                 b.append(New_Xend - A * float(New_Tpara[0]))
         Global_variables.Ntot[Crindex][partoranti] += 1
@@ -144,9 +156,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             b.insert(0, "PreCreation")
             New_Tpara.append(ti)
             New_end = 1
-            Global_variables.Vflipinfo[Crindex][partoranti][New_id].append(
-                [0, New_V[0]]
-            )
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append([0, New_V[0]])
             Xinter_LIST = [[xo, xo]]
         else:
             xinterkilllist, vflipkill_list, b_kill_list, Tpara_kill_list = (
@@ -162,11 +172,9 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     b_kill_list.append(b[it - 1])
                     xinterkilllist.append(it - 1)
                     vflipkill_list.append(
-                        Global_variables.Vflipinfo[Crindex][partoranti][New_id][it - 1]
+                        SYSTEM.Vflipinfo[Crindex][partoranti][New_id][it - 1]
                     )
-            Global_variables.Vflipinfo[Crindex][partoranti][New_id].insert(
-                0, [0, New_V[0]]
-            )
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].insert(0, [0, New_V[0]])
             for Tpara_kill in Tpara_kill_list:
                 New_Tpara.remove(Tpara_kill)
             New_Tpara.insert(1, ti)
@@ -179,9 +187,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     Newelem = Xinter_LIST[killxinter_index]
                 Xinter_LIST.pop(killxinter_index)
             for vflipkill in vflipkill_list:
-                Global_variables.Vflipinfo[Crindex][partoranti][New_id].remove(
-                    vflipkill
-                )
+                SYSTEM.Vflipinfo[Crindex][partoranti][New_id].remove(vflipkill)
             if len(Newelem) == 0:
                 Newelem = Xinter_LIST[-1].copy()
 
@@ -223,7 +229,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     # If the particles have a history of collisions, update the tracking information
     if z1 > 0:
         for zi in range(z1):
-            Global_variables.TRACKING[p1index][partORAnti1][id1].extend(
+            SYSTEM.TRACKING[p1index][partORAnti1][id1].extend(
                 [
                     [Targs1[zi + 1], Xinter1[zi][0]],
                     ["T", "X"],
@@ -233,7 +239,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             Global_variables.ALL_TIME.extend(Targs1[1:])
     if z2 > 0:
         for zi in range(z2):
-            Global_variables.TRACKING[p2index][partORAnti2][id2].extend(
+            SYSTEM.TRACKING[p2index][partORAnti2][id2].extend(
                 [
                     [Targs2[zi + 1], Xinter2[zi][0]],
                     ["T", "X"],
@@ -242,8 +248,8 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             )
             Global_variables.ALL_TIME.extend(Targs2[1:])
 
-    Global_variables.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    Global_variables.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+    SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
+    SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
     Global_variables.ALL_TIME.append(ti)
 
     # Remove the information about the particles involved in the collision from the collision point list and decrement the total number of particles and add product of annihilation
