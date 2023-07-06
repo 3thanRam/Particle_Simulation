@@ -109,10 +109,10 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
         ("TypeID0", int),
         ("TypeID1", int),
         ("index", int),
-    ]  # [('Pos', float), ('Type', np.ndarray),('index', int)]#[('Pos', float), ('Type', int),('index', int)]
+    ]
     F = np.array(NewFO, dtype=dtype)
     # F.sort(order='Pos')
 
     Global_variables.COLPTS.append([ti, xo, coltype])
-    Global_variables.Ntot[p1index][partORAnti1] -= 1
+
     return (F, COEFSlist)

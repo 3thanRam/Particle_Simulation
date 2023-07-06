@@ -14,10 +14,6 @@ dt = Global_variables.dt
 L_FCT = Global_variables.L_FCT
 
 
-# Global_variables.L=Global_variables.Global_variables.L
-# Global_variables.Linf=Global_variables.Global_variables.Linf
-
-
 def has_any_nonzero(List):
     """Returns True if there is a zero anywhere in the list"""
     for value in List:
@@ -148,8 +144,10 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
     # Check if the lines are parallel
     if has_any_nonzero(difA):
         # Find the time t for the intersection point with minimum distance between the lines
-        Dist1 = PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"]
-        Dist2 = PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"]
+        Dist1, Dist2 = (
+            PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"],
+            PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"],
+        )
         tmini = MINIMISE(difA, difB, t, SA, SB, 0.5 * (Dist1 + Dist2))
 
         # Calculate the coordinates of the intersection point

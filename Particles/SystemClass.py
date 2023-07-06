@@ -72,19 +72,26 @@ class SYSTEM_CLASS:
             )
         )
 
-    def Remove_particle(self, index, PartOrAnti, ID):
+    def FIND_particle(self, index, PartOrAnti, ID):
         for p_numb, particle in enumerate(self.Particles_List):
             if (
                 (particle.parity[1] == index)
                 and (particle.parity[0] == PartOrAnti)
                 and (particle.ID == ID)
             ):
-                self.Particles_List.pop(p_numb)
-                self.Numb_Per_TYPE[index][PartOrAnti] -= 1
-                self.Tot_Numb -= 1
-                if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
-                    self.Quarks_Numb -= 1
-                break
+                return p_numb
+
+    def UPDATE_particle_position(self, index, PartOrAnti, ID, NewPos):
+        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        self.Particles_List[SEARCH_id].X = NewPos
+
+    def Remove_particle(self, index, PartOrAnti, ID):
+        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        self.Particles_List.pop(SEARCH_id)
+        self.Numb_Per_TYPE[index][PartOrAnti] -= 1
+        self.Tot_Numb -= 1
+        if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
+            self.Quarks_Numb -= 1
 
     def RESET_Vflipinfo(self):
         self.Vflipinfo = [
@@ -96,40 +103,28 @@ class SYSTEM_CLASS:
         ]
 
     def Get_Energy_velocity_Remove_particle(self, index, PartOrAnti, ID):
-        for p_numb, particle in enumerate(self.Particles_List):
-            if (
-                (particle.parity[1] == index)
-                and (particle.parity[0] == PartOrAnti)
-                and (particle.ID == ID)
-            ):
-                E, V = particle.Energy, particle.V
-                self.Particles_List.pop(p_numb)
-                self.Numb_Per_TYPE[index][PartOrAnti] -= 1
-                self.Tot_Numb -= 1
-                if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
-                    self.Quarks_Numb -= 1
-                return [E, V]
+        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        particle = self.Particles_List[SEARCH_id]
+        E, V = particle.Energy, particle.V
+        self.Particles_List.pop(SEARCH_id)
+        self.Numb_Per_TYPE[index][PartOrAnti] -= 1
+        self.Tot_Numb -= 1
+        if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
+            self.Quarks_Numb -= 1
+        return [E, V]
 
     def Change_Particle_Energy_velocity(self, index, PartOrAnti, ID, E_add, V_add):
-        for p_numb, particle in enumerate(self.Particles_List):
-            if (
-                (particle.parity[1] == index)
-                and (particle.parity[0] == PartOrAnti)
-                and (particle.ID == ID)
-            ):
-                self.Particles_List[p_numb].Energy += E_add
-                Vboost = V_add * E_add / (np.linalg.norm(Vmax) * particle.M)
-                self.Particles_List[p_numb].V += Vboost
-                break
+        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+
+        self.Particles_List[SEARCH_id].Energy += E_add
+        Vboost = (
+            V_add * E_add / (np.linalg.norm(Vmax) * self.Particles_List[SEARCH_id].M)
+        )
+        self.Particles_List[SEARCH_id].V += Vboost
 
     def Get_Particle(self, index, PartOrAnti, ID):
-        for p_numb, particle in enumerate(self.Particles_List):
-            if (
-                (particle.parity[1] == index)
-                and (particle.parity[0] == PartOrAnti)
-                and (particle.ID == ID)
-            ):
-                return particle
+        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        return self.Particles_List[SEARCH_id]
 
     def Get_Mass_Matrix(self):
         return np.array([particle.M for particle in self.Particles_List])
@@ -232,13 +227,14 @@ class SYSTEM_CLASS:
         CHGind = []  # index in Xi/Xf
 
         # particle involved in interactions parameters
-        Param_INTERPOS = []
-        Param_POS = []
-        Param_Velocity = []
-        Param_Time = []
-        Param_ID_TYPE = []
-        Param_endtype = []
-
+        (
+            Param_INTERPOS,
+            Param_POS,
+            Param_Velocity,
+            Param_Time,
+            Param_ID_TYPE,
+            Param_endtype,
+        ) = ([], [], [], [], [], [])
         PARAMS = [
             Param_INTERPOS,
             Param_POS,
@@ -473,6 +469,33 @@ class SYSTEM_CLASS:
         # self.DOINFOLIST = DOINFOLIST
 
         return PARAMS
+
+    def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
+        """particle = SYSTEM.Get_Particle(
+            typeindex_search, PartOrAnti_search, id_search
+        )"""
+
+        self.UPDATE_particle_position(index, PartOrAnti, ID, NewPos)
+
+        doindex = np.where(
+            (self.DO_INDEX == ID)
+            & (self.DO_TYPE_PARTorANTI == PartOrAnti)
+            & (self.DO_TYPE_CHARGE == index)
+        )[0][0]
+
+        get = itemgetter(3, 5, 6)
+        xinterargs, targs, Endtype = get(self.DOINFOLIST[doindex])
+        if Endtype > 0:
+            for nz in range(len(targs) - 1):
+                self.TRACKING[index][PartOrAnti][ID].extend(
+                    [
+                        [targs[nz + 1], xinterargs[nz][0]],
+                        ["T", "X"],
+                        [targs[nz + 1], xinterargs[nz][1]],
+                    ]
+                )
+            Global_variables.ALL_TIME.extend(targs[1:])
+        self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 
 
 def init():

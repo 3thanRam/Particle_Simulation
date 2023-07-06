@@ -42,12 +42,11 @@ def main(T, Repr_type, File_path_name=None):
 
     """
 
-    from Misc.Functions import COUNTFCT, ROUND
+    from Misc.Functions import ROUND
     from Particles.SystemClass import init
 
     init()
     from Particles.SystemClass import SYSTEM
-
     from Particles.Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
     from Particles.Interactions.INTERACTION_LOOP import Interaction_Loop_Check
 
@@ -62,13 +61,21 @@ def main(T, Repr_type, File_path_name=None):
         print("Generating Points")
         print(Dper, "%", end="\r")
 
+    Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
+    Nset[13] = [5, 0]  # photons
+    Nset[6] = [2, 0]  # upquark
+    Nset[7] = [1, 0]  # downquark
+    ## elec 0
+    ## muon 2
+    ## quarks: 6-11
+
     # Simulation loop
     ################
-    get2 = itemgetter(3, 4, 5, 6)
+
     for (
         index,
         (Npart, Nantipart),
-    ) in enumerate(Global_variables.Ntot):
+    ) in enumerate(Nset):
         for Np in range(Npart):
             SYSTEM.Add_Particle(index, 0)
         for Na in range(Nantipart):
@@ -93,64 +100,29 @@ def main(T, Repr_type, File_path_name=None):
         else:
             Xf = SYSTEM.Xf
 
-        DOINFOLIST = SYSTEM.DOINFOLIST
-        DO_TYPE_PARTorANTI = SYSTEM.DO_TYPE_PARTorANTI
-        DO_TYPE_CHARGE = SYSTEM.DO_TYPE_CHARGE
-        DO_INDEX = SYSTEM.DO_INDEX
-
-        # Update particle positions and track their movement
-
+        # Update particle positions and tracking history
         for indUpdate in range(len(Xf[0])):
             if not Xf[0][indUpdate]:
                 continue
             pos_search = [Xf[0][indUpdate][0]]
-            type_search = [Xf[0][indUpdate][1], Xf[0][indUpdate][2]]
-            id_search = Xf[0][indUpdate][3]
+            PartOrAnti_search, typeindex_search, id_search = [*Xf[0][indUpdate]][1:4]
+
             for d in range(1, DIM_Numb):
                 Pos_d_index = np.where(
                     (Xf[d]["index"] == id_search)
-                    & (Xf[d]["TypeID0"] == type_search[0])
-                    & (Xf[d]["TypeID1"] == type_search[1])
+                    & (Xf[d]["TypeID0"] == PartOrAnti_search)
+                    & (Xf[d]["TypeID1"] == typeindex_search)
                 )[0][0]
                 pos_search.append(Xf[d]["Pos"][Pos_d_index])
 
-            Conv_search_Index = type_search[1]
-            # for s in Global_variables.SYSTEM[Conv_search_Index][type_search[0]]:
-            for particle in SYSTEM.Particles_List:
-                if (
-                    (particle.ID == id_search)
-                    and (particle.parity[1] == Conv_search_Index)
-                    and (particle.parity[0] == type_search[0])
-                ):
-                    partORanti = particle.parity[0]
-                    particle.X = pos_search
-                    doindex = np.where(
-                        (DO_INDEX == id_search)
-                        & (DO_TYPE_PARTorANTI == type_search[0])
-                        & (DO_TYPE_CHARGE == type_search[1])
-                    )[0][0]
-                    xinterargs, Velocity, targs, Endtype = get2(DOINFOLIST[doindex])
-                    if Endtype > 0:
-                        for nz in range(len(targs) - 1):
-                            SYSTEM.TRACKING[Conv_search_Index][partORanti][
-                                id_search
-                            ].extend(
-                                [
-                                    [targs[nz + 1], xinterargs[nz][0]],
-                                    ["T", "X"],
-                                    [targs[nz + 1], xinterargs[nz][1]],
-                                ]
-                            )
-                        Global_variables.ALL_TIME.extend(targs[1:])
-                    SYSTEM.TRACKING[Conv_search_Index][partORanti][id_search].append(
-                        [t, pos_search]
-                    )
-                    break
+            SYSTEM.UPDATE_TRACKING(
+                typeindex_search, PartOrAnti_search, id_search, t, pos_search
+            )
 
         # Update the densities of particles
         Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
 
-        if Global_variables.Ntot == [[0, 0] for p in range(Numb_of_TYPES)]:
+        if SYSTEM.Tot_Numb == 0:
             T = ti
             break
         if ti != T - 1:

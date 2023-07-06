@@ -272,7 +272,7 @@ def SpontaneousEvents(t):
         NEWMASS = PARTICLE_DICT[NewpartName]["mass"]
         VParam = (photDirection / (C_speed * NEWMASS)) * (
             (Energyval**2 - NEWMASS**2 * C_speed**4) / (C_speed**2 * NEWMASS)
-        ) ** 0.5  # V=p/m=pc/mc=direction*sqrt(Etot**2-Emass**2)/mc
+        ) ** 0.5
         if DIM_Numb == 3:
             theta = 45 * np.pi / 180
             VParam1 = np.round(
@@ -292,7 +292,6 @@ def SpontaneousEvents(t):
         CREATEPARAMS = [CREATEparam1, CREATEparam2]
         # remove photon
         SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
-        Global_variables.Ntot[RemoveTypeInd][0] -= 1
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
 

@@ -16,7 +16,6 @@ Global_variables = []
 @dataclass(slots=True)
 class Global_var:
     # Where Global variables are stored in order to commnicate them between different scripts
-
     DIM_Numb: int
     L_FCT: list
     BOUNDARY_COND: int
@@ -39,12 +38,6 @@ class Global_var:
     FIELD: list = field(default_factory=list)
     COLPTS: list = field(default_factory=list)
 
-    # TRACKING: list = field(init=False)
-    # Vflipinfo: list = field(init=False)
-    # MaxIDperPtype: list = field(init=False)
-
-    Ntot: list = field(default_factory=list)
-
     File_path_name: str = ""
     ROUNDDIGIT: int = 15
 
@@ -61,21 +54,6 @@ class Global_var:
         self.Bound_Params = [0, 0, 0, 0]
         self.Dist_min = float(DistList[self.DIM_Numb - 1])
         self.dt = DT[self.DIM_Numb - 1]
-
-        Ntot = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-        Ntot[13] = [5, 0]  # photons
-
-        # Ntot[0]=[5,0]#electrons/positrons
-        # Ntot[2]=[5,0]#muons/anti-muons
-
-        Ntot[6] = [2, 0]  # upquark
-        Ntot[7] = [1, 0]  # downquark
-
-        # elec 0
-        # muon 2
-        # quarks: 6-11
-
-        self.Ntot = Ntot
 
     def Update_Bound_Params(self, L, Linf, t):
         dt = self.dt

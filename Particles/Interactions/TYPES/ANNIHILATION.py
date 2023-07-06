@@ -135,7 +135,6 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     ][r]
                     A[flipindex] = flipvalue
                 b.append(New_Xend - A * float(New_Tpara[0]))
-        Global_variables.Ntot[Crindex][partoranti] += 1
 
         if New_end == 0:
             b.insert(0, "PreCreation")
@@ -252,14 +251,14 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             NewFelem[1] = N_type[0]
             NewFelem[2] = N_type[1]
             NewFelem[3] = N_id
-            NewFO[d].append(NewFelem)  ########
+            NewFO[d].append(NewFelem)
 
     dtype = [
         ("Pos", float),
         ("TypeID0", int),
         ("TypeID1", int),
         ("index", int),
-    ]  # [('Pos', float), ('Type', np.ndarray),('index', int)]#[('Pos', float), ('Type', int),('index', int)]
+    ]
     F = np.array(NewFO, dtype=dtype)
     # F.sort(order='Pos')
 
@@ -268,7 +267,5 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             COEFSlist[gnum].append(Ncoef)
 
     Global_variables.COLPTS.append([ti, xo, coltype])
-    Global_variables.Ntot[p1index][partORAnti1] -= 1
-    Global_variables.Ntot[p2index][partORAnti2] -= 1
 
     return (F, COEFSlist)
