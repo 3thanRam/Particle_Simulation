@@ -27,22 +27,6 @@ def Update_L_Lmin(t):
     return (L_FCT[0](t), L_FCT[1](t))
 
 
-def Update_Bound_Params(L, Linf, t):
-    L_prev, Linf_prev = Update_L_Lmin(t - dt)
-    Vsup, Vinf = (L - L_prev) / dt, (Linf - Linf_prev) / dt
-    return [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
-
-
-def RESET_Vflipinfo(MAX_IDpType):
-    return [
-        [
-            [[] for ni in range(maxnumbpart + 1)],
-            [[] for ni in range(maxnumbanti + 1)],
-        ]
-        for maxnumbpart, maxnumbanti in MAX_IDpType
-    ]
-
-
 def main(T, Repr_type, File_path_name=None):
     """
     Simulates the behavior of n1 particles and n2 antiparticles in a Repr_type dimensional box
@@ -100,29 +84,19 @@ def main(T, Repr_type, File_path_name=None):
 
         t = ROUND(ti * dt)
         L, Linf = Update_L_Lmin(t)
-        Global_variables.Bound_Params = Update_Bound_Params(L, Linf, t)
-        SYSTEM.Vflipinfo = RESET_Vflipinfo(SYSTEM.MAX_ID_PER_TYPE)
+        Global_variables.Update_Bound_Params(L, Linf, t)
+        SYSTEM.UPDATE(t)
+        PARAMS = SYSTEM.PREPARE_PARAMS()
 
-        SYSTEM.Get_XI()
-        Xi = SYSTEM.Xi
-
-        SYSTEM.Get_DO(t)
-        SYSTEM.Get_XF()
-        Xf = SYSTEM.Xf
+        if len(PARAMS[-1]) != 0:
+            Xf = Interaction_Loop_Check(SYSTEM.Xf, t, PARAMS)
+        else:
+            Xf = SYSTEM.Xf
 
         DOINFOLIST = SYSTEM.DOINFOLIST
         DO_TYPE_PARTorANTI = SYSTEM.DO_TYPE_PARTorANTI
         DO_TYPE_CHARGE = SYSTEM.DO_TYPE_CHARGE
         DO_INDEX = SYSTEM.DO_INDEX
-
-        PARAMS = SYSTEM.PREPARE_PARAMS()
-
-        if len(PARAMS[-1]) != 0:
-            Xf = Interaction_Loop_Check(Xf, t, PARAMS)
-            DOINFOLIST = Global_variables.DOINFOLIST
-            DO_TYPE_PARTorANTI = np.array([elem[1][0] for elem in DOINFOLIST])
-            DO_TYPE_CHARGE = np.array([elem[1][1] for elem in DOINFOLIST])
-            DO_INDEX = np.array([elem[2] for elem in DOINFOLIST])
 
         # Update particle positions and track their movement
 

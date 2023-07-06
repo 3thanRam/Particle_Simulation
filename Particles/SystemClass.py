@@ -86,6 +86,15 @@ class SYSTEM_CLASS:
                     self.Quarks_Numb -= 1
                 break
 
+    def RESET_Vflipinfo(self):
+        self.Vflipinfo = [
+            [
+                [[] for ni in range(maxnumbpart + 1)],
+                [[] for ni in range(maxnumbanti + 1)],
+            ]
+            for maxnumbpart, maxnumbanti in self.MAX_ID_PER_TYPE
+        ]
+
     def Get_Energy_velocity_Remove_particle(self, index, PartOrAnti, ID):
         for p_numb, particle in enumerate(self.Particles_List):
             if (
@@ -149,6 +158,9 @@ class SYSTEM_CLASS:
         self.DOINFOLIST = np.array(
             [particle.DO(t) for particle in self.Particles_List], dtype="object"
         )
+        self.Update_DO_SubLists()
+
+    def Update_DO_SubLists(self):
         self.DO_TYPE_PARTorANTI = np.array([elem[1][0] for elem in self.DOINFOLIST])
         self.DO_TYPE_CHARGE = np.array([elem[1][1] for elem in self.DOINFOLIST])
         self.DO_INDEX = np.array([elem[2] for elem in self.DOINFOLIST])
@@ -171,6 +183,12 @@ class SYSTEM_CLASS:
         )
         Xf.sort(order="Pos")
         self.Xf = Xf
+
+    def UPDATE(self, t):
+        self.RESET_Vflipinfo()
+        self.Get_XI()
+        self.Get_DO(t)
+        self.Get_XF()
 
     def PREPARE_PARAMS(self):
         DOINFOLIST = self.DOINFOLIST
@@ -451,7 +469,8 @@ class SYSTEM_CLASS:
         for removeind in REMOVELIST:
             for parametr in PARAMS:
                 parametr.pop(removeind)
-        Global_variables.DOINFOLIST = DOINFOLIST
+
+        # self.DOINFOLIST = DOINFOLIST
 
         return PARAMS
 

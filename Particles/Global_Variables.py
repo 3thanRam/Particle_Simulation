@@ -37,7 +37,6 @@ class Global_var:
 
     ALL_TIME: list = field(default_factory=list)
     FIELD: list = field(default_factory=list)
-    DOINFOLIST: list = field(default_factory=list)
     COLPTS: list = field(default_factory=list)
 
     # TRACKING: list = field(init=False)
@@ -78,16 +77,11 @@ class Global_var:
 
         self.Ntot = Ntot
 
-        """self.TRACKING, self.Vflipinfo = [
-            [[[] for ni in range(numbpart)], [[] for ni in range(numbanti)]]
-            for numbpart, numbanti in Ntot
-        ], [
-            [[[] for ni in range(numbpart)], [[] for ni in range(numbanti)]]
-            for numbpart, numbanti in Ntot
-        ]"""
-        """self.MaxIDperPtype = [
-            [ntot_part - 1, ntot_anti - 1] for (ntot_part, ntot_anti) in Ntot
-        ]"""
+    def Update_Bound_Params(self, L, Linf, t):
+        dt = self.dt
+        L_prev, Linf_prev = self.L_FCT[0](t - dt), self.L_FCT[1](t - dt)
+        Vsup, Vinf = (L - L_prev) / dt, (Linf - Linf_prev) / dt
+        self.Bound_Params = [Vsup, L - Vsup * t, Vinf, Linf - Vinf * t]
 
 
 def init(DIM_Numb, BOUNDARY_COND, L_FCT):

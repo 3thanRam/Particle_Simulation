@@ -192,15 +192,15 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         DOd[-4], DOd[-1] = New_Xinter, New_end
         return (DOd, Ncoef, New_Xend)
 
-    NewDOINFOLIST = list(Global_variables.DOINFOLIST)
+    NewDOINFOLIST = list(SYSTEM.DOINFOLIST)
     Do_info1, Coef_info1, Xend1 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams1)
     Do_info2, Coef_info2, Xend2 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams2)
     Xendlist = [Xend1, Xend2]
     NewCoefs = [Coef_info1, Coef_info2]
     NewDOINFOLIST.extend([Do_info1, Do_info2])
 
-    Global_variables.DOINFOLIST = np.array(NewDOINFOLIST)
-
+    SYSTEM.DOINFOLIST = np.array(NewDOINFOLIST)
+    SYSTEM.Update_DO_SubLists()
     NewFO = [list(F[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
     for d in range(DIM_Numb):

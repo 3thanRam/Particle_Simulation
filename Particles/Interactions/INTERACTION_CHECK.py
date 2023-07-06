@@ -148,22 +148,21 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
     # Check if the lines are parallel
     if has_any_nonzero(difA):
         # Find the time t for the intersection point with minimum distance between the lines
-        Dist_min = (
-            PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"] ** 2
-            + PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"] ** 2
-        ) ** 0.5
-        tmini = MINIMISE(difA, difB, t, SA, SB, Dist_min)
-
-        # Calculate the minimum distance D between the lines at the intersection point
-        D = np.sqrt(np.sum((difA * tmini + difB) ** 2))
+        Dist1 = PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"]
+        Dist2 = PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"]
+        tmini = MINIMISE(difA, difB, t, SA, SB, 0.5 * (Dist1 + Dist2))
 
         # Calculate the coordinates of the intersection point
         xo = np.array((tmini * SA + SB) / 2, dtype=np.float64)
         xo = np.round(xo, decimals=ROUNDDIGIT)
 
-        # Check if the intersection point is valid
+        # Calculate the distance between the lines at the intersection point
+        x1, x2 = a1 * tmini + b1, a2 * tmini + b2
+        D1, D2 = abs(np.linalg.norm(x1 - xo)), abs(np.linalg.norm(x2 - xo))
+        Dist_Check = (D1 <= Dist1) and (D2 <= Dist2)
 
-        if 0 < Tstart <= tmini <= Tend and D <= Dist_min and in_all_bounds(xo, tmini):
+        # Check if the intersection point is valid
+        if 0 < Tstart <= tmini <= Tend and Dist_Check and in_all_bounds(xo, tmini):
             return [COLTYPE(p1, p2), tmini, xo, z1, z2]
 
     # If the lines are parallel or do not intersect during the time interval, return [0]
