@@ -295,11 +295,6 @@ def SpontaneousEvents(t):
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
 
-        if PARTICLE_DICT[NewpartName]["Strong_Charge"] != 0:
-            COLOUR = [[-1, 0, 0], [1, 0, 0]]
-        else:
-            COLOUR = [None, None]
-
         for i in range(2):
             SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
 

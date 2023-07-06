@@ -28,7 +28,7 @@ def SET_PARAMETERS():
         )
     elif Answer == "q":  # quicklaunch
         print("Quick Launch")
-        DIM = 2
+        DIM = 1
         Vrec = [[5], [5, 10], [10, 12, 15]][DIM - 1]
         REPR = 1
         Bounds = 1

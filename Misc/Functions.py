@@ -9,6 +9,22 @@ L_FCT = Global_variables.L_FCT
 rng = np.random.default_rng()
 
 
+def has_any_nonzero(List):
+    """Returns True if there is a zero anywhere in the list"""
+    for value in List:
+        if value != 0:
+            return True
+    return False
+
+
+def has_all_nonzero(List):
+    """Returns True if all the elements the list are zero"""
+    for value in List:
+        if value != 0:
+            return False
+    return True
+
+
 def ROUND(x):
     """
     Rounds the given number 'x' to the number of digits specified by 'ROUNDDIGIT'.

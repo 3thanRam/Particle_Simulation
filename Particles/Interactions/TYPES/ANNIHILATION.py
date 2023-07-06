@@ -106,11 +106,6 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     Createparams2 = "Post_Interaction", xo, -VParam, ti, Etot / 2
 
     def CREATE_PARTICLE_fromAnnil(ParticleType, Create_particle_param):
-        if PARTICLE_DICT["photon"]["Strong_Charge"] != 0:
-            COLOUR = [0, 0, 0]
-        else:
-            COLOUR = None
-
         partoranti, typeindex = ParticleType
         Crindex = typeindex
 

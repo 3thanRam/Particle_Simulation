@@ -1,6 +1,5 @@
 import numpy as np
 import time
-from operator import itemgetter
 import matplotlib.pyplot as plt
 
 from Particles.Dictionary import PARTICLE_DICT
@@ -41,7 +40,6 @@ def main(T, Repr_type, File_path_name=None):
     draws the points if Repr_type=1.
 
     """
-
     from Misc.Functions import ROUND
     from Particles.SystemClass import init
 
@@ -62,7 +60,8 @@ def main(T, Repr_type, File_path_name=None):
         print(Dper, "%", end="\r")
 
     Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-    Nset[13] = [5, 0]  # photons
+    Nset[2] = [5, 5]  # electron/positron
+    # Nset[13] = [5, 0]  # photons
     Nset[6] = [2, 0]  # upquark
     Nset[7] = [1, 0]  # downquark
     ## elec 0
@@ -83,6 +82,7 @@ def main(T, Repr_type, File_path_name=None):
 
     SpontaneousEvents(0)
     Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
+
     for ti in range(1, T):
         perc = int(100 * ti / T)
         if perc > Dper and Repr_type == 0 or Repr_type == 1:  # and perc%5==0

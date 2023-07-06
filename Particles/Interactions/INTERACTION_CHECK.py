@@ -4,6 +4,8 @@ import numpy as np
 from Particles.Interactions.INTERACTION_DEF import COLTYPE
 from Particles.Global_Variables import Global_variables
 from Particles.Dictionary import PARTICLE_DICT
+from Misc.Functions import ROUND, has_any_nonzero, has_all_nonzero
+from Misc.Position_Fcts import in_all_bounds
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -14,43 +16,7 @@ dt = Global_variables.dt
 L_FCT = Global_variables.L_FCT
 
 
-def has_any_nonzero(List):
-    """Returns True if there is a zero anywhere in the list"""
-    for value in List:
-        if value != 0:
-            return True
-    return False
-
-
-def has_all_nonzero(List):
-    """Returns True if all the elements the list are zero"""
-    for value in List:
-        if value != 0:
-            return False
-    return True
-
-
-def in_all_bounds(List, t=None):
-    if t == None:
-        Lmaxi, Lmini = Global_variables.L, Global_variables.Linf
-    else:
-        Lmaxi, Lmini = L_FCT[0](t), L_FCT[1](t)
-    for indV, value in enumerate(List):
-        if value > Lmaxi[indV] or value < Lmini[indV]:
-            return False
-    return True
-
-
-def ROUND(x):
-    """
-    Rounds the given number 'x' to the number of digits specified by 'ROUNDDIGIT'.
-    :param x: the number to be rounded
-    :return: the rounded number
-    """
-    return round(x, ROUNDDIGIT)
-
-
-def MINIMISE(difA, difB, t, Sa, Sb, Dist_min):
+def MINIMISE(difA, difB, t, Sa, Sb, a1, b1, a2, b2, Dist1, Dist2):
     """
     This function takes in five arguments, `difA`, `difB`, `t`, `Sa`, and `Sb`, and returns a float value.
 
@@ -82,9 +48,7 @@ def MINIMISE(difA, difB, t, Sa, Sb, Dist_min):
     if Tsol.size > 0:
         Tmini = []
         for tsol in Tsol:
-            dist = np.sqrt(np.sum((difA * tsol + difB) ** 2))
-            if dist < Dist_min:
-                Tmini.append(tsol)
+            Tmini.append(tsol)
         if len(Tmini) > 0:
             if len(Tmini) > 1:
                 return ROUND(min(Tmini))
@@ -99,6 +63,20 @@ def MINIMISE(difA, difB, t, Sa, Sb, Dist_min):
         if has_all_nonzero(difA):
             return t - 0.5 * dt
         else:
+            """
+            xo = np.array((tsol * Sa + Sb) / 2, dtype=np.float64)
+            xo = np.round(xo, decimals=ROUNDDIGIT)
+            x1, x2 = a1 * tsol + b1, a2 * tsol + b2
+            D1, D2 = abs(np.linalg.norm(x1 - xo)), abs(np.linalg.norm(x2 - xo))
+            Dist_Check = (D1 <= Dist1) and (D2 <= Dist2)
+            Dist_Check = (
+                (D1 <= Dist1)
+                and (D2 <= Dist2)
+                and abs(np.linalg.norm(x1 - x2)) <= (Dist1 + Dist2)
+            )
+            # Dist_Check = abs(np.linalg.norm(x1 - x2)) <= (Dist1 + Dist2)
+            # dist = np.sqrt(np.sum((difA * tsol + difB) ** 2))
+            """
             tmini = t
             for dim in range(DIM_Numb):
                 if difA[dim] != 0:
@@ -148,19 +126,24 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
             PARTICLE_DICT[PARTICLE_NAMES[p1[1]]]["size"],
             PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"],
         )
-        tmini = MINIMISE(difA, difB, t, SA, SB, 0.5 * (Dist1 + Dist2))
+        tmini = MINIMISE(difA, difB, t, SA, SB, a1, b1, a2, b2, Dist1, Dist2)
 
         # Calculate the coordinates of the intersection point
-        xo = np.array((tmini * SA + SB) / 2, dtype=np.float64)
+        xo = np.array(a1 * tmini + b1, dtype=np.float64)
         xo = np.round(xo, decimals=ROUNDDIGIT)
 
         # Calculate the distance between the lines at the intersection point
         x1, x2 = a1 * tmini + b1, a2 * tmini + b2
         D1, D2 = abs(np.linalg.norm(x1 - xo)), abs(np.linalg.norm(x2 - xo))
         Dist_Check = (D1 <= Dist1) and (D2 <= Dist2)
-
+        # print(tmini, xo, abs(np.linalg.norm(x1 - x2)))
         # Check if the intersection point is valid
-        if 0 < Tstart <= tmini <= Tend and Dist_Check and in_all_bounds(xo, tmini):
+        if (
+            0 < Tstart <= tmini <= Tend
+            and Dist_Check
+            and in_all_bounds(xo, tmini, Dist1)
+            and in_all_bounds(xo, tmini, Dist2)
+        ):
             return [COLTYPE(p1, p2), tmini, xo, z1, z2]
 
     # If the lines are parallel or do not intersect during the time interval, return [0]

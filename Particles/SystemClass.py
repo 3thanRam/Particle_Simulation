@@ -13,8 +13,6 @@ from Misc.Functions import COUNTFCT
 DIM_Numb = Global_variables.DIM_Numb
 Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
-Linf = Global_variables.Linf
-L = Global_variables.L
 dt = Global_variables.dt
 
 from itertools import combinations
@@ -34,18 +32,54 @@ SYSTEM = []
 class SYSTEM_CLASS:
     def __init__(self):
         self.Particles_List = []
-        # self.Particles_List_Type_Sorted = [[[], []] for i in range(Numb_of_TYPES)]
         self.Numb_Per_TYPE = [[0, 0] for i in range(Numb_of_TYPES)]
         self.MAX_ID_PER_TYPE = [[0, 0] for i in range(Numb_of_TYPES)]
         self.Tot_Numb = 0
         self.Quarks_Numb = 0
         self.TRACKING = [[[], []] for i in range(Numb_of_TYPES)]
         self.Vflipinfo = [[[], []] for i in range(Numb_of_TYPES)]
+        if BOUNDARY_COND == 1:
+            self.SYSTEM_BOUNDARY_CHECK_FCT = self.SYSTEM_BOUNDARY_CHECK_HARD
+        else:
+            self.SYSTEM_BOUNDARY_CHECK_FCT = self.SYSTEM_BOUNDARY_CHECK_PERIODIC
+
+    def SYSTEM_BOUNDARY_CHECK_PERIODIC(self):
+        return [
+            np.where(
+                (
+                    self.Xi["Pos"]
+                    < (Global_variables.Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
+                ).any(axis=0)
+                | (
+                    self.Xi["Pos"]
+                    > (Global_variables.L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)
+                ).any(axis=0)
+            )[0]
+        ]
+
+    def SYSTEM_BOUNDARY_CHECK_HARD(self):
+        return [
+            np.where(
+                (
+                    self.Xi[:]["Pos"]
+                    < (Global_variables.Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
+                ).any(axis=0)
+            )[0],
+            np.where(
+                (
+                    self.Xi[:]["Pos"]
+                    > (Global_variables.L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)
+                ).any(axis=0)
+            )[0],
+        ]
 
     def Add_Particle(self, index, PartOrAnti, ExtraParams=None):
         if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
             COLOUR = [0, 0, 0]
-            P_ExtraParams = ["INIT_Quark_CREATION", POSCENTER]
+            if ExtraParams == None:
+                P_ExtraParams = ["INIT_Quark_CREATION", POSCENTER]
+            else:
+                P_ExtraParams = ExtraParams
             self.Quarks_Numb += 1
         elif ExtraParams == None:
             COLOUR = None
@@ -159,6 +193,9 @@ class SYSTEM_CLASS:
         self.DO_TYPE_PARTorANTI = np.array([elem[1][0] for elem in self.DOINFOLIST])
         self.DO_TYPE_CHARGE = np.array([elem[1][1] for elem in self.DOINFOLIST])
         self.DO_INDEX = np.array([elem[2] for elem in self.DOINFOLIST])
+
+    def TOTAL_ENERGY(self):
+        return sum(particle.Energy for particle in self.Particles_List)
 
     def Get_XF(self):
         Xf = np.array(
@@ -330,31 +367,8 @@ class SYSTEM_CLASS:
                     parametr.remove([])
                 CHGind.remove([])
 
-        # if part interact with bounds then they interact with particles differently than those above
-        if BOUNDARY_COND == 1:
-            BOUNDARYCHECKS = [
-                np.where(
-                    (
-                        Xi[:]["Pos"] < (Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
-                    ).any(axis=0)
-                )[0],
-                np.where(
-                    (Xi[:]["Pos"] > (L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)).any(
-                        axis=0
-                    )
-                )[0],
-            ]
-        else:
-            BOUNDARYCHECKS = [
-                np.where(
-                    (Xi["Pos"] < (Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)).any(
-                        axis=0
-                    )
-                    | (Xi["Pos"] > (L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)).any(
-                        axis=0
-                    )
-                )[0]
-            ]
+        # if particles interact with bounds then they can interact with particles differently (e.g particles at top and bottom of box can interact if periodic bounds) than those accounted for above
+        BOUNDARYCHECKS = self.SYSTEM_BOUNDARY_CHECK_FCT()
 
         for Bcheck in BOUNDARYCHECKS:
             if len(Bcheck) > 0:
@@ -411,8 +425,13 @@ class SYSTEM_CLASS:
                         for param_numb, parametr in enumerate(PARAMS):
                             parametr[-1].append(ADD_params[param_numb])
                         CHGind[-1].append(elem_ind)
-        REMOVELIST = []
 
+        return self.REMOVE_OVERLAP(PARAMS)
+
+    def REMOVE_OVERLAP(self, PARAMS):
+        # The same particles can be present in many groups so we must reduce overlap
+        REMOVELIST = []
+        Param_ID_TYPE = PARAMS[-2]
         for I1, I2 in combinations(range(len(Param_ID_TYPE)), 2):
             if I1 in REMOVELIST or I2 in REMOVELIST:
                 continue
@@ -430,51 +449,36 @@ class SYSTEM_CLASS:
             )
             Osize = Overlap.shape[0]
             if Osize != 0:
-                A_s = A.shape[0]
-                B_s = B.shape[0]
+                A_s, B_s = A.shape[0], B.shape[0]
 
                 if Osize == B_s:
                     REMOVELIST.append(I2)
                 elif Osize == A_s:
                     REMOVELIST.append(I1)
-                elif Osize >= 0.9 * B_s:
-                    RANGE = list(np.arange(B_s))
-                    indNotb = [indN for indN in RANGE if indN not in indb]
-                    getB = itemgetter(*indNotb)
+                elif Osize >= 0.9 * B_s or Osize >= 0.3 * A_s:
+                    if Osize >= 0.9 * B_s:
+                        AB_s, indab, I21, I12 = B_s, indb, I1, I2
+                    else:
+                        AB_s, indab, I21, I12 = A_s, inda, I2, I1
+                    RANGE = list(np.arange(AB_s))
+                    indNotab = [indN for indN in RANGE if indN not in indab]
+                    getAB = itemgetter(*indNotab)
                     for parametr in PARAMS:
-                        if len(indNotb) > 1:
-                            parametr[I1].extend(getB(parametr[I2]))
+                        if len(indNotab) > 1:
+                            parametr[I21].extend(getAB(parametr[I12]))
                         else:
-                            parametr[I1].append(getB(parametr[I2]))
-                    REMOVELIST.append(I2)
-                elif Osize >= 0.3 * A_s:
-                    RANGE = list(np.arange(A_s))
-                    indNota = [indN for indN in RANGE if indN not in inda]
-                    getA = itemgetter(*indNota)
-                    for parametr in PARAMS:
-                        if len(indNota) > 1:
-                            parametr[I2].extend(getA(parametr[I1]))
-                        else:
-                            parametr[I2].append(getA(parametr[I1]))
-                    REMOVELIST.append(I1)
+                            parametr[I21].append(getAB(parametr[I12]))
+                    REMOVELIST.append(I12)
 
         REMOVELIST.sort(
             reverse=True
         )  # removing top to bottom to avoid index changes after each removal
-
         for removeind in REMOVELIST:
             for parametr in PARAMS:
                 parametr.pop(removeind)
-
-        # self.DOINFOLIST = DOINFOLIST
-
         return PARAMS
 
     def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
-        """particle = SYSTEM.Get_Particle(
-            typeindex_search, PartOrAnti_search, id_search
-        )"""
-
         self.UPDATE_particle_position(index, PartOrAnti, ID, NewPos)
 
         doindex = np.where(
@@ -501,15 +505,3 @@ class SYSTEM_CLASS:
 def init():
     global SYSTEM
     SYSTEM = SYSTEM_CLASS()
-
-
-""" 
-Basically fancy list of ParticleClass objects
-
-features:
--add/remove particles
--search for particle using different methods of identification
--generate ordered list of id based on position before and after dt
--Update TRACKING info  
-
-"""
