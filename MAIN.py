@@ -26,7 +26,7 @@ def Update_L_Lmin(t):
     return (L_FCT[0](t), L_FCT[1](t))
 
 
-def main(T, Repr_type, File_path_name=None):
+def main(T, Repr_type, Nset):
     """
     Simulates the behavior of n1 particles and n2 antiparticles in a Repr_type dimensional box
 
@@ -57,15 +57,6 @@ def main(T, Repr_type, File_path_name=None):
     if Repr_type == 0 or Repr_type == 1:
         print("Generating Points")
         print(Dper, "%", end="\r")
-
-    Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-    Nset[2] = [8, 8]  # electron/positron
-    # Nset[13] = [5, 0]  # photons
-    Nset[6] = [2, 0]  # upquark
-    Nset[7] = [1, 0]  # downquark
-    ## elec 0
-    ## muon 2
-    ## quarks: 6-11
 
     # Simulation loop
     ################
@@ -151,8 +142,6 @@ def main(T, Repr_type, File_path_name=None):
             ALL_TIME,
             PARTICLE_DICT,
         ]
-        if File_path_name != None:
-            DRAW_PARAMS.append(File_path_name)
         DRAW_TRAJ.DRAW(*DRAW_PARAMS)
     elif (
         Repr_type == 0
@@ -167,24 +156,32 @@ def main(T, Repr_type, File_path_name=None):
 
 
 if __name__ == "__main__":
-    from Dialog.CHOICES import SET_PARAMETERS
+    # from Settings.CHOICES import SET_PARAMETERS
+    from Settings.INPUT import SET_PARAMETERS
 
-    SET_Param = SET_PARAMETERS()
+    # SET_Param = SET_PARAMETERS()
+    # T_param, Repr_mode, filename = SET_Param[0], SET_Param[7], SET_Param[8]
+    # l, Numb_Dimensions, BOUNDARY_COND = SET_Param[4], SET_Param[5], SET_Param[6]
 
-    T_param, Repr_mode, filename = SET_Param[0], SET_Param[7], SET_Param[8]
-    l, Numb_Dimensions, BOUNDARY_COND = SET_Param[4], SET_Param[5], SET_Param[6]
+    (
+        DIM_Numb,
+        Time_steps,
+        box_size,
+        BOUNDARY_COND,
+        Repr_mode,
+        iniNparticles_set,
+    ) = SET_PARAMETERS()
 
-    LO, LOinf = np.array(l), np.array([0 for d in range(Numb_Dimensions)])
+    LO, LOinf = np.array(box_size), np.array([0 for d in range(DIM_Numb)])
     L_FCT = [lambda x: LO + 0 * np.cos(x), lambda x: LOinf + 0 * np.sin(x + 1)]
 
     from Particles.Global_Variables import init
 
-    init(Numb_Dimensions, BOUNDARY_COND, L_FCT)
+    init(DIM_Numb, BOUNDARY_COND, L_FCT)
     from Particles.Global_Variables import Global_variables
 
-    DIM_Numb = Global_variables.DIM_Numb
     Vmax = Global_variables.Vmax
     dt = Global_variables.dt
     L_FCT = Global_variables.L_FCT
 
-    main(T_param, Repr_mode, filename)
+    main(Time_steps, Repr_mode, iniNparticles_set)
