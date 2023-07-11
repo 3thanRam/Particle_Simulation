@@ -8,10 +8,11 @@ L_FCT = Global_variables.L_FCT
 Dist_min = Global_variables.Dist_min
 rng = np.random.default_rng()
 Xini = []
+Ini_size = []
 
 
 def in_all_bounds(List, t=None, ParticleSize=0):
-    if t == None:
+    if t is None:  # t == None:
         Lmaxi, Lmini = Global_variables.L, Global_variables.Linf
     else:
         Lmaxi, Lmini = L_FCT[0](t), L_FCT[1](t)
@@ -38,7 +39,7 @@ def Pos_fct(min_value, max_value):
     return pos
 
 
-def CHECKstartPos(testPOS):
+def CHECKstartPos(Particle_POS, Particle_size):
     """
     Checks if the initial position of a particle is far enough from the others.
 
@@ -48,13 +49,13 @@ def CHECKstartPos(testPOS):
     Returns:
     True if the position is not valid, False otherwise.
     """
-    if in_all_bounds(testPOS, 0):
-        return True
+    if not in_all_bounds(Particle_POS, 0):
+        return False
     if len(Xini) > 0:
         XiArray = np.array(Xini)
-        argmini = (np.sum((testPOS - XiArray) ** 2)).argmin()
-        dmin = np.sqrt(np.sum((testPOS - Xini[argmini]) ** 2))
-        return dmin > Dist_min
+        Size_array = np.array(Ini_size) + Particle_size
+        dist = np.linalg.norm(XiArray - Particle_POS, axis=1)
+        return (dist > Size_array).all()
     else:
         return True
 
@@ -79,8 +80,23 @@ def GEN_X(Part_size):
     POS = Pos_fct(Lmin, Lmax)
     # While the generated position is not far enough from existing positions,
     # generate a new position.
-    while not CHECKstartPos(np.array(POS)):
+    while not CHECKstartPos(np.array(POS), Part_size):
         POS = Pos_fct(Lmin, Lmax)
     # Add the new position to the list of existing positions.
     Xini.append(POS)
+    Ini_size.append(Part_size)
+    return POS
+
+
+# while not CHECKstartPos(np.array(POS), Part_size):
+#   POS = Pos_fct(Lmin, Lmax)
+def Pos_fct2(Point):
+    pos = Point * (1 + 0.01 * rng.uniform(-2, 2, Point.shape))
+    return pos
+
+
+def Pos_point_around(Point, Part_size):
+    POS = Pos_fct2(Point)
+    while not CHECKstartPos(POS, Part_size):
+        POS = Pos_fct2(Point)
     return POS

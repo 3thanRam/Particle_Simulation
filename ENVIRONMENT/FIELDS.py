@@ -6,7 +6,7 @@ Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 from Particles.Global_Variables import Global_variables
-from Particles.Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
+from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
 
 
 ####Natural Units#####

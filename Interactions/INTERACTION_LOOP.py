@@ -9,12 +9,12 @@ from Particles.Global_Variables import Global_variables
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 
 if Global_variables.DIM_Numb == 1:
-    from Particles.Interactions.INTERACTION_CHECK import INTERCHECK_1D
+    from Interactions.INTERACTION_CHECK import INTERCHECK_1D
 
     INTERCHECK = INTERCHECK_1D
     # Global_variables.INTERCHECK = INTERCHECK_1D
 else:
-    from Particles.Interactions.INTERACTION_CHECK import INTERCHECK_ND
+    from Interactions.INTERACTION_CHECK import INTERCHECK_ND
 
     INTERCHECK = INTERCHECK_ND
     # Global_variables.INTERCHECK = INTERCHECK_ND
@@ -29,89 +29,14 @@ else:
     BOUNDARY_FCT = BOUNDARY_FCT_HARD
     # Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_HARD
 
-from Particles.Interactions.INTERACTION_DEF import COLTYPE
-from Particles.Interactions.TYPES.ANNIHILATION import ANNIHILATE
-from Particles.Interactions.TYPES.COLLISION import COLLIDE
-from Particles.Interactions.TYPES.ABSORPTION import ABSORBE
+from Interactions.INTERACTION_DEF import COLTYPE
+from Interactions.TYPES.ANNIHILATION import ANNIHILATE
+from Interactions.TYPES.COLLISION import COLLIDE
+from Interactions.TYPES.ABSORPTION import ABSORBE
 from Misc.Functions import COUNTFCT
 
 
 dt = Global_variables.dt
-
-
-def GetCoefs(F, t):
-    """Calculate coefficients of the interpolation polynomials for each particle.
-
-    Args:
-    - F (list): List of Fock coefficients for particles and antiparticles.
-
-    Returns:
-    - COEFS (list): List of coefficients of the interpolation polynomials for each particle.
-                    Each element in the list is a list containing the following elements:
-                    [a, b, ts, id, ends]
-
-    The interpolation polynomials for each particle are defined as follows:
-        f(t) = a * t + b[0]         if ends==0
-        f(t) = a * t + b[0] + ... + b[ends] * (t - ts[1]) * ... * (t - ts[ends]) if ends>0
-    """
-    from Particles.SystemClass import SYSTEM
-
-    COEFLIST = []
-    (
-        Param_INTERPOS,
-        Param_POS,
-        Param_Velocity,
-        Param_Time,
-        Param_ID_TYPE,
-        Param_endtype,
-    ) = F
-
-    for coefgroup in range(len(Param_INTERPOS)):
-        COEFS = []
-
-        # Extract required values for each group
-        xinters = np.array(
-            [Interpos for Interpos in Param_INTERPOS[coefgroup]], dtype=object
-        )
-        xfs = np.array([posi for posi in Param_POS[coefgroup]], dtype=object)
-        Vs = [vel for vel in Param_Velocity[coefgroup]]
-        ts = np.array([tparams for tparams in Param_Time[coefgroup]], dtype=object)
-        id_type = np.array([id_type for id_type in Param_ID_TYPE[coefgroup]])
-        ends = np.array([endtype for endtype in Param_endtype[coefgroup]])
-
-        for ind0 in range(len(id_type)):
-            a = Vs[ind0]
-
-            if ends[ind0] == 0:
-                b = [xfs[ind0] - a * float(*ts[ind0])]
-            else:
-                b = []
-                if BOUNDARY_COND == 0:
-                    for r in range(ends[ind0]):
-                        b.append(xinters[ind0][r][0] - a * float(ts[ind0][1 + r]))
-                    b.append(xfs[ind0] - a * float(ts[ind0][0]))
-                else:
-                    A = np.copy(a)
-                    for r in range(ends[ind0]):
-                        b.append(xinters[ind0][r][0] - A * float(ts[ind0][1 + r]))
-                        flipindex, flipvalue = SYSTEM.Vflipinfo[id_type[ind0][2]][
-                            id_type[ind0][1]
-                        ][id_type[ind0][0]][r]
-                        A[flipindex] = flipvalue
-                    b.append(xfs[ind0] - A * float(ts[ind0][0]))
-            COEFS.append(
-                [
-                    a,
-                    b,
-                    ts[ind0],
-                    [id_type[ind0][1], id_type[ind0][2]],
-                    int(id_type[ind0][0]),
-                    xinters[ind0],
-                    ends[ind0],
-                ]
-            )
-        COEFLIST.append(COEFS)
-    return COEFLIST
 
 
 def timestat_end(B1, B2, t, z1, z2, t1PARA, t2PARA):
@@ -176,7 +101,7 @@ def timestat_end(B1, B2, t, z1, z2, t1PARA, t2PARA):
     return (tstart, tend)
 
 
-def Interaction_Loop_Check(F, t, CHG_particle_Params):
+def Interaction_Loop_Check(F, t, GroupList):
     """
     This function simulates the collisions between particles in the system.
 
@@ -187,7 +112,7 @@ def Interaction_Loop_Check(F, t, CHG_particle_Params):
     Returns:
         updated state of the system (F).
     """
-    GroupList = GetCoefs(CHG_particle_Params, t)
+    from System.SystemClass import SYSTEM
 
     kill_list = []
     INTERACT_HIST = []
@@ -196,27 +121,33 @@ def Interaction_Loop_Check(F, t, CHG_particle_Params):
         NumbCols = 0
         INTERACT_HIST = []  # gather history of Collisions
         INTERACT_SEARCH = []  # list with less info for faster search
+
         mintime = np.inf
         for GroupID, Group in enumerate(GroupList):
             for I1, I2 in combinations(range(len(Group)), 2):
                 particle1, particle2 = Group[I1], Group[I2]
-                A1, B1, t1params, p1, id1 = particle1[:5]
-                A2, B2, t2params, p2, id2 = particle2[:5]
+                p1, id1 = particle1
+                p2, id2 = particle2
+                P1 = SYSTEM.Get_Particle(p1[1], p1[0], id1)
+                P2 = SYSTEM.Get_Particle(p2[1], p2[0], id2)
+                A1, B1, t1params, p1, id1 = P1.Coef_param_list[:5]
+                A2, B2, t2params, p2, id2 = P2.Coef_param_list[:5]
+
                 if COLTYPE(p1, p2) == 0 or (id1 == id2 and p1 == p2):
                     continue
                 for z1, b1 in enumerate(B1):
-                    if isinstance(b1, str):
+                    if isinstance(b1[0], str):
                         continue
                     a1 = BOUNDARY_FCT(A1, p1, id1, z1)
                     for z2, b2 in enumerate(B2):
-                        if isinstance(b2, str):
+                        if isinstance(b2[0], str):
                             continue
                         a2 = BOUNDARY_FCT(A2, p2, id2, z2)
                         tstart, tend = timestat_end(
                             B1, B2, t, z1, z2, t1params, t2params
                         )
                         INTER = INTERCHECK(
-                            a1, b1, p1, a2, b2, p2, t, z1, z2, tstart, tend
+                            a1, b1, p1, a2, b2, p2, t, z1, z2, tstart, tend, id1, id2
                         )
                         Collisiontype = INTER[0]
                         if Collisiontype != 0:
@@ -252,8 +183,9 @@ def Interaction_Loop_Check(F, t, CHG_particle_Params):
         for Interaction in INTERACT_HIST:
             if Interaction[2] == 3:
                 if COUNTFCT(Global_variables.COLPTS, Interaction[:3]) == 0:
-                    F, GroupList = COLLIDE(Interaction, F, GroupList, t)
+                    F = COLLIDE(Interaction, F, GroupList, t)
                     NumbDone += 1
+                    break
             elif Interaction[2] == 2:
                 if COUNTFCT(kill_list, Interaction[:3]) == 0:
                     kill_list.append(Interaction[:3])

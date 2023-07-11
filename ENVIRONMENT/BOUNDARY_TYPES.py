@@ -15,7 +15,7 @@ def SIGNFLIP(a, p, id, z):
     array-like: The modified input array, with the signs of the selected elements flipped.
 
     """
-    from Particles.SystemClass import SYSTEM
+    from System.SystemClass import SYSTEM
 
     for find in range(z - 1 + 1):
         flipindex, flipvalue = SYSTEM.Vflipinfo[p[1]][p[0]][id][find]

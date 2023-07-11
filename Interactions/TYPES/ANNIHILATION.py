@@ -5,10 +5,19 @@ rng = np.random.default_rng()
 
 
 from Particles.Dictionary import PARTICLE_DICT
-from Particles.ParticleClass import Particle
-from Particles.Global_Variables import Global_variables
-from Particles.SystemClass import SYSTEM
 
+Numb_of_TYPES = len(PARTICLE_DICT)
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
+
+from Particles.Global_Variables import Global_variables
+from System.SystemClass import SYSTEM
+from operator import itemgetter
+
+item_get = itemgetter(
+    0,
+    2,
+    5,
+)
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -42,32 +51,29 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
 
-    partORAnti1 = p1[0]
-    partORAnti2 = p2[0]
+    partORAnti1, partORAnti2 = p1[0], p2[0]
+    p1index = p1[1]
+    p2index = p2[1]
+
+    Particle1 = SYSTEM.Get_Particle(p1index, partORAnti1, id1)
+    Particle2 = SYSTEM.Get_Particle(p2index, partORAnti2, id2)
+
+    V1, Targs1, Xinter1 = item_get(Particle1.Coef_param_list)
+    V2, Targs2, Xinter2 = item_get(Particle2.Coef_param_list)
+
     Grnumblist = []
     for groupnumb, coefgroup in enumerate(COEFSlist):
         killcoef = []
         for indtokill, coefinfo in enumerate(coefgroup):
-            typetest = coefinfo[-4]
-            idtest = coefinfo[-3]
-
-            if typetest == p1 and idtest == id1:
-                V1 = coefinfo[0]
+            typetest, idtest = coefinfo  # [-4]
+            # idtest = coefinfo[-3]
+            if (typetest == p1 and idtest == id1) or (typetest == p2 and idtest == id2):
                 killcoef.append(indtokill)
-                Targs1 = coefinfo[2]
-                Xinter1 = coefinfo[-2]
-            elif typetest == p2 and idtest == id2:
-                V2 = coefinfo[0]
-                killcoef.append(indtokill)
-                Targs2 = coefinfo[2]
-                Xinter2 = coefinfo[-2]
         if killcoef:
             Grnumblist.append(groupnumb)
         killcoef.sort(reverse=True)
         for coefkillindex in killcoef:
-            coefgroup.pop(coefkillindex)
-    p1index = p1[1]
-    p2index = p2[1]
+            COEFSlist[groupnumb].pop(coefkillindex)
 
     # Remove the particles involved in the collision from their respective particle lists
 
@@ -88,8 +94,15 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         alpha, beta = vg.angle(V1, V2, look=vg.basis.z), vg.angle(
             V1, V2, look=vg.basis.y
         )
-        VParam = Vmax * np.array(
+        VParam1 = Vmax * np.array(
             [np.cos(alpha) * np.cos(beta), np.sin(alpha) * np.cos(beta), -np.sin(beta)]
+        )  # [1,0,0] rotated by alpha,beta around y,z
+        VParam2 = Vmax * np.array(
+            [
+                np.cos(-alpha) * np.cos(-beta),
+                np.sin(-alpha) * np.cos(-beta),
+                -np.sin(-beta),
+            ]
         )  # [1,0,0] rotated by alpha,beta around y,z
     elif DIM_Numb == 2:
         SD = 0.1745329251994329  # 10 degrees
@@ -97,13 +110,19 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         Angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
         theta = Angle + np.round(rng.normal(Angle, SD, 1), ROUNDDIGIT)[0]
-        VParam = Vmax * np.array(
-            [np.cos(theta), np.sin(theta)]
-        )  # [1,0] rotated by theta around x,y plane
+        VParam1 = Vmax * np.array([np.cos(theta), np.sin(theta)])
+        VParam2 = Vmax * np.array([np.cos(-theta), np.sin(-theta)])
     else:
-        VParam = Vmax
-    Createparams1 = "Post_Interaction", xo, VParam, ti, Etot / 2
-    Createparams2 = "Post_Interaction", xo, -VParam, ti, Etot / 2
+        VParam1 = Vmax
+        VParam2 = -Vmax
+    Createparams1 = "Post_Interaction", xo, VParam1, ti, Etot / 2
+    Createparams2 = (
+        "Post_Interaction",
+        xo,
+        VParam2,
+        ti,
+        Etot / 2,
+    )
 
     def CREATE_PARTICLE_fromAnnil(ParticleType, Create_particle_param):
         partoranti, typeindex = ParticleType
@@ -111,7 +130,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
         SYSTEM.Add_Particle(Crindex, partoranti, Create_particle_param)
 
-        D = SYSTEM.Particles_List[-1].DO(t)
+        D = SYSTEM.Particles_List[-1].DO(t)  # shouldn't be a full dt?
         New_Xend, New_p, New_id, New_Xinter, New_V, New_Tpara, New_end = D
         if New_end == 0:
             b = [New_Xend - New_V * float(*New_Tpara)]
@@ -136,7 +155,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             New_Tpara.append(ti)
             New_end = 1
             SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append([0, New_V[0]])
-            Xinter_LIST = [[xo, xo]]
+            Xinter_LIST = [[xo, xo]]  # [[New_Xend, New_Xend]]  # [[xo, xo]]
         else:
             xinterkilllist, vflipkill_list, b_kill_list, Tpara_kill_list = (
                 [],
@@ -169,7 +188,6 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                 SYSTEM.Vflipinfo[Crindex][partoranti][New_id].remove(vflipkill)
             if len(Newelem) == 0:
                 Newelem = Xinter_LIST[-1].copy()
-
             Newelem[0] = xo
             Newelem[1] = xo
             Xinter_LIST.append(Newelem)
@@ -178,23 +196,25 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
         New_Xinter = np.array(Xinter_LIST)
         Ncoef = [New_V, b, New_Tpara, New_p, New_id, New_Xinter, New_end]
-        DOd = NewDOINFOLIST[
-            -1
-        ].copy()  # to keep same format so numpy doesn't throw error when rebuilding array
-        for i in range(len(DOd)):
-            DOd[i] = D[i]
-        DOd[-4], DOd[-1] = New_Xinter, New_end
-        return (DOd, Ncoef, New_Xend)
+        # DOd = NewDOINFOLIST[
+        #    -1
+        # ].copy()  # to keep same format so numpy doesn't throw error when rebuilding array
+        # for i in range(len(DOd)):
+        #    DOd[i] = D[i]
+        # DOd[-4], DOd[-1] = New_Xinter, New_end
+        return (Ncoef, New_Xend)
 
-    NewDOINFOLIST = list(SYSTEM.DOINFOLIST)
-    Do_info1, Coef_info1, Xend1 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams1)
-    Do_info2, Coef_info2, Xend2 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams2)
+    Coef_info1, Xend1 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams1)
+    Coef_info2, Xend2 = CREATE_PARTICLE_fromAnnil((0, 13), Createparams2)
     Xendlist = [Xend1, Xend2]
     NewCoefs = [Coef_info1, Coef_info2]
-    NewDOINFOLIST.extend([Do_info1, Do_info2])
 
-    SYSTEM.DOINFOLIST = np.array(NewDOINFOLIST)
-    SYSTEM.Update_DO_SubLists()
+    SYSTEM.Particle_set_coefs(
+        Coef_info1[3][1], Coef_info1[3][0], Coef_info1[4], Coef_info1
+    )
+    SYSTEM.Particle_set_coefs(
+        Coef_info2[3][1], Coef_info2[3][0], Coef_info2[4], Coef_info2
+    )
     NewFO = [list(F[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
     for d in range(DIM_Numb):
@@ -227,8 +247,8 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
             )
             Global_variables.ALL_TIME.extend(Targs2[1:])
 
-    SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+    # SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
+    # SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
     Global_variables.ALL_TIME.append(ti)
 
     # Remove the information about the particles involved in the collision from the collision point list and decrement the total number of particles and add product of annihilation
@@ -259,7 +279,9 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
     for gnum in Grnumblist:
         for Ncoef in NewCoefs:
-            COEFSlist[gnum].append(Ncoef)
+            # [New_V, b, New_Tpara, New_p, New_id, New_Xinter, New_end]
+            Newp, Newid = Ncoef[3], Ncoef[4]
+            COEFSlist[gnum].append([Newp, Newid])
 
     Global_variables.COLPTS.append([ti, xo, coltype])
 

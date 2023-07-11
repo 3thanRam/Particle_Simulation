@@ -12,14 +12,16 @@ ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
 dt = Global_variables.dt
 Vmax = Global_variables.Vmax
+BOUNDARY_COND = Global_variables.BOUNDARY_COND
 rng = np.random.default_rng()
 Xini = []
 
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
-from Misc.Position_Fcts import GEN_X, in_all_bounds
+from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
+from operator import itemgetter
 
-
+item_get = itemgetter(0, -2, 3, -1)
 V_fct = UNIFORM
 
 
@@ -89,8 +91,11 @@ class Particle:
     Energy: float = field(init=False)
     P: float = field(init=False)
 
+    Coef_param_list: list = field(init=False, default_factory=list)
+    do_info: list = field(init=False, default_factory=list)
+
     def __post_init__(self):
-        from Particles.SystemClass import SYSTEM
+        from System.SystemClass import SYSTEM
 
         self.M = PARTICLE_DICT[self.name]["mass"]
         self.Strong_Charge = PARTICLE_DICT[self.name]["Strong_Charge"]
@@ -106,7 +111,8 @@ class Particle:
             if not self.ExtraParams:
                 X = GEN_X(self.Size)
             else:
-                X = self.ExtraParams[1] * (1 + 0.01 * rng.uniform(-1, 1))
+                X = Pos_point_around(self.ExtraParams[1], self.Size)
+
             V, P = Velocity_Momentum(self.M)
             E = Energy_Calc(P, self.M)
             SYSTEM.TRACKING[typeIndex][partORanti].append([[0.0, X]])
@@ -121,10 +127,12 @@ class Particle:
 
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
-    def DO(self, t):
+    def DO(self, t, param=None):
+        from System.SystemClass import SYSTEM
+
         xi = self.X
         Vt = self.V.copy()
-        if self.name != "photon":
+        if self.name != "photon" and param == None:
             Vt += (
                 Global_variables.FIELD[
                     Global_variables.Field_DICT[(*self.parity, self.ID)]
@@ -140,6 +148,31 @@ class Particle:
         )
 
         if in_all_bounds(xf, t, self.Size):
-            return [xf, self.parity, self.ID, [], self.V, [t], 0]
+            do_info = [xf, self.parity, self.ID, [], self.V, [t], 0]
         else:
-            return BOUNDS_Collision_Check(xi, xf, Vt, t, self.ID, self.parity, self.M)
+            do_info = BOUNDS_Collision_Check(
+                xi, xf, Vt, t, self.ID, self.parity, self.M
+            )
+
+        self.do_info = do_info  # =[Xfin, p, id, Xinter, V, t_list, NZ]
+        # [a,b,Tparam,[id_type[1], id_type[2]],int(id_type[0]),xinter,ends]
+
+        a = Vt
+        b = []
+        xfin, Tparam, xinter, ends = item_get(do_info)
+        if BOUNDARY_COND == 0:
+            for r in range(ends):
+                b.append(xinter[r][0] - a * float(Tparam[1 + r]))
+            b.append(xfin - a * float(Tparam[0]))
+        else:
+            A = np.copy(a)
+            for r in range(ends):
+                b.append(xinter[r][0] - A * float(Tparam[1 + r]))
+                flipindex, flipvalue = SYSTEM.Vflipinfo[self.parity[1]][self.parity[0]][
+                    self.ID
+                ][r]
+                A[flipindex] = flipvalue
+            b.append(xfin - A * float(Tparam[0]))
+
+        self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, ends]
+        return do_info

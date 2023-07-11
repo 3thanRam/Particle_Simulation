@@ -166,7 +166,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
                 PART_SIZE,
                 np.zeros_like(PART_SIZE),
                 offsets=[],
-                units="x",
+                units="xy",
                 transOffset=ax.transData,
                 edgecolors=[PartColour[0], PartColour[0]],
                 facecolors=PartColour[antiOrpartind],

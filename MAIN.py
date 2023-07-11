@@ -41,12 +41,11 @@ def main(T, Repr_type, File_path_name=None):
 
     """
     from Misc.Functions import ROUND
-    from Particles.SystemClass import init
+    from System.SystemClass import init
 
     init()
-    from Particles.SystemClass import SYSTEM
-    from Particles.Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
-    from Particles.Interactions.INTERACTION_LOOP import Interaction_Loop_Check
+    from System.SystemClass import SYSTEM
+    from Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
 
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
@@ -60,7 +59,7 @@ def main(T, Repr_type, File_path_name=None):
         print(Dper, "%", end="\r")
 
     Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-    Nset[2] = [5, 5]  # electron/positron
+    Nset[2] = [8, 8]  # electron/positron
     # Nset[13] = [5, 0]  # photons
     Nset[6] = [2, 0]  # upquark
     Nset[7] = [1, 0]  # downquark
@@ -93,17 +92,13 @@ def main(T, Repr_type, File_path_name=None):
         L, Linf = Update_L_Lmin(t)
         Global_variables.Update_Bound_Params(L, Linf, t)
         SYSTEM.UPDATE(t)
-        PARAMS = SYSTEM.PREPARE_PARAMS()
-
-        if len(PARAMS[-1]) != 0:
-            Xf = Interaction_Loop_Check(SYSTEM.Xf, t, PARAMS)
-        else:
-            Xf = SYSTEM.Xf
+        Xf = SYSTEM.Xf
 
         # Update particle positions and tracking history
         for indUpdate in range(len(Xf[0])):
             if not Xf[0][indUpdate]:
                 continue
+
             pos_search = [Xf[0][indUpdate][0]]
             PartOrAnti_search, typeindex_search, id_search = [*Xf[0][indUpdate]][1:4]
 
@@ -132,16 +127,17 @@ def main(T, Repr_type, File_path_name=None):
 
     # post-simulation operations depending on the input parameter Repr_type, which determines the type of output the function produces.
 
+    ALL_TIME = Global_variables.ALL_TIME
+    ALL_TIME.extend([ROUND(i * dt) for i in range(T)])
+    ALL_TIME = [*set(ALL_TIME)]
+    ALL_TIME.sort()
+
     if (
         Repr_type == 1
     ):  # if Repr_type is equal to 1, then the function produces a graphical output of the simulation results using the DRAW function.
         print("Generating time:", Dt, "s")
         import Display.DisplayDRAW as DRAW_TRAJ
 
-        ALL_TIME = Global_variables.ALL_TIME
-        ALL_TIME.extend([ROUND(i * dt) for i in range(T)])
-        ALL_TIME = [*set(ALL_TIME)]
-        ALL_TIME.sort()
         DRAW_PARAMS = [
             T,
             dt,

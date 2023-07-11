@@ -7,7 +7,7 @@ rng = np.random.default_rng()
 from Particles.Dictionary import PARTICLE_DICT
 
 from Particles.Global_Variables import Global_variables
-from Particles.SystemClass import SYSTEM
+from System.SystemClass import SYSTEM
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 
@@ -117,6 +117,12 @@ def STRONG_FORCE_GROUP(TotnumbAllpart):
 
     STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
 
+    if STRONG_FORCE.shape != BIG_vel_matrix.shape:
+        import sys
+
+        print(TotnumbAllpart, len(SYSTEM.Particles_List), SYSTEM.Tot_Numb)
+        print(STRONG_FORCE.shape, BIG_vel_matrix.shape)
+        sys.exit()
     NEW_COLOR_GROUP = []
 
     def QUARK_SEPERATOR(Quark_Group, Quark_Numb, RANGE_ARG):

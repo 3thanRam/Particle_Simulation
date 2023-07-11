@@ -37,7 +37,7 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
         - NZ (int): The number of intermediate positions.
     """
     PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
-    from Particles.SystemClass import SYSTEM
+    from System.SystemClass import SYSTEM
 
     Xini = xi
     Xfin = xf

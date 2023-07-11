@@ -28,7 +28,7 @@ def SET_PARAMETERS():
         )
     elif Answer == "q":  # quicklaunch
         print("Quick Launch")
-        DIM = 1
+        DIM = 2
         Vrec = [[5], [5, 10], [10, 12, 15]][DIM - 1]
         REPR = 1
         Bounds = 1
@@ -36,7 +36,7 @@ def SET_PARAMETERS():
         filename = ""
         T, n1, n2, v, L = [
             [20, 50, 50, Vrec, [30]],
-            [10, 40, 40, Vrec, [5, 5]],
+            [10, 40, 40, Vrec, [15, 15]],
             [30, 15, 15, Vrec, [20, 20, 20]],
         ][DIM - 1]
         setParams = [T, n1, n2, v, L, DIM, Bounds, REPR, filename]

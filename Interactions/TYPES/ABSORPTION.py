@@ -4,7 +4,10 @@ import vg
 rng = np.random.default_rng()
 
 from Particles.Global_Variables import Global_variables
-from Particles.SystemClass import SYSTEM
+from System.SystemClass import SYSTEM
+from operator import itemgetter
+
+item_get = itemgetter(2, 5)
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -44,46 +47,34 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
     else:
         p1, id1, z1 = pB, idB, zB
         p2, id2, z2 = pA, idA, zA
-    partORAnti1 = p1[0]
-    partORAnti2 = p2[0]
-    Global_variables.ALL_TIME.append(ti)
-    Global_variables.COLPTS.append([ti, xo, coltype])  # FirstAnn)
+    partORAnti1, partORAnti2 = p1[0], p2[0]
+    p1index, p2index = p1[1], p2[1]
 
+    Global_variables.ALL_TIME.append(ti)
+    Global_variables.COLPTS.append([ti, xo, coltype])
     Grnumblist, Targs1 = [], []
+
+    Particle1 = SYSTEM.Get_Particle(p1index, partORAnti1, id1)
+    Targs1, Xinter1 = item_get(Particle1.Coef_param_list)
+    Etot, Vpart = Particle1.Energy, Particle1.V
+    vect_direct = Vpart / np.linalg.norm(Vpart)
+
     for groupnumb, coefgroup in enumerate(COEFSlist):
         killcoef = []
         for indtokill, coefinfo in enumerate(coefgroup):
-            typetest = coefinfo[-4]
-            idtest = coefinfo[-3]
+            typetest, idtest = coefinfo
             if typetest == p1 and idtest == id1:
                 killcoef.append(indtokill)
-                Targs1 = coefinfo[2]
-                Xinter1 = coefinfo[-2]
         if killcoef:
             Grnumblist.append(groupnumb)
         killcoef.sort(reverse=True)
         for coefkillindex in killcoef:
-            coefgroup.pop(coefkillindex)
-
-    p1index = p1[1]
-    p2index = p2[1]
+            COEFSlist[groupnumb].pop(coefkillindex)
 
     # Remove the particles involved in the collision from their respective particle lists
 
-    Etot, Vpart = SYSTEM.Get_Energy_velocity_Remove_particle(p1index, partORAnti1, id1)
-    vect_direct = Vpart / np.linalg.norm(Vpart)
-
     SYSTEM.Change_Particle_Energy_velocity(p2index, partORAnti2, id2, Etot, vect_direct)
-
-    NewFO = [list(F[d]) for d in range(DIM_Numb)]
-    TOKILL = [[] for d in range(DIM_Numb)]
-
-    for d in range(DIM_Numb):
-        for subind, subF in enumerate(NewFO[d]):
-            # [('Pos', float), ('TypeID0', int),('TypeID1', int),('index', int)]
-            if subF[1] == p1[0] and subF[2] == p1[1] and subF[3] == id1:
-                TOKILL[d].append(subF)
-
+    SYSTEM.Remove_particle(p1index, partORAnti1, id1)
     # If the particles have a history of collisions, update the tracking information
     if z1 > 0:
         for zi in range(z1):
@@ -96,10 +87,18 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
             )
             Global_variables.ALL_TIME.extend(Targs1[1:])
 
-    SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+    # SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
+    # SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+
     Global_variables.ALL_TIME.append(ti)
 
+    NewFO = [list(F[d]) for d in range(DIM_Numb)]
+    TOKILL = [[] for d in range(DIM_Numb)]
+    for d in range(DIM_Numb):
+        for subind, subF in enumerate(NewFO[d]):
+            # [('Pos', float), ('TypeID0', int),('TypeID1', int),('index', int)]
+            if subF[1] == p1[0] and subF[2] == p1[1] and subF[3] == id1:
+                TOKILL[d].append(subF)
     # Remove the information about the particles involved in the collision from the collision point list and decrement the total number of particles
     for d in range(DIM_Numb):
         for killparticl in TOKILL[d]:
