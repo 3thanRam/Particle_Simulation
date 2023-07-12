@@ -14,13 +14,7 @@ Choice between only showing evolution of the particles' densities or also visual
 
 To do: 
 
--Vflipinfo should be part of ParticleClass not SYSTEM
-
--Fix INTERACTION CHECK
-
 -Redo comments
-
--Fix coef of adding points causing bounce like behaviour
 
 -Remember to check what happens if particles bounces to lower/higher than it started, will it be checked for interactions against necesary particles
 

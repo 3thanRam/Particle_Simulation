@@ -174,7 +174,7 @@ class SYSTEM_CLASS:
     def Particle_set_coefs(self, index, PartOrAnti, ID, New_Coef_info):
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
-        # self.Particles_List[SEARCH_id].do_info = NewDo_info
+        self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
     def Get_Mass_Matrix(self):
         return np.array([particle.M for particle in self.Particles_List])
@@ -246,21 +246,19 @@ class SYSTEM_CLASS:
 
     def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
         self.UPDATE_particle_position(index, PartOrAnti, ID, NewPos)
-
-        get = itemgetter(3, 5, 6)
-        xinterargs, targs, Endtype = get(
-            self.Get_Particle(index, PartOrAnti, ID).do_info
+        get = itemgetter(2, 5)
+        targs, xinterargs = get(
+            self.Get_Particle(index, PartOrAnti, ID).Coef_param_list
         )
-        if Endtype > 0:
-            for nz in range(len(targs) - 1):
-                self.TRACKING[index][PartOrAnti][ID].extend(
-                    [
-                        [targs[nz + 1], xinterargs[nz][0]],
-                        ["T", "X"],
-                        [targs[nz + 1], xinterargs[nz][1]],
-                    ]
-                )
-            Global_variables.ALL_TIME.extend(targs[1:])
+        for nz in range(len(targs) - 1):
+            self.TRACKING[index][PartOrAnti][ID].extend(
+                [
+                    [targs[nz + 1], xinterargs[nz][0]],
+                    ["T", "X"],
+                    [targs[nz + 1], xinterargs[nz][1]],
+                ]
+            )
+        Global_variables.ALL_TIME.extend(targs[1:])
         self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 
 

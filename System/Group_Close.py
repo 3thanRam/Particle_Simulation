@@ -14,44 +14,19 @@ from System.Reduce_Overlap import REMOVE_OVERLAP
 
 
 def Group_particles(Xi, Xf, BOUNDARYCHECKS):
-    # dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
-    CHANGESdim = [
-        np.where(
-            (Xi[d]["index"] != Xf[d]["index"])
-            | (Xi[d]["TypeID0"] != Xf[d]["TypeID0"])
-            | (Xi[d]["TypeID1"] != Xf[d]["TypeID1"])
-        )
-        for d in range(DIM_Numb)
-    ]
-    CHANGESdim2 = [
-        np.where((Xi[d]["index"] == Xi[d]["index"])) for d in range(DIM_Numb)
-    ]
-    if DIM_Numb == 1:
-        CHANGES = CHANGESdim[0][0]
-    elif DIM_Numb == 2:
-        CHANGES = np.intersect1d(*CHANGESdim2)
-    elif DIM_Numb == 3:
-        CHANGES = np.intersect1d(
-            np.intersect1d(CHANGESdim[0], CHANGESdim[1]), CHANGESdim[2]
-        )
-    CHGind = []  # index in Xi/Xf
     # particle involved in interactions parameters
     PARAMS = []  # each elem is list of [type0,type1,ID]
-    for (
-        chg
-    ) in (
-        CHANGES
-    ):  #  particles of index between ini and end could interact with the particle
-        CHGind.append([])
-        # for parametr in PARAMS:
+    for ind_ini in range(
+        len(Xi[0])
+    ):  #  particles of index between ini and end and within distmax of those points could interact with the particle
         PARAMS.append([])
         for d in range(DIM_Numb):
             matchval = np.where(
-                (Xi[d]["index"][chg] == Xf[d]["index"])
-                & (Xi[d]["TypeID0"][chg] == Xf[d]["TypeID0"])
-                & (Xi[d]["TypeID1"][chg] == Xf[d]["TypeID1"])
+                (Xi[d]["index"][ind_ini] == Xf[d]["index"])
+                & (Xi[d]["TypeID0"][ind_ini] == Xf[d]["TypeID0"])
+                & (Xi[d]["TypeID1"][ind_ini] == Xf[d]["TypeID1"])
             )[0][0]
-            Xa, Xb = Xf[d]["Pos"][matchval], Xi[d]["Pos"][chg]
+            Xa, Xb = Xf[d]["Pos"][matchval], Xi[d]["Pos"][ind_ini]
             Xinf = np.min((Xa, Xb))
             Xsup = np.max((Xa, Xb))
             Inflist = np.where(
@@ -61,11 +36,11 @@ def Group_particles(Xi, Xf, BOUNDARYCHECKS):
                 (Xf[d]["Pos"] >= Xsup) & (Xf[d]["Pos"] <= Xinf + distmax[d])
             )[0]
             if Suplist.size == 0:
-                maxi = max(chg, matchval) + 1
+                maxi = max(ind_ini, matchval) + 1
             else:
                 maxi = Suplist[Xf[d]["Pos"][Suplist].argmax()] + 2
             if Inflist.size == 0:
-                mini = min(chg, matchval)
+                mini = min(ind_ini, matchval)
             else:
                 mini = Inflist[Xf[d]["Pos"][Inflist].argmin()] - 1
             mini = max(0, mini)
@@ -89,14 +64,12 @@ def Group_particles(Xi, Xf, BOUNDARYCHECKS):
                         & (Xf[d2]["TypeID1"] == TYPE1)
                     )[0][0]
                     POSLIST[d2] = Xf[d2]["Pos"][posind2]
-                if CHGind[-1] == [] or COUNTFCT(PARAMS[-1], [ID, TYPE0, TYPE1], 1) == 0:
-                    CHGind[-1].append(elem_ind)
+                if COUNTFCT(PARAMS[-1], [ID, TYPE0, TYPE1], 1) == 0:
                     PARAMS[-1].append([ID, TYPE0, TYPE1])
         if len(PARAMS[-1]) == 0:
             PARAMS.remove([])
-            CHGind.remove([])
-    # if particles interact with bounds then they can interact with particles differently (e.g particles at top and bottom of box can interact if periodic bounds) than those accounted for above
 
-    PARAMS = Group_close_bounds(PARAMS, CHGind, Xi, Xf, BOUNDARYCHECKS)
+    # if particles interact with bounds then they can interact with particles differently (e.g particles at top and bottom of box can interact if periodic bounds) than those accounted for above
+    PARAMS = Group_close_bounds(PARAMS, Xi, Xf, BOUNDARYCHECKS)
 
     return REMOVE_OVERLAP(PARAMS)

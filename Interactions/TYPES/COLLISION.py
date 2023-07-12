@@ -27,26 +27,6 @@ Vmax = Global_variables.Vmax
 
 
 def COLLIDE(FirstAnn, F, COEFSlist, t):
-    """update tracking information after collision point.
-
-    Args:
-    - FirstAnn (list): List containing information about the collision, including time, position, and IDs of the particles involved, as well as other variables used for tracking.
-    - F (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
-
-    Returns:
-    - F (list): Updated list of dictionaries containing information about the particles in the simulation.
-    """
-
-    # Extract information about the collision
-    ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
-
-    Global_variables.ALL_TIME.append(ti)
-    Global_variables.COLPTS.append([ti, xo, coltype])  # FirstAnn)
-
-    return F
-
-
-def COLLIDE2(FirstAnn, F, COEFSlist, t):
     """update the particles 1,2 involved in a collision and update tracking information and collision points.
 
     Args:
@@ -60,6 +40,10 @@ def COLLIDE2(FirstAnn, F, COEFSlist, t):
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
 
+    Global_variables.ALL_TIME.append(ti)
+    Global_variables.COLPTS.append([ti, xo, coltype])
+    # return F
+
     partORAnti1, partORAnti2 = p1[0], p2[0]
     p1index, p2index = p1[1], p2[1]
 
@@ -67,7 +51,7 @@ def COLLIDE2(FirstAnn, F, COEFSlist, t):
     particle2 = SYSTEM.Get_Particle(p2index, partORAnti2, id2)
 
     V1, b1, Targs1, p1c, id1c, Xinter1, ends1 = particle1.Coef_param_list
-    V2, b2, Targs2, p2c, id2c, Xinter2, ends2 = particle1.Coef_param_list
+    V2, b2, Targs2, p2c, id2c, Xinter2, ends2 = particle2.Coef_param_list
 
     # get the particles involved in the collision
 
@@ -88,18 +72,14 @@ def COLLIDE2(FirstAnn, F, COEFSlist, t):
     Pos2 = np.array([*Pos2], dtype=float)
 
     Mtot = M1 + M2
-    Vdif = V1 - V2
-    xdif = Pos1 - Pos2
-    dif = np.linalg.norm(xdif) ** 2
+    Mdif = M1 - M2
 
-    # print(Vdif, Pos1, Pos2, V1, b1)
-    VParam1 = V1 - (2 * M2 / Mtot) * np.dot(Vdif, xdif) * xdif / dif
+    VParam1 = (Mdif / Mtot) * V1 + (2 * M2 / Mtot) * V2
+
     VParam2 = (Ptot - VParam1 * M1) / M2
-
     Targs1, b1, Xinter1 = list(Targs1), list(b1), list(Xinter1)
     Targs2, b2, Xinter2 = list(Targs2), list(b2), list(Xinter2)
     Targs = [Targs1, Targs2]
-
     Rem_ind = [[], []]
     for targind, Targ in enumerate(Targs):
         for tind, tval in enumerate(Targ[1:]):
@@ -119,28 +99,34 @@ def COLLIDE2(FirstAnn, F, COEFSlist, t):
         Xinter2.pop(remind)
         ends2 -= 1
         SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
-
     DT = t - ti
     Xend1, Xend2 = Pos1 + DT * VParam1, Pos2 + DT * VParam2
 
-    Targs1.append(ti - dt)  # * 10**-2)
-    Targs2.append(ti - dt)  # * 10**-2)
-    x1o = xo  # + 10**-2 * VParam1
-    x2o = xo  # + 10**-2 * VParam2
-    Xinter1.append([[x1o, x1o]])
-    Xinter2.append([[x2o, x2o]])
+    Targs1.append(ti)
+    Targs2.append(ti)
+    x1o = Pos1
+    x2o = Pos2
 
+    Xinter1.append([x1o, x1o])
+    Xinter2.append([x2o, x2o])
     newb1 = x1o - VParam1 * ti
     newb2 = x2o - VParam2 * ti
     b1.append(newb1)
     b2.append(newb2)
     ends1 += 1
     ends2 += 1
+
     SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append([0, VParam1[0]])
     SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append([0, VParam2[0]])
+
+    b1 = np.array(b1)
+    b2 = np.array(b2)
+    Xinter1 = np.array(Xinter1)
+    Xinter2 = np.array(Xinter2)
+
     NewCoefs = [
-        [V1, b1, Targs1, p1, id1, Xinter1, ends1],
-        [V2, b2, Targs2, p2, id2, Xinter2, ends2],
+        [VParam1, b1, Targs1, p1, id1, Xinter1, ends1],
+        [VParam2, b2, Targs2, p2, id2, Xinter2, ends2],
     ]
 
     def Set_F_data(F, particle_index, partORanti, id, NewXdata):
@@ -159,7 +145,4 @@ def COLLIDE2(FirstAnn, F, COEFSlist, t):
 
     SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
     SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
-
-    Global_variables.COLPTS.append([ti, xo, coltype])
-    print("collided", p1, id1, p2, id2, ti, xo)
     return F

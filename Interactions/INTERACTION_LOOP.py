@@ -147,7 +147,7 @@ def Interaction_Loop_Check(F, t, GroupList):
                             B1, B2, t, z1, z2, t1params, t2params
                         )
                         INTER = INTERCHECK(
-                            a1, b1, p1, a2, b2, p2, t, z1, z2, tstart, tend, id1, id2
+                            a1, b1, p1, a2, b2, p2, t, z1, z2, tstart, tend
                         )
                         Collisiontype = INTER[0]
                         if Collisiontype != 0:

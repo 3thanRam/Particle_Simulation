@@ -5,8 +5,9 @@ Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 
+recommend_Dim = 2
 Parameter_dict = {
-    "Numb_Dimensions": {"type": int, "Rec": 2, "bounds": [1, 3]},
+    "Numb_Dimensions": {"type": int, "Rec": recommend_Dim, "bounds": [1, 3]},
     "time_steps": {"type": int, "Rec": [20, 10, 20], "bounds": [0, np.inf]},
     "box_size": {
         "type": float,
@@ -27,12 +28,12 @@ Rec = [
 
 
 def SET_PARAMETERS():
-    MODE = input("Recommended or Custom settings?(r/c)")
+    MODE = input("Recommended or Custom settings?(r/c) ")
 
     Input_parameters = []
     if MODE in Rec:
         INI_Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-        INI_Nset[2] = [8, 8]  # electron/positron
+        INI_Nset[2] = [15, 0]  # electron/positron
         # Nset[13] = [5, 0]  # photons
         INI_Nset[6] = [2, 0]  # upquark
         INI_Nset[7] = [1, 0]  # downquark
@@ -54,7 +55,7 @@ def SET_PARAMETERS():
         else:
             Rec_param = Parameter_dict[param]["Rec"]
 
-        User_inp = input(f"Please choose {param}: (rec {Rec_param})")  #
+        User_inp = input(f"Please choose {param}: (rec {Rec_param})  ")  #
         while True:
             if isinstance(User_inp, str) and User_inp.lower() in Rec:
                 User_inp = Rec_param
@@ -86,12 +87,12 @@ def SET_PARAMETERS():
                 else:
                     Input_parameters.append(User_inp)
                     break
-                User_inp = input(f"Please choose {param}: (rec {Rec_param})")
+                User_inp = input(f"Please choose {param}: (rec {Rec_param})  ")
             except ValueError:
                 print(
                     f"Must be a {Parameter_dict[param]['type']} and not {type(User_inp)}"
                 )
-                User_inp = input(f"Please choose {param}: (rec {Rec_param})")
+                User_inp = input(f"Please choose {param}: (rec {Rec_param})  ")
 
     INI_Nset = [[0, 0] for n in range(Numb_of_TYPES)]
     for n in range(Numb_of_TYPES):
@@ -103,7 +104,7 @@ def SET_PARAMETERS():
             Part_Anti = 1
         for i in range(Part_Anti):
             name = "anti" * i + PARTICLE_NAMES[n]
-            User_inp = input(f"Please choose Number of {name}")
+            User_inp = input(f"Please choose Number of {name}  ")
             while True:
                 try:
                     User_inp = int(User_inp)
@@ -111,7 +112,7 @@ def SET_PARAMETERS():
                         break
                 except:
                     print("Must be int and postive (or zero)")
-                    User_inp = input(f"Please choose Number of {name}")
+                    User_inp = input(f"Please choose Number of {name}  ")
             INI_Nset[n][i] = User_inp
     Input_parameters.append(INI_Nset)
     return Input_parameters

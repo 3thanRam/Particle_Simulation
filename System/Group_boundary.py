@@ -10,11 +10,10 @@ distmax = 1.5 * Vmax * dt
 from Misc.Functions import COUNTFCT
 
 
-def Group_close_bounds(PARAMS, CHGind, Xi, Xf, BOUNDARYCHECKS):
+def Group_close_bounds(PARAMS, Xi, Xf, BOUNDARYCHECKS):
     for Bcheck in BOUNDARYCHECKS:
         if len(Bcheck) > 0:
             PARAMS.append([])
-            CHGind.append([])
             for PART_B_inf_index in Bcheck:
                 for d in range(DIM_Numb):
                     elem_ind = np.where(
@@ -41,5 +40,4 @@ def Group_close_bounds(PARAMS, CHGind, Xi, Xf, BOUNDARYCHECKS):
                         )[0][0]
                         POSLIST[d2] = Xf[d2]["Pos"][posind2]
                     PARAMS[-1].append([ID, TYPE0, TYPE1])
-                    CHGind[-1].append(elem_ind)
     return PARAMS

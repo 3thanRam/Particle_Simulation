@@ -156,12 +156,7 @@ def main(T, Repr_type, Nset):
 
 
 if __name__ == "__main__":
-    # from Settings.CHOICES import SET_PARAMETERS
     from Settings.INPUT import SET_PARAMETERS
-
-    # SET_Param = SET_PARAMETERS()
-    # T_param, Repr_mode, filename = SET_Param[0], SET_Param[7], SET_Param[8]
-    # l, Numb_Dimensions, BOUNDARY_COND = SET_Param[4], SET_Param[5], SET_Param[6]
 
     (
         DIM_Numb,
