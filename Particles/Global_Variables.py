@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 Numb_of_TYPES = len(PARTICLE_DICT)
+
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 
@@ -29,6 +30,7 @@ class Global_var:
     Bound_Params: list = field(init=False)
 
     C_speed: float = Speed_light
+    distmax: float = 0
     Dist_min: float = field(init=False)
     dt: float = field(init=False)
 
@@ -54,6 +56,11 @@ class Global_var:
         self.Bound_Params = [0, 0, 0, 0]
         self.Dist_min = float(DistList[self.DIM_Numb - 1])
         self.dt = DT[self.DIM_Numb - 1]
+        if self.DIM_Numb == 0:
+            max_part_size = 0
+        else:
+            max_part_size = 1
+        self.distmax = np.linalg.norm(self.Vmax * self.dt + max_part_size)
 
     def Update_Bound_Params(self, L, Linf, t):
         dt = self.dt

@@ -2,6 +2,8 @@ import numpy as np
 from itertools import combinations
 from operator import itemgetter
 
+Overlap_parameter = 0.5
+
 
 def REMOVE_OVERLAP(PARAMS):
     # The same particles can be present in many groups so we must reduce overlap
@@ -27,8 +29,8 @@ def REMOVE_OVERLAP(PARAMS):
                 REMOVELIST.append(I2)
             elif Osize == A_s:
                 REMOVELIST.append(I1)
-            elif Osize >= 0.9 * B_s or Osize >= 0.3 * A_s:
-                if Osize >= 0.9 * B_s:
+            elif Osize >= Overlap_parameter * B_s or Osize >= Overlap_parameter * A_s:
+                if Osize >= Overlap_parameter * B_s:
                     AB_s, indab, I21, I12 = B_s, indb, I1, I2
                 else:
                     AB_s, indab, I21, I12 = A_s, inda, I2, I1

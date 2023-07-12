@@ -35,40 +35,6 @@ class SYSTEM_CLASS:
         self.Quarks_Numb = 0
         self.TRACKING = [[[], []] for i in range(Numb_of_TYPES)]
         self.Vflipinfo = [[[], []] for i in range(Numb_of_TYPES)]
-        if BOUNDARY_COND == 1:
-            self.SYSTEM_BOUNDARY_CHECK_FCT = self.SYSTEM_BOUNDARY_CHECK_HARD
-        else:
-            self.SYSTEM_BOUNDARY_CHECK_FCT = self.SYSTEM_BOUNDARY_CHECK_PERIODIC
-
-    def SYSTEM_BOUNDARY_CHECK_PERIODIC(self):
-        return [
-            np.where(
-                (
-                    self.Xi["Pos"]
-                    < (Global_variables.Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
-                ).any(axis=0)
-                | (
-                    self.Xi["Pos"]
-                    > (Global_variables.L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)
-                ).any(axis=0)
-            )[0]
-        ]
-
-    def SYSTEM_BOUNDARY_CHECK_HARD(self):
-        return [
-            np.where(
-                (
-                    self.Xi[:]["Pos"]
-                    < (Global_variables.Linf[:, np.newaxis] + Vmax[:, np.newaxis] * dt)
-                ).any(axis=0)
-            )[0],
-            np.where(
-                (
-                    self.Xi[:]["Pos"]
-                    > (Global_variables.L[:, np.newaxis] - Vmax[:, np.newaxis] * dt)
-                ).any(axis=0)
-            )[0],
-        ]
 
     def Add_Particle(self, index, PartOrAnti, ExtraParams=None):
         if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
@@ -229,8 +195,7 @@ class SYSTEM_CLASS:
         self.UPDATE_XF(t)
 
     def UPDATE_XF(self, t):
-        BOUNDARYCHECKS = self.SYSTEM_BOUNDARY_CHECK_FCT()
-        PARAMS = Group_particles(self.Xi, self.Xf, BOUNDARYCHECKS)
+        PARAMS = Group_particles(self.Xi, self.Xf)
         if len(PARAMS) != 0:
             self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
                 self.Xf, t, PARAMS
