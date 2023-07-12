@@ -12,8 +12,6 @@ DIM_Numb = Global_variables.DIM_Numb
 dt = Global_variables.dt
 L_FCT = Global_variables.L_FCT
 
-import matplotlib.pyplot as plt
-
 
 def quad_equ(a, b, c, bound_start, bound_end):
     Delta2 = b**2 - 4 * a * c

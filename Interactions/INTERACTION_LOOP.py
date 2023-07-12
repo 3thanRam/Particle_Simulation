@@ -1,12 +1,8 @@
 import numpy as np
+import System.SystemClass
 from itertools import combinations
 
 from Particles.Global_Variables import Global_variables
-
-# INTERCHECK = Global_variables.INTERCHECK
-
-# BOUNDARY_FCT = Global_variables.BOUNDARY_FCT
-BOUNDARY_COND = Global_variables.BOUNDARY_COND
 
 if Global_variables.DIM_Numb == 1:
     from Interactions.INTERACTION_CHECK import INTERCHECK_1D
@@ -18,6 +14,7 @@ else:
 
     INTERCHECK = INTERCHECK_ND
     # Global_variables.INTERCHECK = INTERCHECK_ND
+BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
     from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
 
@@ -112,8 +109,6 @@ def Interaction_Loop_Check(F, t, GroupList):
     Returns:
         updated state of the system (F).
     """
-    from System.SystemClass import SYSTEM
-
     kill_list = []
     INTERACT_HIST = []
     NumbDone, NumbCols = 0, -1
@@ -128,8 +123,8 @@ def Interaction_Loop_Check(F, t, GroupList):
                 particle1, particle2 = Group[I1], Group[I2]
                 p1, id1 = particle1
                 p2, id2 = particle2
-                P1 = SYSTEM.Get_Particle(p1[1], p1[0], id1)
-                P2 = SYSTEM.Get_Particle(p2[1], p2[0], id2)
+                P1 = System.SystemClass.SYSTEM.Get_Particle(p1[1], p1[0], id1)
+                P2 = System.SystemClass.SYSTEM.Get_Particle(p2[1], p2[0], id2)
                 A1, B1, t1params, p1, id1 = P1.Coef_param_list[:5]
                 A2, B2, t2params, p2, id2 = P2.Coef_param_list[:5]
 

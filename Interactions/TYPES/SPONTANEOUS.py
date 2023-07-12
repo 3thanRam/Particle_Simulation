@@ -1,16 +1,10 @@
 import numpy as np
+from Particles.Dictionary import PARTICLE_DICT
+from Particles.Global_Variables import Global_variables
+import System.SystemClass
 
 rng = np.random.default_rng()
-# from itertools import product, permutations
-# from collections import Counter
-
-from Particles.Dictionary import PARTICLE_DICT
-
-from Particles.Global_Variables import Global_variables
-from System.SystemClass import SYSTEM
-
 Numb_of_TYPES = len(PARTICLE_DICT)
-
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb
 dt = Global_variables.dt
@@ -63,18 +57,18 @@ def COLOR_ERROR(Colour_group):
 
 # STRONG FORCE PARAMS#
 LO_strg = PARTICLE_DICT["up_Quark"]["size"] * 6  # L_strong_cutoff/2
-
 L_strong_cutoff = LO_strg * 2
-
 k_strong = 5 / ((L_strong_cutoff - LO_strg))
-# k_strong = 2.3 / (dt * 0.05 * (L_strong_cutoff - LO_strg))
 
 
 def STRONG_FORCE_GROUP(TotnumbAllpart):
     dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
     Xarray = np.array(
         [
-            [(s.X[d], s.parity[0], s.parity[1], s.ID) for s in SYSTEM.Particles_List]
+            [
+                (s.X[d], s.parity[0], s.parity[1], s.ID)
+                for s in System.SystemClass.SYSTEM.Particles_List
+            ]
             for d in range(DIM_Numb)
         ],
         dtype=dtype,
@@ -84,8 +78,12 @@ def STRONG_FORCE_GROUP(TotnumbAllpart):
     )
     DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
     distances = np.linalg.norm(DELTA, axis=-1)
-    strong_charge_matrix = np.array([s.Strong_Charge for s in SYSTEM.Particles_List])
-    vel_matrix = np.array([np.linalg.norm(s.V) for s in SYSTEM.Particles_List])
+    strong_charge_matrix = np.array(
+        [s.Strong_Charge for s in System.SystemClass.SYSTEM.Particles_List]
+    )
+    vel_matrix = np.array(
+        [np.linalg.norm(s.V) for s in System.SystemClass.SYSTEM.Particles_List]
+    )
     BIG_vel_matrix = np.outer(vel_matrix, vel_matrix)
 
     Strong_DIST = np.where(
@@ -116,13 +114,6 @@ def STRONG_FORCE_GROUP(TotnumbAllpart):
                 COLOR_GROUP.append([I_ind, J_ind])
 
     STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
-
-    if STRONG_FORCE.shape != BIG_vel_matrix.shape:
-        import sys
-
-        print(TotnumbAllpart, len(SYSTEM.Particles_List), SYSTEM.Tot_Numb)
-        print(STRONG_FORCE.shape, BIG_vel_matrix.shape)
-        sys.exit()
     NEW_COLOR_GROUP = []
 
     def QUARK_SEPERATOR(Quark_Group, Quark_Numb, RANGE_ARG):
@@ -229,7 +220,11 @@ def SpontaneousEvents(t):
 
     RemoveTypeInd = PARTICLE_DICT["photon"]["index"]
 
-    PHOTON_LIST = [part for part in SYSTEM.Particles_List if part.name == "photon"]
+    PHOTON_LIST = [
+        part
+        for part in System.SystemClass.SYSTEM.Particles_List
+        if part.name == "photon"
+    ]
 
     PHOTON_ID_LIST = [photon.ID for photon in PHOTON_LIST]
     Energy_List = np.array([photon.Energy for photon in PHOTON_LIST])
@@ -237,7 +232,6 @@ def SpontaneousEvents(t):
     Energy_List_CUT = np.where(Energy_List > Emax, Emax, Energy_List)
     GEN_INFO = []
     GEN_INFO_search = []
-    # EcreationMin=2*C_speed**2
 
     for Eminindex, Ecreatmini in enumerate(EcreationMinList):
         P_list = np.where(
@@ -245,7 +239,6 @@ def SpontaneousEvents(t):
             np.exp(Energy_List_CUT / (Ecreatmini * Emax)) - 1,
             0,
         )
-        # P_list=[pi[0] for pi in Prob_Array]
         P_list = np.where(P_list > 0.9, 0.9, np.where(P_list < 0, 0, P_list))
         if np.trim_zeros(P_list).size > 0:
             Gen = np.array([rng.choice([0, 1], p=[1 - pi, pi]) for pi in P_list])
@@ -257,10 +250,10 @@ def SpontaneousEvents(t):
 
     GEN_INFO.sort(key=lambda x: x[1], reverse=True)
     for nameind, killind in GEN_INFO:
-        NewpartName = PARTICLE_SPONT_NAMES[nameind]  #'electron'
-
-        # PosCenter = Global_variables.SYSTEM[RemoveTypeInd][0][killind].X
-        Particle_Kill = SYSTEM.Get_Particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+        NewpartName = PARTICLE_SPONT_NAMES[nameind]
+        Particle_Kill = System.SystemClass.SYSTEM.Get_Particle(
+            RemoveTypeInd, 0, PHOTON_ID_LIST[killind]
+        )
         PosCenter = Particle_Kill.X
         Global_variables.COLPTS.append([t, PosCenter, 4])
 
@@ -297,12 +290,14 @@ def SpontaneousEvents(t):
         CREATEparam2 = "Spont_Create", PosParam2, VParam2, t, Energyval
         CREATEPARAMS = [CREATEparam1, CREATEparam2]
         # remove photon
-        SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+        System.SystemClass.SYSTEM.Remove_particle(
+            RemoveTypeInd, 0, PHOTON_ID_LIST[killind]
+        )
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
 
         for i in range(2):
-            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+            System.SystemClass.SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
 
     ##############
     # STRONG FORCE#
@@ -322,8 +317,8 @@ def SpontaneousEvents(t):
         for partName in QUARK_SPONT_NAMES
     ]
 
-    Quark_Numb = SYSTEM.Quarks_Numb
-    TotnumbAllpart = SYSTEM.Tot_Numb
+    Quark_Numb = System.SystemClass.SYSTEM.Quarks_Numb
+    TotnumbAllpart = System.SystemClass.SYSTEM.Tot_Numb
     if Quark_Numb == 0:
         Global_variables.S_Force = np.zeros((TotnumbAllpart, TotnumbAllpart))
         return 0
@@ -343,7 +338,6 @@ def SpontaneousEvents(t):
             np.exp(SPRING_ENERGY_CUT / (Ecreatei * Emax)) - 1,
             0,
         )
-        # if np.isinf(P_list).any():
         P_list = np.where(P_list > 1, 0.99, np.where(P_list < 0, 0, P_list))
 
         if np.trim_zeros(P_list.flatten()).size > 0:
@@ -364,19 +358,19 @@ def SpontaneousEvents(t):
 
     # GEN_INFO.sort(key=lambda x:x[1],reverse=True)
     for GENnumb, (nameind, ParentSystindex1, ParentSystindex2) in enumerate(GEN_INFO):
-        NewpartName = QUARK_SPONT_NAMES[nameind]  # eg 'electron'
+        NewpartName = QUARK_SPONT_NAMES[nameind]
 
         parity1, id1, X1 = (
-            SYSTEM.Particles_List[ParentSystindex1].parity,
-            SYSTEM.Particles_List[ParentSystindex1].ID,
-            np.array(SYSTEM.Particles_List[ParentSystindex1].X),
+            System.SystemClass.SYSTEM.Particles_List[ParentSystindex1].parity,
+            System.SystemClass.SYSTEM.Particles_List[ParentSystindex1].ID,
+            np.array(System.SystemClass.SYSTEM.Particles_List[ParentSystindex1].X),
         )
         PartOrAnti1, ind1 = parity1
 
         parity2, id2, X2 = (
-            SYSTEM.Particles_List[ParentSystindex2].parity,
-            SYSTEM.Particles_List[ParentSystindex2].ID,
-            np.array(SYSTEM.Particles_List[ParentSystindex2].X),
+            System.SystemClass.SYSTEM.Particles_List[ParentSystindex2].parity,
+            System.SystemClass.SYSTEM.Particles_List[ParentSystindex2].ID,
+            np.array(System.SystemClass.SYSTEM.Particles_List[ParentSystindex2].X),
         )
         PartOrAnti2, ind2 = parity2
 
@@ -410,4 +404,4 @@ def SpontaneousEvents(t):
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
         for i in range(2):
-            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+            System.SystemClass.SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])

@@ -1,13 +1,14 @@
 import numpy as np
+import System.SystemClass
 from dataclasses import dataclass, field
-
-
 from Particles.Dictionary import PARTICLE_DICT
+from Particles.Global_Variables import Global_variables
+from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
+from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
+from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
+from operator import itemgetter
 
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-
-from Particles.Global_Variables import Global_variables
-
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
 dt = Global_variables.dt
@@ -15,12 +16,6 @@ Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 rng = np.random.default_rng()
 Xini = []
-
-from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
-from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
-from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
-from operator import itemgetter
-
 item_get = itemgetter(0, -2, 3, -1)
 V_fct = UNIFORM
 
@@ -95,8 +90,6 @@ class Particle:
     do_info: list = field(init=False, default_factory=list)
 
     def __post_init__(self):
-        from System.SystemClass import SYSTEM
-
         self.M = PARTICLE_DICT[self.name]["mass"]
         self.Strong_Charge = PARTICLE_DICT[self.name]["Strong_Charge"]
         self.Size = PARTICLE_DICT[self.name]["size"] / 2
@@ -115,21 +108,21 @@ class Particle:
 
             V, P = Velocity_Momentum(self.M)
             E = Energy_Calc(P, self.M)
-            SYSTEM.TRACKING[typeIndex][partORanti].append([[0.0, X]])
+            System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append([[0.0, X]])
         elif (
             self.ExtraParams[0] == "Post_Interaction"
             or self.ExtraParams[0] == "Spont_Create"
         ):
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
             X, V, E, P = PosParam, VParam, Energyval, Energyval / C_speed
-            SYSTEM.TRACKING[typeIndex][partORanti].append([[TvalueParam, X]])
-            SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
+            System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
+                [[TvalueParam, X]]
+            )
+            System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
 
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def DO(self, t, param=None):
-        from System.SystemClass import SYSTEM
-
         xi = self.X
         Vt = self.V.copy()
         if self.name != "photon" and param == None:
@@ -168,9 +161,9 @@ class Particle:
             A = np.copy(a)
             for r in range(ends):
                 b.append(xinter[r][0] - A * float(Tparam[1 + r]))
-                flipindex, flipvalue = SYSTEM.Vflipinfo[self.parity[1]][self.parity[0]][
-                    self.ID
-                ][r]
+                flipindex, flipvalue = System.SystemClass.SYSTEM.Vflipinfo[
+                    self.parity[1]
+                ][self.parity[0]][self.ID][r]
                 A[flipindex] = flipvalue
             b.append(xfin - A * float(Tparam[0]))
 

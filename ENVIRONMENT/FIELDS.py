@@ -1,13 +1,10 @@
 import numpy as np
-
 from Particles.Dictionary import PARTICLE_DICT
-
-Numb_of_TYPES = len(PARTICLE_DICT)
-PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-
 from Particles.Global_Variables import Global_variables
 from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
 
+Numb_of_TYPES = len(PARTICLE_DICT)
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 ####Natural Units#####
 ######################

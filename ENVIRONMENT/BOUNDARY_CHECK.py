@@ -1,13 +1,10 @@
 import numpy as np
-
+import System.SystemClass
 from Particles.Dictionary import PARTICLE_DICT
-
-PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-
 from Misc.Functions import ROUND
-
 from Particles.Global_Variables import Global_variables
 
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 DIM_Numb = Global_variables.DIM_Numb
 dt = Global_variables.dt
 L_FCT = Global_variables.L_FCT
@@ -37,8 +34,6 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
         - NZ (int): The number of intermediate positions.
     """
     PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
-    from System.SystemClass import SYSTEM
-
     Xini = xi
     Xfin = xf
     Xinter = []
@@ -147,5 +142,7 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
             Xinter[nz][1][d_arg] = x_params[d_arg][1]
             t_params[d_arg] = np.inf
             d_prev = d_arg
-            SYSTEM.Vflipinfo[p[1]][p[0]][id].append([d_arg, Vchgsign[d_arg]])
+            System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(
+                [d_arg, Vchgsign[d_arg]]
+            )
     return [Xfin, p, id, Xinter, V, t_list, NZ]

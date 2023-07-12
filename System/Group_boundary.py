@@ -7,7 +7,6 @@ DIM_Numb = Global_variables.DIM_Numb
 Vmax = Global_variables.Vmax
 dt = Global_variables.dt
 distmax = 1.5 * Vmax * dt
-from Misc.Functions import COUNTFCT
 
 
 def Group_close_bounds(PARAMS, Xi, Xf, BOUNDARYCHECKS):

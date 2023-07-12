@@ -1,22 +1,20 @@
-# from dataclasses import dataclass, field
-# @dataclass(slots=True)
 import numpy as np
+import Interactions.INTERACTION_LOOP
+import ENVIRONMENT.FIELDS
 from Particles.Dictionary import PARTICLE_DICT
+from Particles.Global_Variables import Global_variables
+from System.Group_Close import Group_particles
+from Particles.ParticleClass import Particle
+from operator import itemgetter
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
-from Particles.Global_Variables import Global_variables
-from Particles.ParticleClass import Particle
-
 DIM_Numb = Global_variables.DIM_Numb
 Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 dt = Global_variables.dt
 
-from itertools import combinations
-
-from operator import itemgetter
 
 distmax = 1.5 * Vmax * dt
 
@@ -180,8 +178,6 @@ class SYSTEM_CLASS:
         return np.array([particle.M for particle in self.Particles_List])
 
     def Get_XI(self):
-        from ENVIRONMENT.FIELDS import Gen_Field
-
         Xi = np.array(
             [
                 [
@@ -192,7 +188,7 @@ class SYSTEM_CLASS:
             ],
             dtype=dtype,
         )
-        Global_variables.FIELD = Gen_Field(
+        Global_variables.FIELD = ENVIRONMENT.FIELDS.Gen_Field(
             Xi, self.Particles_List, self.Quarks_Numb, self.Tot_Numb
         )  # update electric field according to positions and charges of particles
 
@@ -233,14 +229,12 @@ class SYSTEM_CLASS:
         self.UPDATE_XF(t)
 
     def UPDATE_XF(self, t):
-        from Interactions.INTERACTION_LOOP import Interaction_Loop_Check
-
-        from System.Group_Close import Group_particles
-
         BOUNDARYCHECKS = self.SYSTEM_BOUNDARY_CHECK_FCT()
         PARAMS = Group_particles(self.Xi, self.Xf, BOUNDARYCHECKS)
         if len(PARAMS) != 0:
-            self.Xf = Interaction_Loop_Check(self.Xf, t, PARAMS)
+            self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
+                self.Xf, t, PARAMS
+            )
         else:
             print("NO CHG PARAMS for t=", t)
 

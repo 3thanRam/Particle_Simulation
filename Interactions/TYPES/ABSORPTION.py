@@ -4,7 +4,7 @@ import vg
 rng = np.random.default_rng()
 
 from Particles.Global_Variables import Global_variables
-from System.SystemClass import SYSTEM
+import System.SystemClass
 from operator import itemgetter
 
 item_get = itemgetter(2, 5)
@@ -54,7 +54,7 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
     Global_variables.COLPTS.append([ti, xo, coltype])
     Grnumblist, Targs1 = [], []
 
-    Particle1 = SYSTEM.Get_Particle(p1index, partORAnti1, id1)
+    Particle1 = System.SystemClass.SYSTEM.Get_Particle(p1index, partORAnti1, id1)
     Targs1, Xinter1 = item_get(Particle1.Coef_param_list)
     Etot, Vpart = Particle1.Energy, Particle1.V
     vect_direct = Vpart / np.linalg.norm(Vpart)
@@ -73,12 +73,14 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
 
     # Remove the particles involved in the collision from their respective particle lists
 
-    SYSTEM.Change_Particle_Energy_velocity(p2index, partORAnti2, id2, Etot, vect_direct)
-    SYSTEM.Remove_particle(p1index, partORAnti1, id1)
+    System.SystemClass.SYSTEM.Change_Particle_Energy_velocity(
+        p2index, partORAnti2, id2, Etot, vect_direct
+    )
+    System.SystemClass.SYSTEM.Remove_particle(p1index, partORAnti1, id1)
     # If the particles have a history of collisions, update the tracking information
     if z1 > 0:
         for zi in range(z1):
-            SYSTEM.TRACKING[p1index][partORAnti1][id1].extend(
+            System.SystemClass.SYSTEM.TRACKING[p1index][partORAnti1][id1].extend(
                 [
                     [Targs1[zi + 1], Xinter1[zi][0]],
                     ["T", "X"],
@@ -87,8 +89,8 @@ def ABSORBE(FirstAnn, F, COEFSlist, t):
             )
             Global_variables.ALL_TIME.extend(Targs1[1:])
 
-    # SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    # SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
+    # System.SystemClass.SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
+    # System.SystemClass.SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
 
     Global_variables.ALL_TIME.append(ti)
 

@@ -40,7 +40,7 @@ def main(T, Repr_type, Nset):
     draws the points if Repr_type=1.
 
     """
-    from Misc.Functions import ROUND
+
     from System.SystemClass import init
 
     init()
@@ -174,6 +174,7 @@ if __name__ == "__main__":
 
     init(DIM_Numb, BOUNDARY_COND, L_FCT)
     from Particles.Global_Variables import Global_variables
+    from Misc.Functions import ROUND
 
     Vmax = Global_variables.Vmax
     dt = Global_variables.dt

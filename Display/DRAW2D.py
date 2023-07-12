@@ -155,7 +155,6 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
 
     # initialise pens
     PARTICLE_PENS = []
-    from matplotlib import colors
 
     for antiOrpartind, Pindex in ACTIVE_PARTS:
         PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[Pindex]]["size"]
