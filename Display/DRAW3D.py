@@ -1,8 +1,7 @@
 import numpy as np
 from matplotlib import colors
-
 from Particles.Dictionary import PARTICLE_DICT
-
+from Particles.Global_Variables import Global_variables
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -72,8 +71,6 @@ def TRAJ_3D(
 
     COLPTS = [[colpts[0], *colpts[1], colpts[2]] for colpts in COLPTS]
     COLPTS = np.array(COLPTS)
-
-    from Particles.Global_Variables import Global_variables
 
     ExtTparam_min = 3 * dt
     ExtTparam_max = 3 * dt

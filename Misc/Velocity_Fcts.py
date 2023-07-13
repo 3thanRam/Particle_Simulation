@@ -4,7 +4,7 @@ from Particles.Global_Variables import Global_variables
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 V0 = Global_variables.V0
 DIM_Numb = Global_variables.DIM_Numb
-
+C_speed = Global_variables.C_speed
 
 rng = np.random.default_rng()
 
@@ -21,7 +21,10 @@ def GAUSS():
     Returns:
     - np.ndarray: a random velocity vector with values rounded to ROUNDDIGIT decimal places.
     """
-    return np.round(rng.normal(0, V0 / 3, DIM_Numb), ROUNDDIGIT)
+    V = np.round(rng.normal(0, V0 / 3, DIM_Numb), ROUNDDIGIT)
+    while np.linalg.norm(V) > C_speed:
+        V = np.round(rng.normal(0, V0 / 3, DIM_Numb), ROUNDDIGIT)
+    return V
 
 
 def RANDCHOICE():

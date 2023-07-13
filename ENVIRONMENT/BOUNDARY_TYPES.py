@@ -1,7 +1,5 @@
 import numpy as np
-
-
-from Particles.Global_Variables import Global_variables
+import System.SystemClass
 
 
 def SIGNFLIP(a, p, id, z):
@@ -19,7 +17,7 @@ def SIGNFLIP(a, p, id, z):
 
     """
     for find in range(z - 1 + 1):
-        flipindex, flipvalue = Global_variables.Vflipinfo[p[1]][p[0]][id][find]
+        flipindex, flipvalue = System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id][find]
         # flipindex,flipvalue=Vflipinfo[TYPE_to_index_Dict[p[1]]][p[0]][id][find]
         a[flipindex] = flipvalue
         # a[Vflipinfo[TYPE_to_index_Dict[p]][id][find]] *= -1

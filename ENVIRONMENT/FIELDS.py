@@ -1,13 +1,10 @@
 import numpy as np
-
 from Particles.Dictionary import PARTICLE_DICT
+from Particles.Global_Variables import Global_variables
+from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-
-from Particles.Global_Variables import Global_variables
-from Particles.Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
-
 
 ####Natural Units#####
 ######################
@@ -17,7 +14,7 @@ Fine_Struc_Cst = 0.0072973525628
 charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
 
 
-def Gen_Field(Xarray, SystemList):
+def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
     Field_DICT = {}
     for i in range(len(Xarray[0])):
         xpos, i_type0, i_type1, i_id = Xarray[0][i]
@@ -57,17 +54,17 @@ def Gen_Field(Xarray, SystemList):
 
     Quark_ind_LIST = [6, 7, 8, 9, 10, 11]
 
-    SystemList = []
+    """SystemList = []
     SYST = Global_variables.SYSTEM
     TotnumbAllpart, Quark_Numb = 0, 0
     for S_ind in range(Numb_of_TYPES):
         SystemList += SYST[S_ind][0] + SYST[S_ind][1]
         TotnumbAllpart += len(SYST[S_ind][0]) + len(SYST[S_ind][1])
         if S_ind in Quark_ind_LIST:
-            Quark_Numb += len(SYST[S_ind][0]) + len(SYST[S_ind][1])
+            Quark_Numb += len(SYST[S_ind][0]) + len(SYST[S_ind][1])"""
 
     if Quark_Numb != 0:
-        STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(SystemList, TotnumbAllpart)
+        STRONG_FORCE, BIG_vel_matrix = STRONG_FORCE_GROUP(TotnumbAllpart)
     else:
         STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
     force = EG_force + STRONG_FORCE

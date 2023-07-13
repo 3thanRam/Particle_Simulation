@@ -16,6 +16,8 @@ To do:
 
 -Redo comments
 
+-Remember to check what happens if particles bounces to lower/higher than it started, will it be checked for interactions against necesary particles
+
 -Collisions(relativistic)
 
 -more types of particles
