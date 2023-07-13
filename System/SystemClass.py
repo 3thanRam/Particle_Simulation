@@ -112,28 +112,10 @@ class SYSTEM_CLASS:
             self.Quarks_Numb -= 1
         return [E, V]
 
-    def Change_Particle_Energy_velocity(self, index, PartOrAnti, ID, E_add, V_add):
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-
-        self.Particles_List[SEARCH_id].Energy += E_add
-        Vboost = (
-            V_add * E_add / (np.linalg.norm(Vmax) * self.Particles_List[SEARCH_id].M)
-        )
-        self.Particles_List[SEARCH_id].V += Vboost
-
     def Get_Particle(self, index, PartOrAnti, ID):
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
 
         return self.Particles_List[SEARCH_id]
-
-    def Particle_Set(self, index, PartOrAnti, ID, V=None, P=None, Energy=None):
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-        if V:
-            self.Particles_List[SEARCH_id].V = V
-        if P:
-            self.Particles_List[SEARCH_id].P = P
-        elif Energy:
-            self.Particles_List[SEARCH_id].Energy = Energy
 
     def Particle_set_coefs(self, index, PartOrAnti, ID, New_Coef_info):
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
@@ -173,10 +155,10 @@ class SYSTEM_CLASS:
             [
                 [
                     (
-                        p.do_info[0][d],
-                        p.do_info[1][0],
-                        p.do_info[1][1],
-                        p.do_info[2],
+                        p.Coef_param_list[-1][d],
+                        p.Coef_param_list[3][0],
+                        p.Coef_param_list[3][1],
+                        p.Coef_param_list[4],
                     )
                     for p in self.Particles_List
                 ]

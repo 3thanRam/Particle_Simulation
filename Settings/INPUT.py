@@ -33,7 +33,7 @@ def SET_PARAMETERS():
     Input_parameters = []
     if MODE in Rec:
         INI_Nset = [[0, 0] for Ntype in range(Numb_of_TYPES)]
-        INI_Nset[2] = [15, 0]  # electron/positron
+        INI_Nset[2] = [10, 10]  # electron/positron
         # Nset[13] = [5, 0]  # photons
         INI_Nset[6] = [2, 0]  # upquark
         INI_Nset[7] = [1, 0]  # downquark

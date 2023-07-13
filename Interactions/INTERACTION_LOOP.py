@@ -8,23 +8,20 @@ if Global_variables.DIM_Numb == 1:
     from Interactions.INTERACTION_CHECK import INTERCHECK_1D
 
     INTERCHECK = INTERCHECK_1D
-    # Global_variables.INTERCHECK = INTERCHECK_1D
 else:
     from Interactions.INTERACTION_CHECK import INTERCHECK_ND
 
     INTERCHECK = INTERCHECK_ND
-    # Global_variables.INTERCHECK = INTERCHECK_ND
+
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
     from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
 
     BOUNDARY_FCT = BOUNDARY_FCT_PER
-    # Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_PER
 else:
     from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
 
     BOUNDARY_FCT = BOUNDARY_FCT_HARD
-    # Global_variables.BOUNDARY_FCT = BOUNDARY_FCT_HARD
 
 from Interactions.INTERACTION_DEF import COLTYPE
 from Interactions.TYPES.ANNIHILATION import ANNIHILATE

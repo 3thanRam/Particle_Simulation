@@ -25,13 +25,9 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
 
     Returns:
     - A list with the following elements:
-        - Xini (array): The initial position of the particle.
         - Xinter (array): The intermediate positions of the particle (if any).
         - Xfin (array): The final position of the particle.
-        - V (array): The velocity of the particle.
         - t_list (list): A list with the time values at which the particle reaches an intermediate position.
-        - id (int): The ID of the particle.
-        - NZ (int): The number of intermediate positions.
     """
     PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
     Xini = xi
@@ -145,4 +141,4 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
             System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(
                 [d_arg, Vchgsign[d_arg]]
             )
-    return [Xfin, p, id, Xinter, V, t_list, NZ]
+    return [Xfin, Xinter, t_list]

@@ -122,18 +122,26 @@ class Particle:
 
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
-    def DO(self, t, param=None):
+    def DO(self, t, return_param=None):
         xi = self.X
         Vt = self.V.copy()
-        if self.name != "photon" and param == None:
+
+        if return_param:
+            DT = return_param
+        else:
+            DT = dt
+
+        if self.name != "photon":
             Vt += (
                 Global_variables.FIELD[
                     Global_variables.Field_DICT[(*self.parity, self.ID)]
                 ]
-                * dt
+                * DT
             )
-        Vt = np.where(abs(Vt) > Vmax, Vmax * np.sign(Vt), Vt)
-        xf = np.round(xi + dt * Vt, ROUNDDIGIT)
+            Vt_n = np.linalg.norm(Vt)
+            if Vt_n > C_speed:
+                Vt *= C_speed / Vt_n
+        xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(
             (xf > Global_variables.L - self.Size),
             -np.abs(Vt),
@@ -141,25 +149,22 @@ class Particle:
         )
 
         if in_all_bounds(xf, t, self.Size):
-            do_info = [xf, self.parity, self.ID, [], self.V, [t], 0]
+            do_info = [xf, [], [t]]
         else:
             do_info = BOUNDS_Collision_Check(
                 xi, xf, Vt, t, self.ID, self.parity, self.M
             )
-
-        self.do_info = do_info  # =[Xfin, p, id, Xinter, V, t_list, NZ]
-        # [a,b,Tparam,[id_type[1], id_type[2]],int(id_type[0]),xinter,ends]
-
         a = Vt
         b = []
-        xfin, Tparam, xinter, ends = item_get(do_info)
+        xfin, xinter, Tparam = do_info
+
         if BOUNDARY_COND == 0:
-            for r in range(ends):
+            for r in range(len(xinter)):
                 b.append(xinter[r][0] - a * float(Tparam[1 + r]))
             b.append(xfin - a * float(Tparam[0]))
         else:
             A = np.copy(a)
-            for r in range(ends):
+            for r in range(len(xinter)):
                 b.append(xinter[r][0] - A * float(Tparam[1 + r]))
                 flipindex, flipvalue = System.SystemClass.SYSTEM.Vflipinfo[
                     self.parity[1]
@@ -167,5 +172,6 @@ class Particle:
                 A[flipindex] = flipvalue
             b.append(xfin - A * float(Tparam[0]))
 
-        self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, ends]
-        return do_info
+        self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, xfin]
+        if return_param:
+            return self.Coef_param_list

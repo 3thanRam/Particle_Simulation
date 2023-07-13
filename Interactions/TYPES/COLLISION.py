@@ -34,16 +34,16 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
 
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
+    SYSTEM = System.SystemClass.SYSTEM
 
     Global_variables.ALL_TIME.append(ti)
     Global_variables.COLPTS.append([ti, xo, coltype])
-    # return F
 
     partORAnti1, partORAnti2 = p1[0], p2[0]
     p1index, p2index = p1[1], p2[1]
 
-    particle1 = System.SystemClass.SYSTEM.Get_Particle(p1index, partORAnti1, id1)
-    particle2 = System.SystemClass.SYSTEM.Get_Particle(p2index, partORAnti2, id2)
+    particle1 = SYSTEM.Get_Particle(p1index, partORAnti1, id1)
+    particle2 = SYSTEM.Get_Particle(p2index, partORAnti2, id2)
 
     V1, b1, Targs1, p1c, id1c, Xinter1, ends1 = particle1.Coef_param_list
     V2, b2, Targs2, p2c, id2c, Xinter2, ends2 = particle2.Coef_param_list
@@ -87,13 +87,13 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
         b1.pop(remind)
         Xinter1.pop(remind)
         ends1 -= 1
-        System.SystemClass.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].pop(remind)
+        SYSTEM.Vflipinfo[p1index][partORAnti1][id1].pop(remind)
     for remind in Rem_ind[1]:
         Targs2.pop(remind + 1)
         b2.pop(remind)
         Xinter2.pop(remind)
         ends2 -= 1
-        System.SystemClass.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
+        SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
     DT = t - ti
     Xend1, Xend2 = Pos1 + DT * VParam1, Pos2 + DT * VParam2
 
@@ -108,15 +108,9 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
     newb2 = x2o - VParam2 * ti
     b1.append(newb1)
     b2.append(newb2)
-    ends1 += 1
-    ends2 += 1
 
-    System.SystemClass.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(
-        [0, VParam1[0]]
-    )
-    System.SystemClass.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(
-        [0, VParam2[0]]
-    )
+    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append([0, VParam1[0]])
+    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append([0, VParam2[0]])
 
     b1 = np.array(b1)
     b2 = np.array(b2)
@@ -124,8 +118,8 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
     Xinter2 = np.array(Xinter2)
 
     NewCoefs = [
-        [VParam1, b1, Targs1, p1, id1, Xinter1, ends1],
-        [VParam2, b2, Targs2, p2, id2, Xinter2, ends2],
+        [VParam1, b1, Targs1, p1, id1, Xinter1, Xend1],
+        [VParam2, b2, Targs2, p2, id2, Xinter2, Xend2],
     ]
 
     def Set_F_data(F, particle_index, partORanti, id, NewXdata):
@@ -142,6 +136,6 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
     F = Set_F_data(F, p1[1], p1[0], id1, Xend1)
     F = Set_F_data(F, p2[1], p2[0], id2, Xend2)
 
-    System.SystemClass.SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
-    System.SystemClass.SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
+    SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
+    SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
     return F
