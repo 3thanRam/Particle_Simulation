@@ -11,18 +11,12 @@ rng = np.random.default_rng()
 
 def has_any_nonzero(List):
     """Returns True if there is a zero anywhere in the list"""
-    for value in List:
-        if value != 0:
-            return True
-    return False
+    return any(value != 0 for value in List)
 
 
 def has_all_nonzero(List):
     """Returns True if all the elements the list are zero"""
-    for value in List:
-        if value != 0:
-            return False
-    return True
+    return all(value != 0 for value in List)
 
 
 def ROUND(x):

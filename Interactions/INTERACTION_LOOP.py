@@ -26,7 +26,8 @@ else:
 from Interactions.INTERACTION_DEF import COLTYPE
 from Interactions.TYPES.ANNIHILATION import ANNIHILATE
 from Interactions.TYPES.COLLISION import COLLIDE
-from Interactions.TYPES.ABSORPTION import ABSORBE
+
+# from Interactions.TYPES.ABSORPTION import ABSORBE
 from Misc.Functions import COUNTFCT
 
 
@@ -95,16 +96,16 @@ def timestat_end(B1, B2, t, z1, z2, t1PARA, t2PARA):
     return (tstart, tend)
 
 
-def Interaction_Loop_Check(F, t, GroupList):
+def Interaction_Loop_Check(Xf, t, GroupList):
     """
     This function simulates the collisions between particles in the system.
 
     Parameters:
-        F (list): List of coefficients that describe the state of the system.
+        Xf (list): List of particle positions and id parameters that compose the system.
         t (float): The current time.
 
     Returns:
-        updated state of the system (F).
+        updated state of the system (Xf).
     """
     kill_list = []
     INTERACT_HIST = []
@@ -175,19 +176,13 @@ def Interaction_Loop_Check(F, t, GroupList):
         for Interaction in INTERACT_HIST:
             if Interaction[2] == 3:
                 if COUNTFCT(Global_variables.COLPTS, Interaction[:3]) == 0:
-                    F = COLLIDE(Interaction, F, GroupList, t)
+                    Xf = COLLIDE(Interaction, Xf, GroupList, t)
                     NumbDone += 1
                     break
             elif Interaction[2] == 2:
                 if COUNTFCT(kill_list, Interaction[:3]) == 0:
                     kill_list.append(Interaction[:3])
-                    F, GroupList = ANNIHILATE(Interaction, F, GroupList, t)
+                    Xf, GroupList = ANNIHILATE(Interaction, Xf, GroupList, t)
                     NumbDone += 1
                     break
-            elif Interaction[2] == 1:
-                if COUNTFCT(Global_variables.COLPTS, Interaction[:3]) == 0:
-                    F, GroupList = ABSORBE(Interaction, F, GroupList, t)
-                    NumbDone += 1
-                    break
-
-    return F
+    return Xf

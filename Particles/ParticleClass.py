@@ -22,7 +22,7 @@ V_fct = UNIFORM
 
 def GEN_V():
     v = V_fct()
-    while np.linalg.norm(v) > C_speed:
+    while np.linalg.norm(v) >= C_speed:
         v = V_fct()
     return v
 
@@ -66,7 +66,7 @@ class Particle:
 
     Methods:
     --------
-    DO(t):
+    MOVE(t):
         Performs a single step of the simulation for the particle.
 
     """
@@ -87,7 +87,6 @@ class Particle:
     P: float = field(init=False)
 
     Coef_param_list: list = field(init=False, default_factory=list)
-    do_info: list = field(init=False, default_factory=list)
 
     def __post_init__(self):
         self.M = PARTICLE_DICT[self.name]["mass"]
@@ -114,7 +113,17 @@ class Particle:
             or self.ExtraParams[0] == "Spont_Create"
         ):
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
-            X, V, E, P = PosParam, VParam, Energyval, Energyval / C_speed
+            X, V, E = PosParam, VParam, Energyval
+            if typeIndex == 13:
+                vdirection = V / np.linalg.norm(V)
+                P = Energyval * vdirection / C_speed
+                V = C_speed * vdirection
+            else:
+                Vn = np.linalg.norm(V)
+                if Vn >= C_speed:
+                    print("particle creation velocity error")
+                    V *= 0.99 * C_speed / Vn
+                P = self.M * V * Gamma(V)
             System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
                 [[TvalueParam, X]]
             )
@@ -122,7 +131,7 @@ class Particle:
 
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
-    def DO(self, t, return_param=None):
+    def MOVE(self, t, return_param=None):
         xi = self.X
         Vt = self.V.copy()
 
@@ -139,8 +148,8 @@ class Particle:
                 * DT
             )
             Vt_n = np.linalg.norm(Vt)
-            if Vt_n > C_speed:
-                Vt *= C_speed / Vt_n
+            if Vt_n >= C_speed:
+                Vt *= 0.99 * C_speed / Vt_n
         xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(
             (xf > Global_variables.L - self.Size),
