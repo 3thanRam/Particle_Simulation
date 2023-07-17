@@ -3,7 +3,8 @@ import numpy as np
 rng = np.random.default_rng()
 from Particles.Global_Variables import Global_variables
 import System.SystemClass
-
+from Interactions.TYPES.COMPTON import Compton_scattering
+from Interactions.TYPES.RELATIVISTIC import Relativistic_Collision
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -21,45 +22,6 @@ dt = Global_variables.dt
 Vmax = Global_variables.Vmax
 
 
-def gamma_factor(v):
-    return 1 / (1 - (v / C_speed) ** 2) ** 0.5
-
-
-def lorentz_boost(Energy, momentum, Velocity, INV=1):
-    V_norm = np.linalg.norm(Velocity)
-    V_direction = Velocity / V_norm
-    Gamma = gamma_factor(V_norm)
-    PdotV = np.dot(momentum, V_direction)
-    New_E = Gamma * (Energy - INV * V_norm * PdotV / C_speed)
-    New_P = (
-        momentum
-        + (Gamma - 1) * PdotV * V_direction
-        - INV * Gamma * Energy * Velocity / C_speed
-    )
-    return New_E, New_P
-
-
-def INV_lorentz_boost(Energy, momentum, Velocity):
-    V_norm = np.linalg.norm(Velocity)
-    V_direction = Velocity / V_norm
-    Gamma = gamma_factor(V_norm)
-    PdotV = np.dot(momentum, V_direction)
-    New_E = Gamma * (Energy - V_norm * PdotV / C_speed)
-    New_P = (
-        momentum
-        + (Gamma - 1) * PdotV * V_direction
-        - Gamma * Energy * Velocity / C_speed
-    )
-    return New_E, New_P
-
-
-def Get_V_from_P(momentum, mass):
-    P_norm = np.linalg.norm(momentum)
-    direction = P_norm / momentum
-    V_norm = P_norm * (1 / (1 + (P_norm / (mass * C_speed)) ** 2)) ** 0.5 / mass
-    return V_norm * direction
-
-
 def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     """update the particles 1,2 involved in a collision and update tracking information and collision points.
 
@@ -74,7 +36,6 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
     SYSTEM = System.SystemClass.SYSTEM
-
     Global_variables.ALL_TIME.append(ti)
     Global_variables.COLPTS.append([ti, xo, coltype])
 
@@ -92,8 +53,6 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     E1, P1, M1 = particle1.Energy, particle1.P, particle1.M
     E2, P2, M2 = particle2.Energy, particle2.P, particle2.M
 
-    Ptot = M1 * V1 + M2 * V2
-
     # create photons
     if z1 != 0:
         V1 = BOUNDARY_FCT(V1, p1, id1, z1)
@@ -106,108 +65,16 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     Pos2 = np.array([*Pos2], dtype=float)
 
     if p1index == 13 or p2index == 13:  # Compton scattering
-        if p1index == 13:
-            pi_photon, Ei_photon = P1, E1
-            P2 = gamma_factor(np.linalg.norm(V2)) * M2 * V2
-            E2 = ((M2 * C_speed**2) ** 2 + np.dot(P2, P2) * C_speed**2) ** 0.5
-            Vboost = P2 / E2
-            pi_particle, Ei_particle, M_particle = P2, E2, M2
-        else:
-            pi_photon, Ei_photon = P2, E2
-            P1 = gamma_factor(np.linalg.norm(V1)) * M1 * V1
-            E1 = ((M1 * C_speed**2) ** 2 + np.dot(P1, P1) * C_speed**2) ** 0.5
-            Vboost = P1 / E1
-            pi_particle, Ei_particle, M_particle = P1, E1, M1
-        Ei_boosted_photon, Pi_boosted_photon = lorentz_boost(
-            Ei_photon, pi_photon, Vboost
+        VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Compton_scattering(
+            p1index, V1, M1, P1, E1, V2, M2, P2, E2
         )
-        Ei_boosted_particle, Pi_boosted_particle = lorentz_boost(
-            Ei_particle, pi_particle, Vboost
-        )
-
-        def Cross_section(alpha, Re):
-            alpha *= np.pi / 180
-            R_Ef_Ei = 1 / (1 + Ei_boosted_photon * (1 - np.cos(alpha)))
-            DCS = (
-                0.5 * (Re / R_Ef_Ei) ** 2 * (1 / R_Ef_Ei + R_Ef_Ei - np.sin(alpha) ** 2)
-            )
-            return DCS
-
-        # cross_section=lambda O: 0.5*Re*(1/)
-        # import matplotlib.pyplot as plt
-        # X = np.linspace(0, 180, 10**3)
-        # RE = [1, 10]
-        # for Re in RE:
-        #    Y = [Cross_section(x, Re) for x in X]
-        #    plt.plot(X, Y, label=str(Re))
-        # plt.legend()
-        # plt.show()
-
-        theta = 10 * np.pi / 180
-        cotan_phi = (1 + Ei_boosted_photon / Ei_boosted_particle) * np.tan(theta / 2)
-        phi = np.arctan(cotan_phi)
-        Ef_boosted_photon = Ei_boosted_photon / (
-            1 + Ei_boosted_photon * (1 - np.cos(theta))
-        )
-        pf_boosted_particle_norm = (
-            (Ei_boosted_photon - Ef_boosted_photon + Ei_boosted_particle) ** 2
-            - Ei_boosted_particle**2
-        ) ** 0.5 / C_speed
-        pf_boosted_particle_direction = (
-            Pi_boosted_photon / np.linalg.norm(Pi_boosted_photon)
-        ) / np.cos(phi)
-        pf_boosted_particle = pf_boosted_particle_norm * pf_boosted_particle_direction
-
-        pf_boosted_photon_norm = Ef_boosted_photon / C_speed
-        pf_boosted_photon_direction = -(
-            Pi_boosted_photon / np.linalg.norm(Pi_boosted_photon)
-        ) / np.cos(theta)
-        pf_boosted_photon = pf_boosted_photon_norm * pf_boosted_photon_direction
-
-        Ef_boosted_particle = (
-            Ei_boosted_particle**2 + (pf_boosted_particle_norm * C_speed) ** 2
-        ) ** 0.5
-        if p1index == 13:
-            NewE1, NewP1 = lorentz_boost(
-                Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1
-            )
-            VParam1 = C_speed * NewP1 / np.linalg.norm(NewP1)
-            NewE2, NewP2 = lorentz_boost(
-                Ef_boosted_particle, pf_boosted_particle, Vboost, INV=-1
-            )
-            VParam2 = Get_V_from_P(NewP2, M2)
-            Vn2 = np.linalg.norm(VParam2)
-            if Vn2 >= C_speed:
-                VParam2 *= 0.99 * C_speed / Vn2
-                print("collision velocity error2")
-        else:
-            NewE2, NewP2 = lorentz_boost(
-                Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1
-            )
-            VParam2 = C_speed * NewP2 / np.linalg.norm(NewP2)
-            NewE1, NewP1 = lorentz_boost(
-                Ef_boosted_particle, pf_boosted_particle, Vboost, INV=-1
-            )
-            VParam1 = Get_V_from_P(NewP1, M1)
-            Vn1 = np.linalg.norm(VParam1)
-            if Vn1 >= C_speed:
-                VParam1 *= 0.99 * C_speed / Vn1
-                print("collision velocity error1")
     else:
-        NewE1, NewE2 = E1, E2
-        Mtot = M1 + M2
-        Mdif = M1 - M2
-        VParam1 = (Mdif / Mtot) * V1 + (2 * M2 / Mtot) * V2
-        VParam2 = (Ptot - VParam1 * M1) / M2
-
-        Vn1, Vn2 = np.linalg.norm(VParam1), np.linalg.norm(VParam2)
-        if Vn1 >= C_speed:
-            VParam1 *= 0.99 * C_speed / Vn1
-        if Vn2 >= C_speed:
-            VParam2 *= 0.99 * C_speed / Vn2
-
-        NewP1, NewP2 = M1 * VParam1, M2 * VParam2
-
+        VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Relativistic_Collision(
+            V1, M1, P1, E1, V2, M2, P2, E2
+        )
+    if NewE1 < 0 or NewE2 < 0:
+        print(p1index == 13 or p2index == 13, NewE1, NewE2)
+        print(987 / 0)
     particle1.V = VParam1
     particle1.Energy = NewE1
     particle1.P = NewP1
@@ -216,8 +83,8 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     particle2.Energy = NewE2
     particle2.P = NewP2
 
-    Targs1, b1, Xinter1 = list(Targs1), list(b1), list(Xinter1)
-    Targs2, b2, Xinter2 = list(Targs2), list(b2), list(Xinter2)
+    Targs1, Xinter1 = list(Targs1), list(Xinter1)
+    Targs2, Xinter2 = list(Targs2), list(Xinter2)
     Targs = [Targs1, Targs2]
     Rem_ind = [[], []]
     for targind, Targ in enumerate(Targs):
@@ -255,9 +122,6 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
 
     SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append([0, VParam1[0]])
     SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append([0, VParam2[0]])
-
-    b1 = np.array(b1)
-    b2 = np.array(b2)
     Xinter1 = np.array(Xinter1)
     Xinter2 = np.array(Xinter2)
 

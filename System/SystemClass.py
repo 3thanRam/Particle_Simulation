@@ -118,9 +118,6 @@ class SYSTEM_CLASS:
         self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
         self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
-    def Get_Mass_Matrix(self):
-        return np.array([particle.M for particle in self.Particles_List])
-
     def Get_XI(self):
         Xi = np.array(
             [

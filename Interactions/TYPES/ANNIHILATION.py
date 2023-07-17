@@ -115,13 +115,14 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
     else:
         VParam1 = Vmax
         VParam2 = -Vmax
-    Createparams1 = "Post_Interaction", xo, VParam1, ti, Etot / 2
+    NewE1, NewE2 = Etot / 2, Etot / 2
+    Createparams1 = "Post_Interaction", xo, VParam1, ti, NewE1
     Createparams2 = (
         "Post_Interaction",
         xo,
         VParam2,
         ti,
-        Etot / 2,
+        NewE2,
     )
 
     def CREATE_PARTICLE_fromAnnil(ParticleType, Create_particle_param):

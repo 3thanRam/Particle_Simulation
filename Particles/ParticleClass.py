@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
+from Misc.Relativistic_functions import gamma_factor, Energy_Calc, Velocity_add
+
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 from operator import itemgetter
@@ -11,6 +13,8 @@ from operator import itemgetter
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
+DIM_Numb = Global_variables.DIM_Numb
+
 dt = Global_variables.dt
 Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
@@ -27,23 +31,13 @@ def GEN_V():
     return v
 
 
-def Gamma(vect):
-    return 1 / (np.sqrt(1 - (np.linalg.norm(vect) / C_speed) ** 2))
-
-
-def Energy_Calc(momentum, mass):
-    return (
-        (mass * C_speed**2) ** 2 + np.linalg.norm((momentum * C_speed) ** 2)
-    ) ** 0.5
-
-
 def Velocity_Momentum(mass):
     velocity = GEN_V()
     if mass != 0:
-        p = velocity * mass * Gamma(velocity)
+        p = velocity * mass * gamma_factor(np.linalg.norm(velocity))
         v = velocity
     else:
-        p = 150 * velocity
+        p = velocity
         v = C_speed * velocity / np.linalg.norm(velocity)
 
     return (v, p)
@@ -119,16 +113,17 @@ class Particle:
                 P = Energyval * vdirection / C_speed
                 V = C_speed * vdirection
             else:
-                Vn = np.linalg.norm(V)
-                if Vn >= C_speed:
-                    print("particle creation velocity error")
-                    V *= 0.99 * C_speed / Vn
-                P = self.M * V * Gamma(V)
+                if np.linalg.norm(V) >= C_speed:
+                    V *= 0.957
+                    print(self.ExtraParams[0], "large v error")
+                P = self.M * V * gamma_factor(np.linalg.norm(V))
             System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
                 [[TvalueParam, X]]
             )
             System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
-
+        if E < 0:
+            print(self.ExtraParams)
+            print(11 / 0)
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def MOVE(self, t, return_param=None):
@@ -141,15 +136,23 @@ class Particle:
             DT = dt
 
         if self.name != "photon":
-            Vt += (
-                Global_variables.FIELD[
-                    Global_variables.Field_DICT[(*self.parity, self.ID)]
-                ]
-                * DT
-            )
+            Vidk = Vt.copy()
+            Vfield = Global_variables.FIELD[
+                Global_variables.Field_DICT[(*self.parity, self.ID)]
+            ]
+            if np.linalg.norm(Vfield) > 10**-3:
+                Vt = Velocity_add(Vt, Vfield)
             Vt_n = np.linalg.norm(Vt)
             if Vt_n >= C_speed:
-                Vt *= 0.99 * C_speed / Vt_n
+                print(
+                    "particle move v error",
+                    np.linalg.norm(Vidk),
+                    np.linalg.norm(Vfield),
+                    Vt_n,
+                )
+                Vt *= 0.95 * C_speed / Vt_n
+            Pt = self.M * Vt * gamma_factor(np.linalg.norm(Vt))
+            self.Energy = Energy_Calc(Pt, self.M)
         xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(
             (xf > Global_variables.L - self.Size),
