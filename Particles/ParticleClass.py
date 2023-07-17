@@ -4,7 +4,12 @@ from dataclasses import dataclass, field
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
-from Misc.Relativistic_functions import gamma_factor, Energy_Calc, Velocity_add
+from Misc.Relativistic_functions import (
+    Energy_Calc,
+    Velocity_add,
+    Mass_Momentum,
+    Get_V_from_P,
+)
 
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
@@ -34,7 +39,7 @@ def GEN_V():
 def Velocity_Momentum(mass):
     velocity = GEN_V()
     if mass != 0:
-        p = velocity * mass * gamma_factor(np.linalg.norm(velocity))
+        p = Mass_Momentum(velocity, mass)
         v = velocity
     else:
         p = velocity
@@ -112,18 +117,13 @@ class Particle:
                 vdirection = V / np.linalg.norm(V)
                 P = Energyval * vdirection / C_speed
                 V = C_speed * vdirection
+                E = Energy_Calc(P, self.M)
             else:
-                if np.linalg.norm(V) >= C_speed:
-                    V *= 0.957
-                    print(self.ExtraParams[0], "large v error")
-                P = self.M * V * gamma_factor(np.linalg.norm(V))
+                P = Mass_Momentum(V, self.M)
             System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
                 [[TvalueParam, X]]
             )
             System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
-        if E < 0:
-            print(self.ExtraParams)
-            print(11 / 0)
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def MOVE(self, t, return_param=None):
@@ -151,7 +151,8 @@ class Particle:
                     Vt_n,
                 )
                 Vt *= 0.95 * C_speed / Vt_n
-            Pt = self.M * Vt * gamma_factor(np.linalg.norm(Vt))
+            Pt = Mass_Momentum(Vt, self.M)
+            self.P = Pt
             self.Energy = Energy_Calc(Pt, self.M)
         xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(

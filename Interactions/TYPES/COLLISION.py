@@ -72,9 +72,7 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
         VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Relativistic_Collision(
             V1, M1, P1, E1, V2, M2, P2, E2
         )
-    if NewE1 < 0 or NewE2 < 0:
-        print(p1index == 13 or p2index == 13, NewE1, NewE2)
-        print(987 / 0)
+
     particle1.V = VParam1
     particle1.Energy = NewE1
     particle1.P = NewP1

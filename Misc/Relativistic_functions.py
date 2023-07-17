@@ -10,7 +10,11 @@ warnings.filterwarnings("error")
 
 
 def gamma_factor(v):
-    return 1 / (1 - (v / C_speed) ** 2) ** 0.5
+    if isinstance(v, float):
+        V = v
+    else:
+        V = np.linalg.norm(v)
+    return 1 / (1 - (V / C_speed) ** 2) ** 0.5
 
 
 def lorentz_boost(Energy, momentum, Velocity, INV=1):
@@ -34,9 +38,13 @@ def Get_V_from_P(momentum, mass):
     return V_norm * direction
 
 
+def Mass_Momentum(velocity, mass):
+    return mass * velocity * gamma_factor(velocity)
+
+
 def Energy_Calc(momentum, mass):
     return (
-        (mass * C_speed**2) ** 2 + np.linalg.norm((momentum * C_speed) ** 2)
+        (mass * C_speed**2) ** 2 + C_speed**2 * np.dot(momentum, momentum)
     ) ** 0.5
 
 

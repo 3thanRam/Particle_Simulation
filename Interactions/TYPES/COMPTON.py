@@ -3,7 +3,8 @@ from scipy.stats import rv_continuous
 from scipy import integrate
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import (
-    gamma_factor,
+    Mass_Momentum,
+    Energy_Calc,
     lorentz_boost,
     Get_V_from_P,
 )
@@ -43,13 +44,9 @@ Distr_fct = Probability_Distribution(
 
 def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
     if p1index == 13:
-        P2 = gamma_factor(np.linalg.norm(V2)) * M2 * V2
-        E2 = ((M2 * C_speed**2) ** 2 + np.dot(P2, P2) * C_speed**2) ** 0.5
         pi_photon, Ei_photon = P1, E1
         pi_particle, Ei_particle, M_particle = P2, E2, M2
     else:
-        P1 = gamma_factor(np.linalg.norm(V1)) * M1 * V1
-        E1 = ((M1 * C_speed**2) ** 2 + np.dot(P1, P1) * C_speed**2) ** 0.5
         pi_photon, Ei_photon = P2, E2
         pi_particle, Ei_particle, M_particle = P1, E1, M1
     Vboost = pi_particle / Ei_particle
@@ -70,9 +67,16 @@ def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
     else:
         pf_boosted_photon_direction = -ini_direction
     pf_boosted_photon = pf_boosted_photon_norm * pf_boosted_photon_direction
-    Ef_boosted_particle = Ei_boosted_photon + Ei_boosted_particle - Ef_boosted_photon
     pf_boosted_particle = Pi_boosted_particle + Pi_boosted_photon - pf_boosted_photon
 
+    Ef_boosted_particle = (
+        Ei_boosted_particle**2
+        + C_speed**2
+        * (
+            np.dot(pf_boosted_particle, pf_boosted_particle)
+            - np.dot(Pi_boosted_particle, Pi_boosted_particle)
+        )
+    ) ** 0.5
     if p1index == 13:
         NewE1, NewP1 = lorentz_boost(
             Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1

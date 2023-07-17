@@ -111,7 +111,7 @@ def main(T, Repr_type, Nset):
         if SYSTEM.Tot_Numb == 0:
             T = ti
             break
-        print("Energy", SYSTEM.TOTAL_ENERGY())
+        # print("Energy", SYSTEM.TOTAL_ENERGY())
         if ti != T - 1:
             SpontaneousEvents(t)
 

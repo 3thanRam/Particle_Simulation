@@ -1,9 +1,10 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import (
-    gamma_factor,
+    Mass_Momentum,
     Get_V_from_P,
     lorentz_boost,
+    Energy_Calc,
 )
 from Misc.Rotation_fcts import Rotate_vector_xyzAxes
 from scipy.stats import rv_continuous
@@ -49,12 +50,6 @@ Distr_fct = Probability_Distribution(
 
 
 def Relativistic_Collision(V1, M1, P1, E1, V2, M2, P2, E2):
-    P1 = gamma_factor(np.linalg.norm(V1)) * M1 * V1
-    P2 = gamma_factor(np.linalg.norm(V2)) * M2 * V2
-
-    E1 = (np.dot(P1, P1) + M1**2) ** 0.5
-    E2 = (np.dot(P2, P2) + M2**2) ** 0.5
-
     if DIM_Numb == 1:
         return (V1, P1, E1, V2, P2, E2)
 
@@ -82,8 +77,10 @@ def Relativistic_Collision(V1, M1, P1, E1, V2, M2, P2, E2):
         + C_speed**2
         * (np.dot(Boost_P2_fin, Boost_P2_fin) - np.dot(Boost_P2_ini, Boost_P2_ini))
     ) ** 0.5
+
     NewE1, NewP1 = lorentz_boost(Boost_E1_fin, Boost_P1_fin, Vboost, INV=-1)
     NewE2, NewP2 = lorentz_boost(Boost_E2_fin, Boost_P2_fin, Vboost, INV=-1)
     VParam1 = Get_V_from_P(NewP1, M1)
     VParam2 = Get_V_from_P(NewP2, M2)
+
     return (VParam1, NewP1, NewE1, VParam2, NewP2, NewE2)
