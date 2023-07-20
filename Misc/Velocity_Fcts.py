@@ -49,4 +49,4 @@ def UNIFORM():
     Returns:
     - np.ndarray: a random velocity vector with values rounded to ROUNDDIGIT decimal places.
     """
-    return np.round(rng.uniform(-V0, V0 / 2, DIM_Numb), ROUNDDIGIT)
+    return np.round(rng.uniform(-V0, V0, DIM_Numb), ROUNDDIGIT)

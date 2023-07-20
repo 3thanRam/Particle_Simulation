@@ -126,7 +126,7 @@ def SpontaneousEvents(t):
         SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
-
+        print("sp")
         for i in range(2):
             SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
 

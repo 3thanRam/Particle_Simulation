@@ -2,7 +2,9 @@ import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
+from Misc.Relativistic_functions import gamma_factor
 
+DIM_Numb = Global_variables.DIM_Numb
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 C_speed = Global_variables.C_speed
@@ -10,8 +12,9 @@ dt = Global_variables.dt
 ####Natural Units#####
 ######################
 # c, me, ħ, ε0,=1
-E_cst = -1  # / (4 * np.pi)
-Grav_cst = E_cst * 10**-45
+E_cst = -1 / (4 * np.pi)  # *ε0
+M_cst = 1 / (4 * np.pi)
+# Grav_cst = E_cst * 10**-45
 Fine_Struc_Cst = 0.0072973525628
 charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
 
@@ -28,61 +31,53 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
     Global_variables.Field_DICT = Field_DICT
 
     loc_arr = np.array(
-        [[Xiarray["Pos"][i] for Xiarray in Xarray] for i in range(len(Xarray[0]))]
-    )
-    charges = ((-1) ** (Xarray[0]["TypeID0"])) * np.array(
         [
-            PARTICLE_DICT[PARTICLE_NAMES[index]]["charge"]
-            for index in Xarray[0]["TypeID1"]
+            [Xarray[d]["Pos"][i] for d in range(DIM_Numb)] + [0] * (3 - DIM_Numb)
+            for i in range(len(Xarray[0]))
         ]
     )
-
-    ELEC_matrix = E_cst * charge_e * np.outer(charges, charges)
-
+    charges = np.array([s.Elec_Charge for s in SystemList])
+    # GRAV_matrix=Grav_cst*np.outer(mass_matrix, mass_matrix)
+    velocity_matrix = np.array([s.V for s in SystemList])
     mass_matrix = np.array([s.M for s in SystemList])
 
-    # GRAV_matrix=Grav_cst*np.outer(mass_matrix, mass_matrix)
+    N = len(SystemList)
+    E = np.zeros((N, 3))
+    B = np.zeros((N, 3))
 
-    Tot_matrix = ELEC_matrix  # +GRAV_matrix
+    # Non_zero_mass =
+    for i in (n for n in range(N) if mass_matrix[n] != 0):
+        dist_i = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][i]]]["size"] / 2
+        for j in (n for n in range(N) if mass_matrix[n] != 0):
+            dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
+            rmin = dist_i + dist_j
+            r = loc_arr[j] - loc_arr[i]
+            r_norm = np.linalg.norm(r)
+            if i != j and r_norm > rmin:
+                v = velocity_matrix[i]
+                q = charges[j]
 
-    DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
-    distances = np.linalg.norm(DELTA, axis=-1)
+                E[i] += q * r / r_norm**3
+                if DIM_Numb == 2:
+                    gamma = gamma_factor(v)
+                    B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
+                elif DIM_Numb == 3:
+                    B[i] += np.cross(v, E[i]) / C_speed**2
 
-    Non_zero_mask = distances != 0  # to avoid divergences
+    # Construct the electromagnetic field tensor
+    F = np.zeros((4, 4, len(SystemList)))
 
-    # Get direction of force
-    unit_vector = np.zeros_like(DELTA.T)
-    np.divide(DELTA.T, distances, out=unit_vector, where=Non_zero_mask)
-    unit_vector = unit_vector.T
+    for i in range(DIM_Numb):
+        F[0, i + 1, :] = E[:, i]
+        F[i + 1, 0, :] = -E[:, i]
 
-    EG_force = np.zeros_like(Tot_matrix)
-    np.divide(Tot_matrix, distances**2, out=EG_force, where=Non_zero_mask)
+    F[3, 2, :] = B[:, 0]  # Bx
+    F[2, 3, :] = -B[:, 0]
 
-    if Quark_Numb != 0:
-        STRONG_FORCE = STRONG_FORCE_GROUP(TotnumbAllpart)[0]
-    else:
-        STRONG_FORCE = np.zeros((TotnumbAllpart, TotnumbAllpart))
-    force = EG_force + STRONG_FORCE
+    F[3, 1, :] = B[:, 1]  # By
+    F[1, 3, :] = -B[:, 1]
 
-    """Big_mass_matrix = np.outer(mass_matrix, mass_matrix)
+    F[2, 1, :] = B[:, 2]  # Bz
+    F[1, 2, :] = -B[:, 2]
 
-    velocity_matrix = np.array([s.V for s in SystemList])
-    velocities = np.outer(velocity_matrix, velocity_matrix)
-    gamma_matrix = gamma_factor(velocities)
-    Big_gamma_matrix = np.outer(gamma_matrix, gamma_matrix)
-    print(velocity_matrix.shape)
-    print(force.shape, velocities.shape, Big_mass_matrix.shape, Big_gamma_matrix.shape)
-    a = (force - np.dot(force, velocities) * velocities / C_speed**2) / (
-        Big_mass_matrix * Big_gamma_matrix
-    )
-    print(a.shape)
-    print(5 / 0)"""
-    acc_i = np.zeros_like(unit_vector.T * force) / np.ones_like(mass_matrix)
-    maskM = mass_matrix != 0
-    np.divide(unit_vector.T * force, mass_matrix, out=acc_i, where=maskM)
-    acc = acc_i.T.sum(axis=1)
-    Vel = acc * dt
-    Vel = np.where(
-        np.linalg.norm(Vel) >= 0.99 * C_speed, 0.9 * Vel / np.linalg.norm(Vel), Vel
-    )
-    return Vel
+    return F

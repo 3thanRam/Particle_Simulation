@@ -8,8 +8,8 @@ def Rotate_vector_xyzAxes(Vector, angle):
     Cos = np.cos(angle)
     Sin = np.sin(angle)
     if DIM_Numb == 3:
-        Yaw = [[[Cos, -Sin, 0], [Sin, Cos, 0], [0, 0, 1]]]
-        Pitch = [[[Cos, 0, Sin], [0, 1, 0], [-Sin, 0, Cos]]]
+        Yaw = [[Cos, -Sin, 0], [Sin, Cos, 0], [0, 0, 1]]
+        Pitch = [[Cos, 0, Sin], [0, 1, 0], [-Sin, 0, Cos]]
         Rotmatrix = np.matmul(Yaw, Pitch)
     elif DIM_Numb == 2:
         Rotmatrix = np.array([[Cos, -Sin], [Sin, Cos]])

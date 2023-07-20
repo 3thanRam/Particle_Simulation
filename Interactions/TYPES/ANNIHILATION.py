@@ -131,8 +131,16 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
 
         SYSTEM.Add_Particle(Crindex, partoranti, Create_particle_param)
 
-        D = SYSTEM.Particles_List[-1].MOVE(t, (t - ti))  # shouldn't be a full dt?
-        New_V, b, New_Tpara, New_p, New_id, New_Xinter, New_Xend = D
+        SYSTEM.Particles_List[-1].MOVE(t, (t - ti))
+        (
+            New_V,
+            b,
+            New_Tpara,
+            New_p,
+            New_id,
+            New_Xinter,
+            New_Xend,
+        ) = SYSTEM.Particles_List[-1].Coef_param_list
 
         if len(New_Xinter) == 0:
             b = [New_Xend - New_V * float(*New_Tpara)]

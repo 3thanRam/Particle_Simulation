@@ -1,10 +1,8 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import (
-    Mass_Momentum,
     Get_V_from_P,
     lorentz_boost,
-    Energy_Calc,
 )
 from Misc.Rotation_fcts import Rotate_vector_xyzAxes
 from scipy.stats import rv_continuous

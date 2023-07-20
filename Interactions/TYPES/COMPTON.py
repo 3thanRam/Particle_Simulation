@@ -3,8 +3,6 @@ from scipy.stats import rv_continuous
 from scipy import integrate
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import (
-    Mass_Momentum,
-    Energy_Calc,
     lorentz_boost,
     Get_V_from_P,
 )
@@ -54,29 +52,21 @@ def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
     Ei_boosted_particle, Pi_boosted_particle = lorentz_boost(
         Ei_particle, pi_particle, Vboost
     )
-
     theta = Distr_fct.rvs(Ei_boosted_photon)
     ini_direction = Pi_boosted_photon / np.linalg.norm(Pi_boosted_photon)
-    Ef_boosted_photon = 1 / (
-        Ei_boosted_photon / (4 * np.pi**2)
-        + (1 - np.cos(theta)) / (M_particle * C_speed**2)
+    Ef_boosted_photon = Ei_boosted_photon / (
+        1 + (Ei_boosted_photon * (1 - np.cos(theta)) / (M_particle * C_speed**2))
     )
     pf_boosted_photon_norm = Ef_boosted_photon / C_speed
     if DIM_Numb != 1:
         pf_boosted_photon_direction = Rotate_vector_xyzAxes(ini_direction, theta)
     else:
         pf_boosted_photon_direction = -ini_direction
-    pf_boosted_photon = pf_boosted_photon_norm * pf_boosted_photon_direction
-    pf_boosted_particle = Pi_boosted_particle + Pi_boosted_photon - pf_boosted_photon
 
-    Ef_boosted_particle = (
-        Ei_boosted_particle**2
-        + C_speed**2
-        * (
-            np.dot(pf_boosted_particle, pf_boosted_particle)
-            - np.dot(Pi_boosted_particle, Pi_boosted_particle)
-        )
-    ) ** 0.5
+    pf_boosted_photon = pf_boosted_photon_norm * pf_boosted_photon_direction
+    pf_boosted_particle = Pi_boosted_photon - pf_boosted_photon
+    Ef_boosted_particle = Ei_boosted_particle + Ei_boosted_photon - Ef_boosted_photon
+
     if p1index == 13:
         NewE1, NewP1 = lorentz_boost(
             Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1

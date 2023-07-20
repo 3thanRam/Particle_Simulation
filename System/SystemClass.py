@@ -137,8 +137,12 @@ class SYSTEM_CLASS:
         self.Xi = Xi
 
     def UPDATE_DO(self, t):
+        Etot = 0
         for particle in self.Particles_List:
-            particle.MOVE(t)
+            Etot += particle.MOVE(t)
+        print(t, Etot)
+        if abs(Etot) > 5:
+            raise ValueError("Big Energy loss")
 
     def TOTAL_ENERGY(self):
         return sum(particle.Energy for particle in self.Particles_List)

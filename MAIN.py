@@ -75,7 +75,7 @@ def main(T, Repr_type, Nset):
 
     for ti in range(1, T):
         perc = int(100 * ti / T)
-        if perc > Dper and Repr_type == 0 or Repr_type == 1:  # and perc%5==0
+        if perc > Dper and (Repr_type == 0 or Repr_type == 1):  # and perc%5==0
             Dper = perc
             print(Dper, "%", end="\r")
 
@@ -111,7 +111,7 @@ def main(T, Repr_type, Nset):
         if SYSTEM.Tot_Numb == 0:
             T = ti
             break
-        # print("Energy", SYSTEM.TOTAL_ENERGY())
+        print("Energy", SYSTEM.TOTAL_ENERGY(), "\n")
         if ti != T - 1:
             SpontaneousEvents(t)
 

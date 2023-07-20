@@ -45,7 +45,6 @@ class Global_var:
 
     INTERCHECK: Callable = field(init=False)
     BOUNDARY_FCT: Callable = field(init=False)
-    # SYSTEM: list = field(init=False)
     S_Force: np.ndarray = field(init=False)
 
     def __post_init__(self):

@@ -4,9 +4,13 @@ from Particles.Global_Variables import Global_variables
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb
 
-import warnings
+# import warnings
 
-warnings.filterwarnings("error")
+# warnings.filterwarnings("error")
+
+
+def RELAT_ERROR(velocity):
+    raise ValueError("Error Particle velocity >= c", velocity)
 
 
 def gamma_factor(v):
@@ -14,6 +18,8 @@ def gamma_factor(v):
         V = v
     else:
         V = np.linalg.norm(v)
+    if V >= C_speed:
+        RELAT_ERROR(V)
     return 1 / (1 - (V / C_speed) ** 2) ** 0.5
 
 
@@ -38,7 +44,7 @@ def Get_V_from_P(momentum, mass):
     return V_norm * direction
 
 
-def Mass_Momentum(velocity, mass):
+def Momentum_Calc(velocity, mass):
     return mass * velocity * gamma_factor(velocity)
 
 

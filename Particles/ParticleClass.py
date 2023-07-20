@@ -5,10 +5,11 @@ from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
 from Misc.Relativistic_functions import (
+    gamma_factor,
     Energy_Calc,
     Velocity_add,
-    Mass_Momentum,
     Get_V_from_P,
+    Momentum_Calc,
 )
 
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
@@ -28,6 +29,9 @@ Xini = []
 item_get = itemgetter(0, -2, 3, -1)
 V_fct = UNIFORM
 
+Fine_Struc_Cst = 0.0072973525628
+charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
+
 
 def GEN_V():
     v = V_fct()
@@ -39,7 +43,7 @@ def GEN_V():
 def Velocity_Momentum(mass):
     velocity = GEN_V()
     if mass != 0:
-        p = Mass_Momentum(velocity, mass)
+        p = Momentum_Calc(velocity, mass)
         v = velocity
     else:
         p = velocity
@@ -76,6 +80,7 @@ class Particle:
     ExtraParams: list = field(default_factory=list)
     M: float = field(init=False)
     Strong_Charge: float = field(init=False)
+    Elec_Charge: float = field(init=False)
     Size: float = field(init=False)
     Colour_Charge: list = field(default_factory=list)
 
@@ -95,6 +100,9 @@ class Particle:
             raise ValueError("Colour_Charge of quark ill defined at creation")
 
         partORanti, typeIndex = self.parity
+        self.Elec_Charge = (
+            (-1) ** partORanti * PARTICLE_DICT[self.name]["charge"] * charge_e
+        )
         id = self.ID
 
         if (not self.ExtraParams) or self.ExtraParams[0] == "INIT_Quark_CREATION":
@@ -119,41 +127,43 @@ class Particle:
                 V = C_speed * vdirection
                 E = Energy_Calc(P, self.M)
             else:
-                P = Mass_Momentum(V, self.M)
+                P = Momentum_Calc(V, self.M)
             System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
                 [[TvalueParam, X]]
             )
             System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
-    def MOVE(self, t, return_param=None):
+    def MOVE(self, t, DT=dt):
         xi = self.X
         Vt = self.V.copy()
-
-        if return_param:
-            DT = return_param
-        else:
-            DT = dt
-
+        DE = 0
         if self.name != "photon":
-            Vidk = Vt.copy()
-            Vfield = Global_variables.FIELD[
-                Global_variables.Field_DICT[(*self.parity, self.ID)]
-            ]
-            if np.linalg.norm(Vfield) > 10**-3:
-                Vt = Velocity_add(Vt, Vfield)
-            Vt_n = np.linalg.norm(Vt)
-            if Vt_n >= C_speed:
-                print(
-                    "particle move v error",
-                    np.linalg.norm(Vidk),
-                    np.linalg.norm(Vfield),
-                    Vt_n,
-                )
-                Vt *= 0.95 * C_speed / Vt_n
-            Pt = Mass_Momentum(Vt, self.M)
-            self.P = Pt
-            self.Energy = Energy_Calc(Pt, self.M)
+            FORCE = Global_variables.FIELD
+            field_index = Global_variables.Field_DICT[(*self.parity, self.ID)]
+            # Get the position and velocity of the i-th particle
+            gamma = gamma_factor(Vt)
+            U = gamma * np.array([C_speed] + [vt for vt in Vt] + [0] * (3 - DIM_Numb))
+            K = self.Elec_Charge * np.einsum(
+                "ijk,j->ik", FORCE, U
+            )  # self.Elec_Charge * FORCE[:, :, field_index].dot(U)
+
+            F = K[1 : DIM_Numb + 1, field_index]  # / self.M
+            dP = F * DT
+            NewP = self.P + dP
+            Vt = Get_V_from_P(NewP, self.M)
+
+            NewE = Energy_Calc(NewP, self.M)
+            Eloss_theo = np.dot(F, self.V) * DT
+            DE = (NewE - self.Energy) - Eloss_theo
+            self.P = NewP
+            self.V = Vt
+            self.Energy = NewE
+
+        # if self.Strong_Charg!=0:
+        #    Vstrong=Global_variables.Strong_FIELD[...]
+        #    Vt=Velocity_add(Vt,Vstrong)
+
         xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(
             (xf > Global_variables.L - self.Size),
@@ -186,5 +196,4 @@ class Particle:
             b.append(xfin - A * float(Tparam[0]))
 
         self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, xfin]
-        if return_param:
-            return self.Coef_param_list
+        return DE
