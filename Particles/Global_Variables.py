@@ -45,13 +45,12 @@ class Global_var:
 
     INTERCHECK: Callable = field(init=False)
     BOUNDARY_FCT: Callable = field(init=False)
-    # SYSTEM: list = field(init=False)
     S_Force: np.ndarray = field(init=False)
 
     def __post_init__(self):
         self.L, self.Linf = self.L_FCT[0](0), self.L_FCT[1](0)
         self.V0 = Speed_light * np.ones(self.DIM_Numb)
-        self.Vmax = self.V0 / 3
+        self.Vmax = self.V0 / np.sqrt(self.DIM_Numb)
 
         self.Bound_Params = [0, 0, 0, 0]
         self.Dist_min = float(DistList[self.DIM_Numb - 1])

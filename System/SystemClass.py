@@ -6,6 +6,7 @@ from Particles.Global_Variables import Global_variables
 from System.Group_Close import Group_particles
 from Particles.ParticleClass import Particle
 from operator import itemgetter
+from Misc.Relativistic_functions import Momentum_Calc
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -18,7 +19,7 @@ dt = Global_variables.dt
 
 distmax = 1.5 * Vmax * dt
 
-get2 = itemgetter(3, 4, 5, 6)
+get_T_Xinter = itemgetter(2, 5)
 
 POSCENTER = np.array([1 for d in range(DIM_Numb)])
 
@@ -80,10 +81,6 @@ class SYSTEM_CLASS:
             ):
                 return p_numb
 
-    def UPDATE_particle_position(self, index, PartOrAnti, ID, NewPos):
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-        self.Particles_List[SEARCH_id].X = NewPos
-
     def Remove_particle(self, index, PartOrAnti, ID):
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         self.Particles_List.pop(SEARCH_id)
@@ -122,9 +119,6 @@ class SYSTEM_CLASS:
         self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
         self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
-    def Get_Mass_Matrix(self):
-        return np.array([particle.M for particle in self.Particles_List])
-
     def Get_XI(self):
         Xi = np.array(
             [
@@ -145,7 +139,7 @@ class SYSTEM_CLASS:
 
     def UPDATE_DO(self, t):
         for particle in self.Particles_List:
-            particle.DO(t)
+            particle.MOVE(t)
 
     def TOTAL_ENERGY(self):
         return sum(particle.Energy for particle in self.Particles_List)
@@ -186,11 +180,8 @@ class SYSTEM_CLASS:
             print("NO CHG PARAMS for t=", t)
 
     def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
-        self.UPDATE_particle_position(index, PartOrAnti, ID, NewPos)
-        get = itemgetter(2, 5)
-        targs, xinterargs = get(
-            self.Get_Particle(index, PartOrAnti, ID).Coef_param_list
-        )
+        particle = self.Get_Particle(index, PartOrAnti, ID)
+        targs, xinterargs = get_T_Xinter(particle.Coef_param_list)
         for nz in range(len(targs) - 1):
             self.TRACKING[index][PartOrAnti][ID].extend(
                 [
@@ -199,6 +190,15 @@ class SYSTEM_CLASS:
                     [targs[nz + 1], xinterargs[nz][1]],
                 ]
             )
+        particle.X = NewPos
+        Vlist = self.Vflipinfo[index][PartOrAnti][ID]
+        if Vlist:
+            newV = Vlist[-1]
+            particle.V = newV
+            if particle.M != 0:
+                particle.P = Momentum_Calc(newV, particle.M)
+            else:
+                particle.P = np.linalg.norm(particle.P) * newV / np.linalg.norm(newV)
         Global_variables.ALL_TIME.extend(targs[1:])
         self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 

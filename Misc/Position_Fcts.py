@@ -13,15 +13,15 @@ Ini_size = []
 
 def in_all_bounds(List, t=None, ParticleSize=0):
     if t is None:  # t == None:
-        Lmaxi, Lmini = Global_variables.L, Global_variables.Linf
+        Lmaxi, Lmini = (
+            Global_variables.L - ParticleSize,
+            Global_variables.Linf + ParticleSize,
+        )
     else:
-        Lmaxi, Lmini = L_FCT[0](t), L_FCT[1](t)
-    Lmaxi -= ParticleSize
-    Lmini += ParticleSize
-    for indV, value in enumerate(List):
-        if value > Lmaxi[indV] or value < Lmini[indV]:
-            return False
-    return True
+        Lmaxi, Lmini = L_FCT[0](t) - ParticleSize, L_FCT[1](t) + ParticleSize
+    return all(
+        value < Lmaxi[indV] and value > Lmini[indV] for indV, value in enumerate(List)
+    )
 
 
 def Pos_fct(min_value, max_value):

@@ -27,9 +27,9 @@ def COLTYPE(pA, pB):
                 else:
                     return 3  # Collision
             elif IndexB == 13:
-                return 1  # absorption of photon
+                return 3  # compton scattering
         elif IndexB < 12 and IndexA == 13:
-            return 1  # absorption of photon
+            return 3  # compton scattering
     return 0  # no interaction
 
 

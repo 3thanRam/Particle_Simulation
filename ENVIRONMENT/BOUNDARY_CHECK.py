@@ -11,7 +11,7 @@ L_FCT = Global_variables.L_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 
 
-def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
+def BOUNDS_Collision_Check(xi, Xfin, Velocity, t, id, p):
     """
     Computes the boundaries for a particle based on its position and velocity.
 
@@ -30,115 +30,68 @@ def BOUNDS_Collision_Check(xi, xf, V, t, id, p, Mass):
         - t_list (list): A list with the time values at which the particle reaches an intermediate position.
     """
     PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
-    Xini = xi
-    Xfin = xf
     Xinter = []
     t_list = [t]
 
-    # Initialize parameters
-    t_params = np.zeros(DIM_Numb)
-    x_params = np.zeros((DIM_Numb, 2))
-
-    # Check if the particle hits any boundary
-    Vchgsign = V.copy()
     BoundSup_V, BoundSup_b, BoundInf_V, BoundInf_b = Global_variables.Bound_Params
-    for d in range(DIM_Numb):
-        b = Xfin[d] - V[d] * t
 
-        CONDsup, CONDinf = False, False
-        if BoundSup_V[d] != V[d]:
-            SOL_sup = ROUND((b - (BoundSup_b[d] - PART_SIZE)) / (BoundSup_V[d] - V[d]))
-            CONDsup = t - dt <= SOL_sup <= t
-        if BoundInf_V[d] != V[d]:
-            SOL_inf = ROUND((b - (BoundInf_b[d] + PART_SIZE)) / (BoundInf_V[d] - V[d]))
-            CONDinf = t - dt <= SOL_inf <= t
+    b_list = []
+    t_prev = t - dt
+    X_inter = Xfin
 
-        if CONDinf:
-            t0 = ROUND(SOL_inf)
-        elif CONDsup:
-            t0 = ROUND(SOL_sup)
-        else:
-            continue
-        L_t0, Linf_t0 = L_FCT[0](t0)[d] - PART_SIZE, L_FCT[1](t0)[d] + PART_SIZE
-        Xinterd = b + V * t0
+    def Bounds():
+        nonlocal t_prev, X_inter
+        tmin = np.inf
 
-        if CONDinf:
-            if BOUNDARY_COND == 0:
-                Li_0, Li_1 = Linf_t0, L_t0
-                bi = L_t0 - V[d] * t0
-                # bi=b+(L_t0[d]-Linf_t0[d])
-            else:
-                if -V[d] + (BoundInf_V[d]) < BoundInf_V[d]:
-                    Vchgsign[d] = np.sign(BoundInf_V[d]) * abs(V[d]) + (BoundInf_V[d])
-                else:
-                    Vchgsign[d] = -V[d] + (BoundInf_V[d])
+        b = X_inter - Velocity * t
+        b_list.append(b)
 
-                bi = Xinterd[d] - Vchgsign[d] * t0
-                Li_0, Li_1 = Linf_t0, Linf_t0
-        else:
-            if BOUNDARY_COND == 0:
-                Li_0, Li_1 = L_t0, Linf_t0
-                bi = Linf_t0 - V[d] * t0
-                # bi=b-(L_t0[d]-Linf_t0[d])
-            else:
-                if -V[d] + (BoundSup_V[d]) > BoundSup_V[d]:
-                    Vchgsign[d] = np.sign(BoundSup_V[d]) * abs(V[d]) + (BoundSup_V[d])
-                else:
-                    Vchgsign[d] = -V[d] + (BoundSup_V[d])
-
-                bi = Xinterd[d] - Vchgsign[d] * t0
-                Li_0, Li_1 = L_t0, L_t0
-
-        t_params[d] = t0
-        x_params[d][0], x_params[d][1] = Li_0, Li_1
-        Xfin[d] = Vchgsign[d] * t + bi
-
-    # Check if the particle hits any boundary and get the number of hits
-    NZ = np.count_nonzero(t_params)
-
-    # Compute intermediate positions if the particle hits any boundary
-    if NZ > 0:
-        Xinter = np.zeros((NZ, 2, DIM_Numb))
-        d_prev = 0
-        # Vinter=V.copy()
-        Vinter = np.zeros_like(V)
-        for nz in range(NZ):
-            mask = np.where((t_params > 0) & (t_params != np.inf))
-            d_arg = mask[0][t_params[mask].argmin()]
-            t_val = t_params[d_arg]
-            t_list.append(t_val)
-            L_tv_d = L_FCT[0](t_val)[d_arg] - PART_SIZE
-            Linf_tv_d = L_FCT[1](t_val)[d_arg] + PART_SIZE
-
-            if nz == 0:
-                Xinter[nz][0] = np.where(
-                    (Xini + V * dt > Linf_tv_d) & (Xini + V * dt < L_tv_d),
-                    Xini + V * dt,
-                    Xini,
-                )
-                Xinter[nz][1] = np.where(
-                    (Xini + V * dt > Linf_tv_d) & (Xini + V * dt < L_tv_d),
-                    Xini + V * dt,
-                    Xini,
-                )
-                Vinter[d_arg] = Vchgsign[d_arg]
-            else:
-                val0 = Xinter[nz - 1][0] + Vinter * (t_val - (t - dt))  # -t_list[-2])
-                Xinter[nz][0] = np.where(
-                    (val0 > Linf_tv_d) & (val0 < L_tv_d), val0, Xinter[nz - 1][0]
-                )
-                val1 = Xinter[nz - 1][1] + Vinter * (t_val - (t - dt))
-                Xinter[nz][1] = np.where(
-                    (val1 > Linf_tv_d) & (val1 < L_tv_d), val1, Xinter[nz - 1][1]
-                )
-                Xinter[nz][0][d_prev] = Xinter[nz][1][d_prev]
-                Vinter[d_arg] = Vchgsign[d_arg]
-
-            Xinter[nz][0][d_arg] = x_params[d_arg][0]
-            Xinter[nz][1][d_arg] = x_params[d_arg][1]
-            t_params[d_arg] = np.inf
-            d_prev = d_arg
-            System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(
-                [d_arg, Vchgsign[d_arg]]
+        for d in range(DIM_Numb):
+            SOL_sup = ROUND(
+                (b[d] - (BoundSup_b[d] - PART_SIZE)) / (BoundSup_V[d] - Velocity[d])
             )
-    return [Xfin, Xinter, t_list]
+            CONDsup = t_prev < SOL_sup < t
+            SOL_inf = ROUND(
+                (b[d] - (BoundInf_b[d] + PART_SIZE)) / (BoundInf_V[d] - Velocity[d])
+            )
+            CONDinf = t_prev < SOL_inf < t
+            if CONDinf:
+                if CONDsup:
+                    t_test = min(SOL_sup, SOL_inf)
+                    if t_test < tmin:
+                        tmin = t_test
+                        d_chg = d
+                        chg_param = 1 * (SOL_sup > SOL_inf)
+                elif SOL_inf < tmin:
+                    tmin = SOL_inf
+                    d_chg = d
+                    chg_param = 1
+            elif CONDsup and SOL_sup < tmin:
+                tmin = SOL_sup
+                d_chg = d
+                chg_param = -1
+
+        if tmin != np.inf:
+            t_list.append(tmin)
+            if BOUNDARY_COND == 0:
+                Xint1, Xint2 = b + Velocity * tmin, b + Velocity * tmin
+            else:
+                Xint1, Xint2 = b + Velocity * tmin, b + Velocity * tmin
+            Xinter.append([Xint1, Xint2])
+            t_prev = tmin
+            System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(Velocity)
+            Velocity[d_chg] = chg_param * abs(Velocity[d_chg])
+            X_inter = Xint2 + Velocity * (t - tmin)
+            return True
+        else:
+            return False
+
+    Count = 0
+    while True:
+        if not Bounds():
+            break
+        Count += 1
+        if Count > 10:
+            raise ValueError("Can't advance particle inside of boundaries")
+
+    return Xfin, np.array(Xinter), t_list, b_list

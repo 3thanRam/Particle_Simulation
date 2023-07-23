@@ -4,7 +4,7 @@ NeutrinoMasses = (0.120 * 10**-6) / 3
 PARTICLE_DICT = {
     "electron": {
         "index": 0,
-        "mass": 0.511,  # Mev
+        "mass": 1,  # Mev
         "charge": -1,  # e
         "spin": 1 / 2,
         "color": "blue",
@@ -21,7 +21,7 @@ PARTICLE_DICT = {
     },
     "muon": {
         "index": 2,
-        "mass": 0.511,
+        "mass": 206.76,
         "charge": -1,
         "spin": 1 / 2,
         "color": "red",
@@ -38,7 +38,7 @@ PARTICLE_DICT = {
     },
     "tau": {
         "index": 4,
-        "mass": 0.511,  # 1776.86,
+        "mass": 34788.38,
         "charge": -1,
         "spin": 1 / 2,
         "color": "green",
@@ -55,7 +55,7 @@ PARTICLE_DICT = {
     },
     "up_Quark": {
         "index": 6,
-        "mass": 2.3,
+        "mass": 2.3 / 0.511,
         "charge": +2 / 3,
         "spin": 1 / 2,
         "color": "brown",
@@ -64,7 +64,7 @@ PARTICLE_DICT = {
     },
     "down_Quark": {
         "index": 7,
-        "mass": 4.8,
+        "mass": 4.8 / 0.511,
         "charge": -1 / 3,
         "spin": 1 / 2,
         "color": "cyan",
@@ -73,7 +73,7 @@ PARTICLE_DICT = {
     },
     "charm_Quark": {
         "index": 8,
-        "mass": 1275,
+        "mass": 1275 / 0.511,
         "charge": +2 / 3,
         "spin": 1 / 2,
         "color": "grey",
@@ -82,7 +82,7 @@ PARTICLE_DICT = {
     },
     "strange_Quark": {
         "index": 9,
-        "mass": 95,
+        "mass": 95 / 0.511,
         "charge": -1 / 3,
         "spin": 1 / 2,
         "color": "pink",
@@ -91,7 +91,7 @@ PARTICLE_DICT = {
     },
     "top_Quark": {
         "index": 10,
-        "mass": 173210,
+        "mass": 173210 / 0.511,
         "charge": 0,
         "spin": 1 / 2,
         "color": "lime",
@@ -100,7 +100,7 @@ PARTICLE_DICT = {
     },
     "bottom_Quark": {
         "index": 11,
-        "mass": 4180,
+        "mass": 4180 / 0.511,
         "charge": 0,
         "spin": 1 / 2,
         "color": "tan",
@@ -126,7 +126,7 @@ PARTICLE_DICT = {
     },
     "zboson": {
         "index": 14,
-        "mass": 91187,
+        "mass": 91187 / 0.511,
         "charge": 0,
         "spin": 1,
         "Strong_Charge": 0,
@@ -134,7 +134,7 @@ PARTICLE_DICT = {
     },
     "w-boson": {
         "index": 15,
-        "mass": 80377,
+        "mass": 80377 / 0.511,
         "charge": -1,
         "spin": 1,
         "Strong_Charge": 0,
@@ -142,11 +142,17 @@ PARTICLE_DICT = {
     },
     "w+boson": {
         "index": 16,
-        "mass": 80377,
+        "mass": 80377 / 0.511,
         "charge": +1,
         "spin": 1,
         "Strong_Charge": 0,
         "size": 1,
     },
-    "higgs": {"index": 17, "mass": 125250, "charge": 0, "spin": 0, "Strong_Charge": 0},
+    "higgs": {
+        "index": 17,
+        "mass": 125250 / 0.511,
+        "charge": 0,
+        "spin": 0,
+        "Strong_Charge": 0,
+    },
 }

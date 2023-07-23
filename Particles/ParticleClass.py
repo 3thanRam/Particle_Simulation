@@ -4,6 +4,14 @@ from dataclasses import dataclass, field
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
+from Misc.Relativistic_functions import (
+    gamma_factor,
+    Energy_Calc,
+    Velocity_add,
+    Get_V_from_P,
+    Momentum_Calc,
+)
+
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 from operator import itemgetter
@@ -11,6 +19,8 @@ from operator import itemgetter
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 C_speed = Global_variables.C_speed
+DIM_Numb = Global_variables.DIM_Numb
+
 dt = Global_variables.dt
 Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
@@ -19,31 +29,24 @@ Xini = []
 item_get = itemgetter(0, -2, 3, -1)
 V_fct = UNIFORM
 
+Fine_Struc_Cst = 0.0072973525628
+charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
+
 
 def GEN_V():
     v = V_fct()
-    while np.linalg.norm(v) > C_speed:
+    while np.linalg.norm(v) >= C_speed:
         v = V_fct()
     return v
-
-
-def Gamma(vect):
-    return 1 / (np.sqrt(1 - (np.linalg.norm(vect) / C_speed) ** 2))
-
-
-def Energy_Calc(momentum, mass):
-    return (
-        (mass * C_speed**2) ** 2 + np.linalg.norm((momentum * C_speed) ** 2)
-    ) ** 0.5
 
 
 def Velocity_Momentum(mass):
     velocity = GEN_V()
     if mass != 0:
-        p = velocity * mass * Gamma(velocity)
+        p = Momentum_Calc(velocity, mass)
         v = velocity
     else:
-        p = 150 * velocity
+        p = velocity
         v = C_speed * velocity / np.linalg.norm(velocity)
 
     return (v, p)
@@ -66,7 +69,7 @@ class Particle:
 
     Methods:
     --------
-    DO(t):
+    MOVE(t):
         Performs a single step of the simulation for the particle.
 
     """
@@ -77,6 +80,7 @@ class Particle:
     ExtraParams: list = field(default_factory=list)
     M: float = field(init=False)
     Strong_Charge: float = field(init=False)
+    Elec_Charge: float = field(init=False)
     Size: float = field(init=False)
     Colour_Charge: list = field(default_factory=list)
 
@@ -87,7 +91,6 @@ class Particle:
     P: float = field(init=False)
 
     Coef_param_list: list = field(init=False, default_factory=list)
-    do_info: list = field(init=False, default_factory=list)
 
     def __post_init__(self):
         self.M = PARTICLE_DICT[self.name]["mass"]
@@ -97,6 +100,9 @@ class Particle:
             raise ValueError("Colour_Charge of quark ill defined at creation")
 
         partORanti, typeIndex = self.parity
+        self.Elec_Charge = (
+            (-1) ** partORanti * PARTICLE_DICT[self.name]["charge"] * charge_e
+        )
         id = self.ID
 
         if (not self.ExtraParams) or self.ExtraParams[0] == "INIT_Quark_CREATION":
@@ -114,33 +120,42 @@ class Particle:
             or self.ExtraParams[0] == "Spont_Create"
         ):
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
-            X, V, E, P = PosParam, VParam, Energyval, Energyval / C_speed
+            X, V, E = PosParam, VParam, Energyval
+            if typeIndex == 13:
+                vdirection = V / np.linalg.norm(V)
+                P = Energyval * vdirection / C_speed
+                V = C_speed * vdirection
+                E = Energy_Calc(P, self.M)
+            else:
+                P = Momentum_Calc(V, self.M)
             System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
                 [[TvalueParam, X]]
             )
             System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
-
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
-    def DO(self, t, return_param=None):
+    def MOVE(self, t, DT=dt):
         xi = self.X
         Vt = self.V.copy()
-
-        if return_param:
-            DT = return_param
-        else:
-            DT = dt
-
         if self.name != "photon":
-            Vt += (
-                Global_variables.FIELD[
-                    Global_variables.Field_DICT[(*self.parity, self.ID)]
-                ]
-                * DT
+            field_index = Global_variables.Field_DICT[(*self.parity, self.ID)]
+            U = gamma_factor(Vt) * np.array(
+                [C_speed] + [vt for vt in Vt] + [0] * (3 - DIM_Numb)
             )
-            Vt_n = np.linalg.norm(Vt)
-            if Vt_n > C_speed:
-                Vt *= C_speed / Vt_n
+            K = self.Elec_Charge * np.einsum("ijk,j->ik", Global_variables.FIELD, U)
+            F = K[1 : DIM_Numb + 1, field_index]
+            D_tau = (DT**2 - np.dot(self.V, self.V) * DT**2 / C_speed) ** 0.5
+            dP = F * D_tau  # proper time
+            NewP = self.P + dP
+            Vt = Get_V_from_P(NewP, self.M)
+            self.P = NewP
+            self.V = Vt
+            self.Energy = Energy_Calc(NewP, self.M)
+
+        # if self.Strong_Charg!=0:
+        #    Vstrong=Global_variables.Strong_FIELD[...]
+        #    Vt=Velocity_add(Vt,Vstrong)
+
         xf = np.round(xi + DT * Vt, ROUNDDIGIT)
         self.V = np.where(
             (xf > Global_variables.L - self.Size),
@@ -149,29 +164,10 @@ class Particle:
         )
 
         if in_all_bounds(xf, t, self.Size):
-            do_info = [xf, [], [t]]
+            xfin, xinter, Tparam, b = xf, [], [t], [xf - Vt * t]
         else:
-            do_info = BOUNDS_Collision_Check(
-                xi, xf, Vt, t, self.ID, self.parity, self.M
+            xfin, xinter, Tparam, b = BOUNDS_Collision_Check(
+                xi, xf, Vt, t, self.ID, self.parity
             )
         a = Vt
-        b = []
-        xfin, xinter, Tparam = do_info
-
-        if BOUNDARY_COND == 0:
-            for r in range(len(xinter)):
-                b.append(xinter[r][0] - a * float(Tparam[1 + r]))
-            b.append(xfin - a * float(Tparam[0]))
-        else:
-            A = np.copy(a)
-            for r in range(len(xinter)):
-                b.append(xinter[r][0] - A * float(Tparam[1 + r]))
-                flipindex, flipvalue = System.SystemClass.SYSTEM.Vflipinfo[
-                    self.parity[1]
-                ][self.parity[0]][self.ID][r]
-                A[flipindex] = flipvalue
-            b.append(xfin - A * float(Tparam[0]))
-
         self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, xfin]
-        if return_param:
-            return self.Coef_param_list

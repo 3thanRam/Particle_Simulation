@@ -3,7 +3,8 @@ import numpy as np
 rng = np.random.default_rng()
 from Particles.Global_Variables import Global_variables
 import System.SystemClass
-
+from Interactions.TYPES.COMPTON import Compton_scattering
+from Interactions.TYPES.RELATIVISTIC import Relativistic_Collision
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -21,21 +22,20 @@ dt = Global_variables.dt
 Vmax = Global_variables.Vmax
 
 
-def COLLIDE(FirstAnn, F, COEFSlist, t):
+def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     """update the particles 1,2 involved in a collision and update tracking information and collision points.
 
     Args:
     - FirstAnn (list): List containing information about the collision, including time, position, and IDs of the particles involved, as well as other variables used for tracking.
-    - F (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
+    - Xf (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
 
     Returns:
-    - F (list): Updated list of dictionaries containing information about the particles in the simulation.
+    - Xf (list): Updated list of dictionaries containing information about the particles in the simulation.
     """
 
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
     SYSTEM = System.SystemClass.SYSTEM
-
     Global_variables.ALL_TIME.append(ti)
     Global_variables.COLPTS.append([ti, xo, coltype])
 
@@ -52,8 +52,6 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
 
     E1, P1, M1 = particle1.Energy, particle1.P, particle1.M
     E2, P2, M2 = particle2.Energy, particle2.P, particle2.M
-    Etot = E1 + E2
-    Ptot = M1 * V1 + M2 * V2
 
     # create photons
     if z1 != 0:
@@ -66,14 +64,25 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
     Pos1 = np.array([*Pos1], dtype=float)
     Pos2 = np.array([*Pos2], dtype=float)
 
-    Mtot = M1 + M2
-    Mdif = M1 - M2
+    if p1index == 13 or p2index == 13:  # Compton scattering
+        VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Compton_scattering(
+            p1index, V1, M1, P1, E1, V2, M2, P2, E2
+        )
+    else:
+        VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Relativistic_Collision(
+            V1, M1, P1, E1, V2, M2, P2, E2
+        )
 
-    VParam1 = (Mdif / Mtot) * V1 + (2 * M2 / Mtot) * V2
+    particle1.V = VParam1
+    particle1.Energy = NewE1
+    particle1.P = NewP1
 
-    VParam2 = (Ptot - VParam1 * M1) / M2
-    Targs1, b1, Xinter1 = list(Targs1), list(b1), list(Xinter1)
-    Targs2, b2, Xinter2 = list(Targs2), list(b2), list(Xinter2)
+    particle2.V = VParam2
+    particle2.Energy = NewE2
+    particle2.P = NewP2
+
+    Targs1, Xinter1 = list(Targs1), list(Xinter1)
+    Targs2, Xinter2 = list(Targs2), list(Xinter2)
     Targs = [Targs1, Targs2]
     Rem_ind = [[], []]
     for targind, Targ in enumerate(Targs):
@@ -109,11 +118,8 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
     b1.append(newb1)
     b2.append(newb2)
 
-    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append([0, VParam1[0]])
-    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append([0, VParam2[0]])
-
-    b1 = np.array(b1)
-    b2 = np.array(b2)
+    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(VParam1)
+    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(VParam2)
     Xinter1 = np.array(Xinter1)
     Xinter2 = np.array(Xinter2)
 
@@ -122,20 +128,20 @@ def COLLIDE(FirstAnn, F, COEFSlist, t):
         [VParam2, b2, Targs2, p2, id2, Xinter2, Xend2],
     ]
 
-    def Set_F_data(F, particle_index, partORanti, id, NewXdata):
+    def Set_F_data(Xf, particle_index, partORanti, id, NewXdata):
         for d in range(DIM_Numb):
-            for subind, subF in enumerate(F[d]):
+            for subind, subF in enumerate(Xf[d]):
                 if (
                     subF[1] == partORanti
                     and subF[2] == particle_index
                     and subF[3] == id
                 ):
-                    F[d][subind][0] = NewXdata[d]
-        return F
+                    Xf[d][subind][0] = NewXdata[d]
+        return Xf
 
-    F = Set_F_data(F, p1[1], p1[0], id1, Xend1)
-    F = Set_F_data(F, p2[1], p2[0], id2, Xend2)
+    Xf = Set_F_data(Xf, p1[1], p1[0], id1, Xend1)
+    Xf = Set_F_data(Xf, p2[1], p2[0], id2, Xend2)
 
     SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
     SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
-    return F
+    return Xf

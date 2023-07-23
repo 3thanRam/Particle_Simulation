@@ -37,15 +37,15 @@ dt = Global_variables.dt
 Vmax = Global_variables.Vmax
 
 
-def ANNIHILATE(FirstAnn, F, COEFSlist, t):
+def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
     """Remove the particles 1,2 involved in a collision and update tracking information and collision points.
 
     Args:
     - FirstAnn (list): List containing information about the collision, including time, position, and IDs of the particles involved, as well as other variables used for tracking.
-    - F (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
+    - Xf (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
 
     Returns:
-    - F (list): Updated list of dictionaries containing information about the particles in the simulation.
+    - Xf (list): Updated list of dictionaries containing information about the particles in the simulation.
     """
 
     # Extract information about the collision
@@ -115,13 +115,14 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     else:
         VParam1 = Vmax
         VParam2 = -Vmax
-    Createparams1 = "Post_Interaction", xo, VParam1, ti, Etot / 2
+    NewE1, NewE2 = Etot / 2, Etot / 2
+    Createparams1 = "Post_Interaction", xo, VParam1, ti, NewE1
     Createparams2 = (
         "Post_Interaction",
         xo,
         VParam2,
         ti,
-        Etot / 2,
+        NewE2,
     )
 
     def CREATE_PARTICLE_fromAnnil(ParticleType, Create_particle_param):
@@ -130,8 +131,16 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
         SYSTEM.Add_Particle(Crindex, partoranti, Create_particle_param)
 
-        D = SYSTEM.Particles_List[-1].DO(t, (t - ti))  # shouldn't be a full dt?
-        New_V, b, New_Tpara, New_p, New_id, New_Xinter, New_Xend = D
+        SYSTEM.Particles_List[-1].MOVE(t, (t - ti))
+        (
+            New_V,
+            b,
+            New_Tpara,
+            New_p,
+            New_id,
+            New_Xinter,
+            New_Xend,
+        ) = SYSTEM.Particles_List[-1].Coef_param_list
 
         if len(New_Xinter) == 0:
             b = [New_Xend - New_V * float(*New_Tpara)]
@@ -145,16 +154,13 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                 A = np.copy(New_V)
                 for r in range(len(New_Xinter)):
                     b.append(New_Xinter[r][0] - A * float(New_Tpara[1 + r]))
-                    flipindex, flipvalue = SYSTEM.Vflipinfo[Crindex][partoranti][
-                        New_id
-                    ][r]
-                    A[flipindex] = flipvalue
+                    A = SYSTEM.Vflipinfo[Crindex][partoranti][New_id][r]
                 b.append(New_Xend - A * float(New_Tpara[0]))
 
         if len(New_Xinter) == 0:
             b.insert(0, "PreCreation")
             New_Tpara.append(ti)
-            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append([0, New_V[0]])
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append(New_V)
             Xinter_LIST = [[xo, xo]]  # [[New_Xend, New_Xend]]  # [[xo, xo]]
         else:
             xinterkilllist, vflipkill_list, b_kill_list, Tpara_kill_list = (
@@ -172,7 +178,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     vflipkill_list.append(
                         SYSTEM.Vflipinfo[Crindex][partoranti][New_id][it - 1]
                     )
-            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].insert(0, [0, New_V[0]])
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].insert(0, New_V)
             for Tpara_kill in Tpara_kill_list:
                 New_Tpara.remove(Tpara_kill)
             New_Tpara.insert(1, ti)
@@ -208,7 +214,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
     SYSTEM.Particle_set_coefs(
         Coef_info2[3][1], Coef_info2[3][0], Coef_info2[4], Coef_info2
     )
-    NewFO = [list(F[d]) for d in range(DIM_Numb)]
+    NewFO = [list(Xf[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
     for d in range(DIM_Numb):
         for subind, subF in enumerate(NewFO[d]):
@@ -228,7 +234,7 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     [Targs1[zi + 1], Xinter1[zi][1]],
                 ]
             )
-            Global_variables.ALL_TIME.extend(Targs1[1:])
+
     if z2 > 0:
         for zi in range(z2):
             SYSTEM.TRACKING[p2index][partORAnti2][id2].extend(
@@ -238,7 +244,8 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
                     [Targs2[zi + 1], Xinter2[zi][1]],
                 ]
             )
-            Global_variables.ALL_TIME.extend(Targs2[1:])
+    Global_variables.ALL_TIME.extend(Targs1[1:])
+    Global_variables.ALL_TIME.extend(Targs2[1:])
 
     # SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
     # SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
@@ -267,8 +274,8 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
         ("TypeID1", int),
         ("index", int),
     ]
-    F = np.array(NewFO, dtype=dtype)
-    # F.sort(order='Pos')
+    Xf = np.array(NewFO, dtype=dtype)
+    # Xf.sort(order='Pos')
 
     for gnum in Grnumblist:
         for Ncoef in NewCoefs:
@@ -277,4 +284,4 @@ def ANNIHILATE(FirstAnn, F, COEFSlist, t):
 
     Global_variables.COLPTS.append([ti, xo, coltype])
 
-    return (F, COEFSlist)
+    return (Xf, COEFSlist)
