@@ -98,11 +98,12 @@ def timestat_end(B1, B2, t, z1, z2, t1PARA, t2PARA):
 
 def Interaction_Loop_Check(Xf, t, GroupList):
     """
-    This function simulates the collisions between particles in the system.
+    This function simulates the collisions between particles in the system between time instants t-dt and t
 
     Parameters:
         Xf (list): List of particle positions and id parameters that compose the system.
         t (float): The current time.
+        GroupList(list): list of particles grouped together based on close positions to each other or boundaries
 
     Returns:
         updated state of the system (Xf).

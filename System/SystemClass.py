@@ -28,6 +28,10 @@ SYSTEM = []
 
 
 class SYSTEM_CLASS:
+    """
+    Class containing particles and methods needed to do various changes and updates
+    """
+
     def __init__(self):
         self.Particles_List = []
         self.Numb_Per_TYPE = [[0, 0] for i in range(Numb_of_TYPES)]
@@ -38,6 +42,13 @@ class SYSTEM_CLASS:
         self.Vflipinfo = [[[], []] for i in range(Numb_of_TYPES)]
 
     def Add_Particle(self, index, PartOrAnti, ExtraParams=None):
+        """Add a particle of given type to the system
+
+        Args:
+            index (int): represents the type of subatomic particle
+            PartOrAnti (int): represents if particle or antiparticle
+            ExtraParams (list, optional): extra parameters needed for some types of creations
+        """
         if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
             COLOUR = [0, 0, 0]
             if ExtraParams == None:
@@ -73,6 +84,9 @@ class SYSTEM_CLASS:
         )
 
     def FIND_particle(self, index, PartOrAnti, ID):
+        """
+        Find a particle in the system using its  index, PartOrAnti and ID
+        """
         for p_numb, particle in enumerate(self.Particles_List):
             if (
                 (particle.parity[1] == index)
@@ -82,6 +96,9 @@ class SYSTEM_CLASS:
                 return p_numb
 
     def Remove_particle(self, index, PartOrAnti, ID):
+        """
+        Remove a particle identified using index, PartOrAnti, ID
+        """
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         self.Particles_List.pop(SEARCH_id)
         self.Numb_Per_TYPE[index][PartOrAnti] -= 1
@@ -90,6 +107,9 @@ class SYSTEM_CLASS:
             self.Quarks_Numb -= 1
 
     def RESET_Vflipinfo(self):
+        """
+        Set all particles vflipinfo to empty list
+        """
         self.Vflipinfo = [
             [
                 [[] for ni in range(maxnumbpart + 1)],
@@ -99,6 +119,9 @@ class SYSTEM_CLASS:
         ]
 
     def Get_Energy_velocity_Remove_particle(self, index, PartOrAnti, ID):
+        """
+        Get energy and velocity of a particle identified using index, PartOrAnti, ID then removing it from the system
+        """
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         particle = self.Particles_List[SEARCH_id]
         E, V = particle.Energy, particle.V
@@ -110,16 +133,20 @@ class SYSTEM_CLASS:
         return [E, V]
 
     def Get_Particle(self, index, PartOrAnti, ID):
+        """Get a particle identified using index, PartOrAnti, ID"""
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-
         return self.Particles_List[SEARCH_id]
 
     def Particle_set_coefs(self, index, PartOrAnti, ID, New_Coef_info):
+        """Set the Coef_param_list variable of a particle, to New_Coef_info ,identified using index, PartOrAnti, ID"""
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
         self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
     def Get_XI(self):
+        """
+        Generate array of identifying information and initial position of each particle
+        """
         Xi = np.array(
             [
                 [
@@ -138,13 +165,22 @@ class SYSTEM_CLASS:
         self.Xi = Xi
 
     def UPDATE_DO(self, t):
+        """
+        perform MOVE(t) method on each particle in the system
+        """
         for particle in self.Particles_List:
             particle.MOVE(t)
 
     def TOTAL_ENERGY(self):
+        """
+        Return the total energy of the system at the time at which called
+        """
         return sum(particle.Energy for particle in self.Particles_List)
 
     def Get_XF(self):
+        """
+        Generate array of identifying information and position after dt of each particle
+        """
         Xf = np.array(
             [
                 [
@@ -164,6 +200,9 @@ class SYSTEM_CLASS:
         self.Xf = Xf
 
     def UPDATE(self, t):
+        """
+        Update system variables to current values
+        """
         self.RESET_Vflipinfo()
         self.Get_XI()
         self.UPDATE_DO(t)
@@ -171,6 +210,9 @@ class SYSTEM_CLASS:
         self.UPDATE_XF(t)
 
     def UPDATE_XF(self, t):
+        """
+        Check for interactions and deal with them between t-dt and t
+        """
         PARAMS = Group_particles(self.Xi, self.Xf)
         if len(PARAMS) != 0:
             self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
@@ -180,6 +222,9 @@ class SYSTEM_CLASS:
             print("NO CHG PARAMS for t=", t)
 
     def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
+        """
+        Update trajectory history of particle, identified by index, PartOrAnti, ID at time t with new position NewPos
+        """
         particle = self.Get_Particle(index, PartOrAnti, ID)
         targs, xinterargs = get_T_Xinter(particle.Coef_param_list)
         for nz in range(len(targs) - 1):
@@ -204,5 +249,8 @@ class SYSTEM_CLASS:
 
 
 def init():
+    """
+    initialise SYSTEM as a SYSTEM_CLASS object
+    """
     global SYSTEM
     SYSTEM = SYSTEM_CLASS()

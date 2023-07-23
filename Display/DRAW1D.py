@@ -5,6 +5,8 @@ from matplotlib.lines import Line2D
 
 from Particles.Dictionary import PARTICLE_DICT
 
+Numb_of_TYPES = len(PARTICLE_DICT)
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 DIM_Numb = 1
 
@@ -18,7 +20,7 @@ Event_LStyle = "None"
 
 def TRAJ_1D(ax, TRACKING, Trange, COLPTS, L_HIST):
     """
-    Plot trajectories of particles in for 1D case
+    Plot trajectories of particles in 1D case
     """
     ax.set_title(
         "Trajectory of particles \n as a function of Time\n  in "
@@ -26,8 +28,7 @@ def TRAJ_1D(ax, TRACKING, Trange, COLPTS, L_HIST):
         + " Dimensions"
     )
     # Iterate over the particles and their trajectories to plot them
-    Numb_of_TYPES = len(PARTICLE_DICT)
-    PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
+
     PART_LStyle = ["-", "--"]
     lines = []
     labels = []

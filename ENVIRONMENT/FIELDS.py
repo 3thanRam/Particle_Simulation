@@ -25,6 +25,17 @@ def gamma_factor(u):
 
 
 def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
+    """Generates electromagnetic field tensor for each elm interacting particle
+
+    Args:
+        Xarray (ndarray): array of particle positions and their id information
+        SystemList (SYSTEM_CLASS): SYSTEM_CLASS object
+        Quark_Numb (int): current number of quarks
+        TotnumbAllpart (int): current total number of particles
+
+    Returns:
+        F (ndarray) array of ELM tensor of size (4,4,total number of particles)
+    """
     Field_DICT = {}
     for i in range(len(Xarray[0])):
         xpos, i_type0, i_type1, i_id = Xarray[0][i]
@@ -62,23 +73,6 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
                 B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
             elif DIM_Numb == 3:
                 B[i] += np.cross(v, E[i]) / C_speed**2
-    """for i in (n for n in range(N) if mass_matrix[n] != 0):
-        dist_i = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][i]]]["size"] / 2
-        for j in (n for n in range(N) if mass_matrix[n] != 0):
-            dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
-            rmin = dist_i + dist_j
-            r = loc_arr[j] - loc_arr[i]
-            r_norm = np.linalg.norm(r)
-            if i != j and r_norm > rmin:
-                v = velocity_matrix[i]
-                q = charges[j]
-
-                E[i] += q * r / r_norm**3
-                if DIM_Numb == 2:
-                    gamma = gamma_factor(v)
-                    B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
-                elif DIM_Numb == 3:
-                    B[i] += np.cross(v, E[i]) / C_speed**2"""
 
     # Construct the electromagnetic field tensor
     F = np.zeros((4, 4, len(SystemList)))

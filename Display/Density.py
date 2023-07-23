@@ -7,8 +7,10 @@ import numpy as np
 # import scipy.optimize as spopt
 
 NeutrinoMasses = (0.120 * 10**-6) / 3
+from Particles.Dictionary import PARTICLE_DICT
 
-PARTICLE_DICT = {}
+Numb_of_TYPES = len(PARTICLE_DICT)
+PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 
 def fct_fit(to, ko):
@@ -50,24 +52,18 @@ def fct_fit2(to, ko):
     return RES
 
 
-def DENS_FCT(DIM_Numb0, Density, Trange, ax, PARTICLE_DICT0):
+def DENS_FCT(DIM_Numb0, Density, Trange, ax):
     """
     Plots the particle densities in a DIM_Numb-dimensional box as a function of time.
 
     Parameters:
         DIM_Numb0 (int): The number of dimensions.
-        Dens (list): A list of the particle and antiparticle densities.
+        Density (list): A list of the particle and antiparticle densities as a function of time.
         Trange (numpy.ndarray): The time array.
-
-    Returns:
-        None
+        ax (numpy.ndarray): matplotlib axes.Axes object on which to plot densities
     """
-    global DO, p_var, DIM_Numb, PARTICLE_DICT
+    global DO, p_var, DIM_Numb
     # Initialize parameters
-
-    PARTICLE_DICT = PARTICLE_DICT0
-    Numb_of_TYPES = len(PARTICLE_DICT)
-    PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
     DIM_Numb = DIM_Numb0
     DT = ["", 0.1, 0.1, 0.05]
     dt = float(DT[DIM_Numb])

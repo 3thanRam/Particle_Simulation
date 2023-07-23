@@ -5,6 +5,9 @@ DIM_Numb = Global_variables.DIM_Numb
 
 
 def Rotate_vector_xyzAxes(Vector, angle):
+    """
+    Rotate Vector by given angle
+    """
     Cos = np.cos(angle)
     Sin = np.sin(angle)
     if DIM_Numb == 3:
@@ -17,6 +20,7 @@ def Rotate_vector_xyzAxes(Vector, angle):
 
 
 def ROT2D(Angle):
+    """2D rotation matrix by given Angle"""
     ROT = np.array([[np.cos(Angle), -np.sin(Angle)], [np.sin(Angle), np.cos(Angle)]])
     return ROT
 

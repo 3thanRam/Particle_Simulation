@@ -14,6 +14,9 @@ def RELAT_ERROR(velocity):
 
 
 def gamma_factor(v):
+    """
+    Calculate lorentz factor of velocity v
+    """
     if isinstance(v, float):
         V = v
     else:
@@ -24,6 +27,9 @@ def gamma_factor(v):
 
 
 def lorentz_boost(Energy, momentum, Velocity, INV=1):
+    """
+    Perform lorentz boost of Energy, momentum by into reference with velocity
+    """
     V_norm = np.linalg.norm(Velocity)
     V_direction = Velocity / V_norm
     Gamma = gamma_factor(V_norm)
@@ -38,6 +44,9 @@ def lorentz_boost(Energy, momentum, Velocity, INV=1):
 
 
 def Get_V_from_P(momentum, mass):
+    """
+    Calculate velocity of particle of given mass and momentum
+    """
     P_norm = np.linalg.norm(momentum)
     direction = momentum / P_norm
     V_norm = P_norm * (1 / (1 + (P_norm / (mass * C_speed)) ** 2)) ** 0.5 / mass
@@ -45,16 +54,25 @@ def Get_V_from_P(momentum, mass):
 
 
 def Momentum_Calc(velocity, mass):
+    """
+    Calculate momentum of particle of given mass and velocity
+    """
     return mass * velocity * gamma_factor(velocity)
 
 
 def Energy_Calc(momentum, mass):
+    """
+    Calculate Energy of particle of given mass and momentum
+    """
     return (
         (mass * C_speed**2) ** 2 + C_speed**2 * np.dot(momentum, momentum)
     ) ** 0.5
 
 
 def Velocity_add(v1, v2):
+    """
+    Perform relativistic velocity addition
+    """
     Dotprod = np.dot(v1, v2)
     prefact = 1 / (1 + Dotprod * C_speed**2)
     reci_gamma = 1 / gamma_factor(np.linalg.norm(v2))

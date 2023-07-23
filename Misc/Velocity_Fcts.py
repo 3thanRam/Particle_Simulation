@@ -10,7 +10,7 @@ rng = np.random.default_rng()
 
 
 def GAUSS():
-    """Generates a random velocity vector based on gaussian distribution of mean V0 and Standard deviation sd.
+    """Generates a random velocity vector based on gaussian distribution of mean 0 and Standard deviation V0/3.
 
     Global Args Used:
     - V0 (float): Mean (“centre”) of the distribution.

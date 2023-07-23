@@ -28,6 +28,9 @@ Rec = [
 
 
 def SET_PARAMETERS():
+    """
+    set initial parameters needed to start the simulation
+    """
     MODE = input("Recommended or Custom settings?(r/c) ")
 
     Input_parameters = []

@@ -69,6 +69,9 @@ class Global_var:
 
 
 def init(DIM_Numb, BOUNDARY_COND, L_FCT):
+    """
+    initialise Global_variables class
+    """
     global Global_variables
     Global_variables = Global_var(
         DIM_Numb=DIM_Numb, BOUNDARY_COND=BOUNDARY_COND, L_FCT=L_FCT

@@ -22,12 +22,30 @@ class Probability_Distribution(rv_continuous):
     "Custom distribution"
 
     def _pdf(self, alpha, Ei_boosted_photon):
+        """Normalised cross section of the interaction
+
+        Args:
+            alpha (float): angle
+            Ei_boosted_photon (float): Energy of incident photon
+
+        Returns:
+            float representing probability of interaction for given parameters alpha, Ei_boosted_photon
+        """
         Norm_cst = integrate.quad(
             self.Cross_section, args=(Ei_boosted_photon), a=0, b=np.pi
         )[0]
         return self.Cross_section(alpha, Ei_boosted_photon) / Norm_cst
 
     def Cross_section(self, alpha, Ei_boosted_photon):
+        """Calcute cross section of the interaction
+
+        Args:
+            alpha (float): angle
+            Ei_boosted_photon (float): Energy of incident photon
+
+        Returns:
+            DCS(float): cross section of interaction for given parameters alpha, Ei_boosted_photon
+        """
         R_Ef_Ei = 1 / (1 + Ei_boosted_photon * (1 - np.cos(alpha)))
         DCS = 0.5 * (Re / R_Ef_Ei) ** 2 * (1 / R_Ef_Ei + R_Ef_Ei - np.sin(alpha) ** 2)
         return DCS
@@ -41,6 +59,29 @@ Distr_fct = Probability_Distribution(
 
 
 def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
+    """Compute Compton_scattering between photon and massive particle by first boosting to particle velocity reference frame then performing the collision before returning to unboosted reference frame
+
+    Args:
+        p1index (tuple): particle 1 index
+        V1 (ndarray): particle 1 velocity
+        M1 (float): particle 1 mass
+        P1 (ndarray): particle 1 momentum
+        E1 (float): particle 1 Energy
+        V2 (ndarray): particle 2 velocity
+        M2 (float): particle 2 mass
+        P2 (ndarray): particle 2 momentum
+        E2 (float): particle 2 Energy
+
+    Returns:
+        VParam1 (ndarray): New particle 1 velocity
+        M1 (float): particle 1 mass
+        NewP1 (ndarray):New particle 1 momentum
+        NewE1 (float): New particle 1 Energy
+        VParam2 (ndarray): New particle 2 velocity
+        M2 (float): particle 2 mass
+        NewP2 (ndarray): New particle 2 momentum
+        NewE2 (float): New particle 2 Energy
+    """
     if p1index == 13:
         pi_photon, Ei_photon = P1, E1
         pi_particle, Ei_particle, M_particle = P2, E2, M2

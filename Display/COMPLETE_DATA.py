@@ -2,8 +2,12 @@ def COMPLETE_DATAPTS(DATApts, TIMEpts, DIM_Numb):
     """adds interpolation of points at interaction times so that all particles have a position at each time (where they're alive)
 
     Args:
-        DATApts (_type_): Tracking data containing existing positions of each particle at each time step or event that the particle was involved in
-        TIMEpts (_type_): list of times of all events
+        DATApts (list): Tracking data containing existing positions of each particle at each time step or event that the particle was involved in
+        TIMEpts (list): list of times of all events
+        DIM_Numb (int): Number of spatial dimensions
+
+    Returns:
+        DATApts or PART(list): Updated Tracking data (slightly different format depending on DIM_Numb)
     """
     if DIM_Numb == 2:
         DEADpart = ["T", ["X", "Y"]]
@@ -20,10 +24,6 @@ def COMPLETE_DATAPTS(DATApts, TIMEpts, DIM_Numb):
             return [Particle_list, ANTIPart_list]
 
         PART = [EMPTY_DOUBLE_LIST(3, p, DATApts) for p in range(len(DATApts))]
-
-        # PART=[[[[] for di in range(DIM_Numb)] for n in range(Nu[i])] for i in range(len(DATApts))]
-        # Nu=[len(DATApts[0]),len(DATApts[1]),len(DATApts[2])]
-        # PART=[[[[] for di in range(DIM_Numb)] for n in range(Nu[i])] for i in range(len(DATApts))]
 
     for p in range(len(DATApts)):
         for partORanti, partdata in enumerate(DATApts[p]):

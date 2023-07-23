@@ -6,7 +6,13 @@ Overlap_parameter = 0.5
 
 
 def REMOVE_OVERLAP(PARAMS):
-    # The same particles can be present in many groups so we must reduce overlap
+    """The same particles can be present in many groups so we must reduce overlap
+    Args:
+        PARAMS (list): list of grouped particle information (id,particle or antiparticle,type of particle)
+    Returns:
+        Updated and reduced/smaller list of grouped particles information
+    """
+    #
     REMOVELIST = []
     for I1, I2 in combinations(range(len(PARAMS)), 2):
         if I1 in REMOVELIST or I2 in REMOVELIST:

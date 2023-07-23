@@ -14,8 +14,6 @@ Choice between only showing evolution of the particles' densities or also visual
 
 To do: 
 
--Redo comments
-
 -Strong & weak nuclear forces
 
 -Relativistic dynamic boundaries

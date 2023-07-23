@@ -14,6 +14,14 @@ get_fct = itemgetter(1, 2, 3)
 
 
 def Group_particles(Xi, Xf):
+    """Group particles that are close to each other  because they could meet/interact together
+    Args:
+        Xi (_type_): Initial positions of particles (at time t-dt)
+        Xf (_type_): Final positions of particles (at time t)
+
+    Returns:
+        list of grouped particle information
+    """
     # particle involved in interactions parameters
     PARAMS = []  # each elem will be a list [type0,type1,ID]
     for ind_Xi in range(

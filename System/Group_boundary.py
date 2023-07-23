@@ -18,6 +18,15 @@ def BOUNDARY_CHECK(X_list, d):
 
 
 def Group_close_bounds(PARAMS, Xi, Xf):
+    """Group particles that are close to boundaries at start, end  because they could interact with each other
+    Args:
+        PARAMS (list): list of grouped particle information (id,particle or antiparticle,type of particle)
+        Xi (_type_): Initial positions of particles (at time t-dt)
+        Xf (_type_): Final positions of particles (at time t)
+
+    Returns:
+        updated list of grouped particle information
+    """
     PARAMS.append([])
     for Xlist in [Xi, Xf]:
         for d, xd in enumerate(Xlist):

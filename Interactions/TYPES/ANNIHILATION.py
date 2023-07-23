@@ -38,14 +38,17 @@ Vmax = Global_variables.Vmax
 
 
 def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
-    """Remove the particles 1,2 involved in a collision and update tracking information and collision points.
+    """Remove the particles 1,2 involved in a collision, create resulting photons and update tracking information and collision points.
 
     Args:
     - FirstAnn (list): List containing information about the collision, including time, position, and IDs of the particles involved, as well as other variables used for tracking.
-    - Xf (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
+    - Xf (list): List of about the particles in the simulation, indexed by particle type and ID.
+    - COEFSlist (list): List containing groups of possibly interacting particles
+    -t (float): current time of simulation
 
     Returns:
-    - Xf (list): Updated list of dictionaries containing information about the particles in the simulation.
+    - Xf (list): Updated Xf list
+    - COEFSlist (list): Updated COEFSlist list
     """
 
     # Extract information about the collision
@@ -126,6 +129,16 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
     )
 
     def CREATE_PARTICLE_fromAnnil(ParticleType, Create_particle_param):
+        """Remove the particles 1,2 involved in a collision and get their parameters
+
+        Args:
+            ParticleType (tuple): information about the type of particle
+            Create_particle_param (list): list of parameters about the particle to create
+
+        Returns:
+            Ncoef(list): parameters detailling the trajectory of the created particle
+            New_Xend(Ndarray): endpoint of the particle
+        """
         partoranti, typeindex = ParticleType
         Crindex = typeindex
 
@@ -247,8 +260,6 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
     Global_variables.ALL_TIME.extend(Targs1[1:])
     Global_variables.ALL_TIME.extend(Targs2[1:])
 
-    # SYSTEM.TRACKING[p1index][partORAnti1][id1].append([ti, [*xo]])
-    # SYSTEM.TRACKING[p2index][partORAnti2][id2].append([ti, [*xo]])
     Global_variables.ALL_TIME.append(ti)
 
     # Remove the information about the particles involved in the collision from the collision point list and decrement the total number of particles and add product of annihilation

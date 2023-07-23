@@ -8,6 +8,16 @@ FERMION_INDEXES = [i for i in range(12)]
 
 
 def COLTYPE(pA, pB):
+    """
+    Gets type of interaction between 2 particles based on the type of particles involved
+
+    Args:
+        pA (tuple): information about the type of first particle
+        pB (tuple): information about the type of a second particle
+
+    Returns:
+        int representing the type of interaction
+    """
     partORantiA, IndexA = pA
     partORantiB, IndexB = pB
 

@@ -11,7 +11,7 @@ def TRAJ_3D(
     dt, BOUNDARY_COND, Density, ALL_TIME, TRACKING, COLPTS, L_HIST, File_path_name
 ):
     """
-    Save a 3D video Plot of a set of particles
+    Generate a 3D animation Plot of a set of particles
 
     Parameters:
     -----------
@@ -19,6 +19,8 @@ def TRAJ_3D(
         Size of time step in the simulation.
     BOUNDARY_COND: int
         Represents if boundaries are periodic(0) or hard(1)
+    Density: list
+        list of densities of particles at each time dt instant
     ALL_TIME: list
         collection of all the time values
     TRACKING: list
@@ -29,13 +31,14 @@ def TRAJ_3D(
         List of colored points to plot. Each element is a tuple of two lists: the first one contains the x coordinates of
         the points, and the second one contains the y coordinates of the points. The third element is an integer that
         specifies the color of the points (0 for red, 1 for blue, 2 for black, and 3 for yellow).
+    L_HIST: list
+        contains 2 lambda functions representing upper and lower boundaries of box at a given time
     File_path_name: str
         Path to where to save the video
 
     """
     from mayavi import mlab
     import imageio
-    import time
     from scipy.special import sph_harm
     from Display.COMPLETE_DATA import COMPLETE_DATAPTS
 

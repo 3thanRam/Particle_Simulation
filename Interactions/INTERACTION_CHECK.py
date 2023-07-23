@@ -34,17 +34,17 @@ def quad_equ(a, b, c, bound_start, bound_end):
 
 def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
     """
-    This function takes in five arguments, `difA`, `difB`, `t`, `Sa`, and `Sb`, and returns a float value.
+    Search for possible intersections between particle trajectories and if there are multiple then get first occuring
 
     Args:
-    - difA (numpy array): an array containing the differences between the x-component velocities of two particles.
-    - difB (numpy array): an array containing the differences between the x-component positions of two particles.
-    - t (float): a time value.
-    - Sa (numpy array): an array containing the x-component of the acceleration of particle a.
-    - Sb (numpy array): an array containing the x-component of the acceleration of particle b.
+    - a1/a2 (numpy array): an array containing the velocties of the two particles.
+    - b1/b2 (numpy array): an array containing the b coefs of the two particles.
+    - Dist1/Dist2 (float): sizes of the two particles.
+    - Tstart/Tend (float): start and end time of possible interactions between the particles.
 
     Returns:
-    - A float value representing the time at which two particles meet, or -1 if they do not meet.
+    - Tmini(float): time of first possible collision
+    - Xo(ndarray): location of first possible collision (empty if none )
     """
 
     # Find the possible time values where the two particles meet.
@@ -68,16 +68,13 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
         rab = Dist1 + Dist2
 
         # quad formula A*u^2 +B*u+C
-        A = np.dot(Delta_a, Delta_a)  # np.linalg.norm(a2 - a1) ** 2
-        # if A == 0 and Dfin < (Dist1 + Dist2):
-        #    return (Tstart, Xo)
-        B = 2 * np.dot(Delta_a, Delta_b)  # (a2 - a1), (X2_ini - X1_ini))
+        A = np.dot(Delta_a, Delta_a)
+        B = 2 * np.dot(Delta_a, Delta_b)
         C = np.dot(Delta_b, Delta_b) - rab**2
         Tsols = quad_equ(A, B, C, Tstart, Tend)
 
         for i in range(len(Tsols)):
             Tmini = min(Tsols)
-            # Xo = (Tmini * a1 + b1 + Tmini * a2 + b2) / 2
             x1 = Tmini * a1 + b1
             x2 = Tmini * a2 + b2
             R = Dist1 / (Dist1 + Dist2)
@@ -107,7 +104,7 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
 
     Returns:
     - If the segments intersect during the time interval, returns a list with the following elements:
-      - 1 if the intersection point is inside the first segment, 2 if it is inside the second segment.
+      - type of collision defined in INTERACTION_DEF
       - tmini: time of intersection.
       - xo: coordinates of intersection point.
       - z1, z2: velocities of the first and second segment, respectively.

@@ -11,12 +11,11 @@ L_FCT = Global_variables.L_FCT
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 
 
-def BOUNDS_Collision_Check(xi, Xfin, Velocity, t, id, p):
+def BOUNDS_Collision_Check(Xfin, Velocity, t, id, p):
     """
-    Computes the boundaries for a particle based on its position and velocity.
+    Computes possible boundary collisions for a particle based on its position and velocity.
 
     Args:
-    - xi (array): The initial position of the particle.
     - xf (array): The final position of the particle.
     - V (array): The velocity of the particle.
     - t (float): The current time.
@@ -28,6 +27,7 @@ def BOUNDS_Collision_Check(xi, Xfin, Velocity, t, id, p):
         - Xinter (array): The intermediate positions of the particle (if any).
         - Xfin (array): The final position of the particle.
         - t_list (list): A list with the time values at which the particle reaches an intermediate position.
+        - b_list (list): list of b coeficient of affine trajectories for each intermediate position
     """
     PART_SIZE = PARTICLE_DICT[PARTICLE_NAMES[p[1]]]["size"] / 2
     Xinter = []

@@ -72,7 +72,7 @@ def DRAW(
         fig = plt.figure(0)
         # Plot densities as a function of time in one subplot
         ax2 = fig.add_subplot(1, 2, 2)
-        DENS_FCT(DIM_Numb0, Density, Trange, ax2, PARTICLE_DICT)
+        DENS_FCT(DIM_Numb0, Density, Trange, ax2)
         # Plot Trajectories as a function of time in another subplot
         ax = fig.add_subplot(1, 2, 1)
         if DIM_Numb == 1:

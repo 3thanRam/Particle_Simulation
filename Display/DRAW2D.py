@@ -7,16 +7,16 @@ from matplotlib.widgets import Button
 import matplotlib.animation as animation
 import matplotlib.collections
 
+from Particles.Global_Variables import Global_variables
+
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 DIM_Numb = 2
 
-from Particles.Global_Variables import Global_variables
-
 
 def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
     """
-    Plot trajectories of particles in for 2D case
+    Plot trajectories of particles in 2D case
     """
     Extrtime = dt  # prolong display time to help visualisation
     anim_running = True
@@ -33,6 +33,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         ind = 0
 
         def PlayPause(self, event):
+            """
+            Pause or Play animation
+            """
             nonlocal anim_running
             if anim_running:
                 ani.pause()
@@ -42,6 +45,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
                 anim_running = True
 
         def SpeedDown(self, event):
+            """
+            Decrease fps of animation
+            """
             nonlocal ani
             ani.event_source.interval *= 1.25
             print("ms between frames", ani.event_source.interval, end="\r")
@@ -62,6 +68,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
             fig.canvas.draw()
 
         def SpeedUp(self, event):
+            """
+            Increase fps of animation
+            """
             nonlocal ani
             ani.event_source.interval *= 0.75
             print("ms between frames", ani.event_source.interval, end="\r")
@@ -96,7 +105,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
 
     def data_gen():
         """
-        Generates data about th e pints to be plotted at each instant
+        Generates data about the points to be plotted at each instant
         """
         t = data_gen.t
         time_ind = 0
@@ -104,10 +113,6 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
             P_TYPE = [[[], []] for i in range(len(ACTIVE_PARTS))]
             time_ind += 1
             t = ALLtimes[time_ind]
-            # if time_ind+1<len(ALLtimes):
-            #    timeinterval=int((ALLtimes[time_ind+1]-t)*1000)
-            #    #timeinterval=int((t-ALLtimes[time_ind-1])*1000)#ani.event_source.interval=(ALLtimes[time_ind+1]-t)*1000
-            #    ani.event_source.interval=timeinterval
 
             for ActPart_index, (antiorpartindex, particleindex) in enumerate(
                 ACTIVE_PARTS
@@ -139,7 +144,6 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
 
             PTS_data = [COLS, ANNILS, ABSO, CREAT] + P_TYPE
             yield time_ind, t, PTS_data
-            # yield time_ind,t,P_TYPE[0],P_TYPE[1],P_TYPE[2],COLS,ANNILS,ABSO,CREAT
 
     data_gen.t = 0
     ax.set_title(
@@ -147,11 +151,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         + str(DIM_Numb)
         + "D box over Time"
     )
-    # ax.set_xlim(Linf[0], L[0])
-    # ax.set_ylim(Linf[1], L[1])
-    # ax.figure.canvas.draw()
     ax.grid()
-    PART_OR_ANTI_MARKER = ["o", "^"]
 
     # initialise pens
     PARTICLE_PENS = []
@@ -171,9 +171,6 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
                 facecolors=PartColour[antiOrpartind],
             )
         )
-        # PARTICLE_PENS.append(ax.scatter([], [],s=PART_SIZE,marker=PART_OR_ANTI_MARKER[antiOrpartind],color=PARTICLE_DICT[PARTICLE_NAMES[Pindex]]['color'],label='anti'*antiOrpartind+PARTICLE_NAMES[Pindex]))
-
-    # COLLISION =matplotlib.collections.EllipseCollection(widths=PART_SIZE, heights=PART_SIZE,angles=np.zeros_like(PART_SIZE),offsets=[], units='x',transOffset=ax.transData, facecolors='black')
 
     Interaction_Size = 100 * Global_variables.Dist_min**2
 
@@ -210,12 +207,10 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         facecolors="purple",
     )
 
-    # COLLISION = ax.scatter([], [],marker='*',color='black',label='Collision')
-    # ANNIHILATION = ax.scatter([], [],marker='*',color='yellow',label='Annihilation')
-    # ABSORPTION = ax.scatter([], [],marker='*',color='green',label='Absorption')
-    # CREATIONS=ax.scatter([], [],marker='*',color='purple',label='Creation')
-
     def DRAWBOX(time):
+        """
+        Get Upper and lower boundaries of the box in order to draw it on the figure
+        """
         Xmax, Ymax = LFct[0](time)
         Xmin, Ymin = LFct[1](time)
 
@@ -227,6 +222,9 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
     (BOXpen,) = ax.plot(Xbox, Ybox, color="black")
 
     def Disp(tparam, t_ind, PARTLIST):
+        """
+        Get information about current time and number of particles to display at a given time tparam
+        """
         Npartparam = [len(partdata[0]) for partdata in PARTLIST]
         return "Time:" + str(round(tparam, 2)) + "s \n Numb:" + str(Npartparam)
 
@@ -298,14 +296,7 @@ def TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFct, dt):
         for pen_ind, pen in enumerate(
             PT_PENS
         ):  # Draw each particle and interaction point
-            # print((np.c_[PTS_data[pen_ind][0],PTS_data[pen_ind][1]]).shape)
-            # print(pen.offsets)
-            # print((np.c_[PTS_data[pen_ind][0],PTS_data[pen_ind][1]]).shape)
-            pen.set_offsets(
-                np.c_[PTS_data[pen_ind][0], PTS_data[pen_ind][1]]
-            )  # set_offsets
-            # print(pen.offsets,'\n')
-
+            pen.set_offsets(np.c_[PTS_data[pen_ind][0], PTS_data[pen_ind][1]])
         time_text.set_text(
             Disp(t, ti, PTS_data[4:])
         )  # Display time & numb of particles

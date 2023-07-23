@@ -11,7 +11,8 @@ Xini = []
 Ini_size = []
 
 
-def in_all_bounds(List, t=None, ParticleSize=0):
+def in_all_bounds(POSarray, t=None, ParticleSize=0):
+    """Returns True if all elements of POSarray are inside the box"""
     if t is None:  # t == None:
         Lmaxi, Lmini = (
             Global_variables.L - ParticleSize,
@@ -20,12 +21,13 @@ def in_all_bounds(List, t=None, ParticleSize=0):
     else:
         Lmaxi, Lmini = L_FCT[0](t) - ParticleSize, L_FCT[1](t) + ParticleSize
     return all(
-        value < Lmaxi[indV] and value > Lmini[indV] for indV, value in enumerate(List)
+        value < Lmaxi[indV] and value > Lmini[indV]
+        for indV, value in enumerate(POSarray)
     )
 
 
 def Pos_fct(min_value, max_value):
-    """Generate a random position vector with DIM_Numb dimensions and values between min_value and max_value (both inclusive)
+    """Generate a random position vector with DIM_Numb dimensions and values between min_value and max_value
 
     Args:
         min_value (float or int): The minimum value for each dimension of the position vector
@@ -64,10 +66,7 @@ def GEN_X(Part_size):
     """Generates a random position within a given distance of minimum separation from other particles.
 
     Args:
-    - Epsilon (float): minimum distance between particles.
-    - Global_variables.L (int): maximum position value for each coordinate.
-    - Dist_min (float): minimum distance allowed between generated position and existing positions.
-    - Xini (List[List[int]]): list of existing particle positions.
+    - Part_size (float): size of particle, so minimum distance allowed between generated position and existing positions.
 
     Returns:
     - List[int]: a new particle position that meets the minimum distance requirement from other particles.
@@ -88,14 +87,24 @@ def GEN_X(Part_size):
     return POS
 
 
-# while not CHECKstartPos(np.array(POS), Part_size):
-#   POS = Pos_fct(Lmin, Lmax)
 def Pos_fct2(Point):
+    """
+    Generate random location around Point
+    """
     pos = Point * (1 + 0.01 * rng.uniform(-2, 2, Point.shape))
     return pos
 
 
 def Pos_point_around(Point, Part_size):
+    """Generate the position of particle of size Part_size around a point Point
+
+    Args:
+        Point (ndarray): location of point
+        Part_size (float): size of particle
+
+    Returns:
+        POS (ndarray): location to place particle
+    """
     POS = Pos_fct2(Point)
     while not CHECKstartPos(POS, Part_size):
         POS = Pos_fct2(Point)

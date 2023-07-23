@@ -33,9 +33,6 @@ def GenNewList(Nlist):
 
     Args:
         Nlist (_type_): _description_
-
-    Returns:
-        _type_: _description_
     """
     return [[[] for n in range(ni)] for ni in Nlist]
 

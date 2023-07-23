@@ -18,12 +18,36 @@ class Probability_Distribution(rv_continuous):
     "Custom distribution"
 
     def _pdf(self, angle, m1, E1, m2, E2):
+        """Normalised cross section of the interaction
+
+        Args:
+            angle (float): angle
+            m1 (float): mass of particle 1
+            E1 (float): initial Energy of particle 1
+            m2 (float): mass of particle 2
+            E2 (float): initial Energy of particle 2
+
+        Returns:
+            float representing probability of interaction for given parameters angle, m1, E1, m2, E2
+        """
         s = (E1 + E2) ** 2
         E = (s / 4) ** 0.5
         Norm_cst = np.pi * (Fine_Struc_Cst / E) ** 2 / 3
         return self.Cross_section(angle, m1, E1, m2, E2) / Norm_cst
 
     def Cross_section(self, angle, m1, E1, m2, E2):
+        """Calcute cross section of the interaction
+
+        Args:
+            angle (float): angle
+            m1 (float): mass of particle 1
+            E1 (float): initial Energy of particle 1
+            m2 (float): mass of particle 2
+            E2 (float): initial Energy of particle 2
+
+        Returns:
+            DCS(float): cross section of interaction for given parameters  angle, m1, E1, m2, E2
+        """
         s = (E1 + E2) ** 2
         E = (s / 4) ** 0.5
         Cos2 = np.cos(angle) ** 2
@@ -48,6 +72,29 @@ Distr_fct = Probability_Distribution(
 
 
 def Relativistic_Collision(V1, M1, P1, E1, V2, M2, P2, E2):
+    """Compute Relativistic ellastic collision between 2 massive particles by first boosting to center of momentum reference frame then performing the collision before returning to unboosted reference frame
+
+    Args:
+        p1index (tuple): particle 1 index
+        V1 (ndarray): particle 1 velocity
+        M1 (float): particle 1 mass
+        P1 (ndarray): particle 1 momentum
+        E1 (float): particle 1 Energy
+        V2 (ndarray): particle 2 velocity
+        M2 (float): particle 2 mass
+        P2 (ndarray): particle 2 momentum
+        E2 (float): particle 2 Energy
+
+    Returns:
+        VParam1 (ndarray): New particle 1 velocity
+        M1 (float): particle 1 mass
+        NewP1 (ndarray):New particle 1 momentum
+        NewE1 (float): New particle 1 Energy
+        VParam2 (ndarray): New particle 2 velocity
+        M2 (float): particle 2 mass
+        NewP2 (ndarray): New particle 2 momentum
+        NewE2 (float): New particle 2 Energy
+    """
     if DIM_Numb == 1:
         return (V1, P1, E1, V2, P2, E2)
 

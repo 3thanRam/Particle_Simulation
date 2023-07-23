@@ -27,10 +27,11 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
 
     Args:
     - FirstAnn (list): List containing information about the collision, including time, position, and IDs of the particles involved, as well as other variables used for tracking.
-    - Xf (list): List of dictionaries containing information about the particles in the simulation, indexed by particle type and ID.
-
+    - Xf (list): List of about the particles in the simulation, indexed by particle type and ID.
+    - COEFSlist (list): List containing groups of possibly interacting particles
+    -t (float): current time of simulation
     Returns:
-    - Xf (list): Updated list of dictionaries containing information about the particles in the simulation.
+    - Xf (list): Updated Xf list
     """
 
     # Extract information about the collision

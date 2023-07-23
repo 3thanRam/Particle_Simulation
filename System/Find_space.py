@@ -8,6 +8,18 @@ rng = np.random.default_rng()
 
 
 def Find_space_for_particles(PosCenter, Particle_radius, V1, V2, t):
+    """Find room to place 2 particles to avoid creating particles outside of boundaries
+
+    Args:
+        PosCenter (ndarray): point to look around
+        Particle_radius (float): radius of particle to place
+        V1 (ndarray): velocity of particle 1
+        V2 (ndarray): velocity of particle 2
+        t (float): current time of the simulation
+
+    Returns:
+        PosParam1/PosParam2(ndarray): positions to place particles
+    """
     top_face = np.min(((PosCenter + Particle_radius), Global_variables.L), axis=0)
     bottom_face = np.max(
         ((PosCenter - Particle_radius), Global_variables.Linf),

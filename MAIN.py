@@ -3,14 +3,24 @@ import time
 import matplotlib.pyplot as plt
 
 from Particles.Dictionary import PARTICLE_DICT
+from Display.Density import DENS_FCT
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
-from Display.Density import DENS_FCT
-
 
 def Update_Density(Dens, L, Linf, Numb_Per_TYPE):
+    """Update Density list, a list containing the number of particles of each type divided by the volume of the box at each time instant dt
+
+    Args:
+        Dens (list):Old Density list, list of shape (number of particles,2,number of spatial dimensions,number of time steps) where the second number represents particle/antiparticle
+        L (ndarray): Top faces of the box
+        Linf (ndarray): Lower faces of the box
+        Numb_Per_TYPE (list): number of particles of each type
+
+    Returns:
+        _type_: Update Density list
+    """
     Vol = 1
     if DIM_Numb == 1:
         Vol = L[0] - Linf[0]
@@ -23,21 +33,26 @@ def Update_Density(Dens, L, Linf, Numb_Per_TYPE):
 
 
 def Update_L_Lmin(t):
+    """Get upper and lower boundaries of the box at a time t
+
+    Args:
+        t (float): time at which to get the values
+
+    Returns:
+        up_L,lowL(ndarray,ndarray):upper and lower boundaries
+    """
     return (L_FCT[0](t), L_FCT[1](t))
 
 
 def main(T, Repr_type, Nset):
     """
-    Simulates the behavior of n1 particles and n2 antiparticles in a Repr_type dimensional box
+    Main loop of the simulation updates the particles in a DIM_Numb dimensional box, for a number T of dt intervals, during dt the trajectories are considered to be straight lines
+    After the T intervals or if there are no particles the simulation will either only display the densities of each particle type as a function of time or also display the trajectories depending on Repr_type
 
     Args:
-    T (float): The time range to simulate.
+    T (int): Number of time intervals to simulate.
     Repr_type (int): The type of representation: draw just densities/0 or also draw trajectories/1
-    File_path_name: Where to save the video if the simulation is 3D and Repr_type=1
-
-    Returns:
-    None: The function does not return anything, but it prints the total time of the simulation and
-    draws the points if Repr_type=1.
+    File_path_name: Where to save the video if the simulation possible
 
     """
 

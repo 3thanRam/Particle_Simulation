@@ -64,8 +64,8 @@ class Particle:
         A unique identifier for the particle.
     X : list of floats
         The position of the particle in the simulation space.
-    V_av : list of floats
-        The average velocity of the particle.
+    V : ndarray
+        velocity of the particle.
 
     Methods:
     --------
@@ -135,6 +135,9 @@ class Particle:
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def MOVE(self, t, DT=dt):
+        """
+        Perform time step DT of simulation
+        """
         xi = self.X
         Vt = self.V.copy()
         if self.name != "photon":
@@ -167,7 +170,7 @@ class Particle:
             xfin, xinter, Tparam, b = xf, [], [t], [xf - Vt * t]
         else:
             xfin, xinter, Tparam, b = BOUNDS_Collision_Check(
-                xi, xf, Vt, t, self.ID, self.parity
+                xf, Vt, t, self.ID, self.parity
             )
         a = Vt
         self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, xfin]
