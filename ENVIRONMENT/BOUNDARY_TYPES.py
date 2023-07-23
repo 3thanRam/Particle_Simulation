@@ -36,7 +36,9 @@ def BOUNDARY_FCT_HARD(A, p, id, z):
     if z == 0:
         return A
     else:
-        NewA = SIGNFLIP(np.copy(A), p, id, z)
+        NewA = System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id][
+            z - 1
+        ]  # SIGNFLIP(np.copy(A), p, id, z)
         return NewA
 
 

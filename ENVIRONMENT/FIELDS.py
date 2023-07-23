@@ -3,6 +3,7 @@ from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
 from Misc.Relativistic_functions import gamma_factor
+from itertools import permutations
 
 DIM_Numb = Global_variables.DIM_Numb
 Numb_of_TYPES = len(PARTICLE_DICT)
@@ -46,7 +47,22 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
     B = np.zeros((N, 3))
 
     # Non_zero_mass =
-    for i in (n for n in range(N) if mass_matrix[n] != 0):
+    for i, j in permutations((n for n in range(N) if mass_matrix[n] != 0), 2):
+        dist_i = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][i]]]["size"] / 2
+        dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
+        rmin = dist_i + dist_j
+        r = loc_arr[j] - loc_arr[i]
+        r_norm = np.linalg.norm(r)
+        if r_norm > rmin:
+            v = velocity_matrix[i]
+            q = charges[j]
+            E[i] += q * r / r_norm**3
+            if DIM_Numb == 2:
+                gamma = gamma_factor(v)
+                B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
+            elif DIM_Numb == 3:
+                B[i] += np.cross(v, E[i]) / C_speed**2
+    """for i in (n for n in range(N) if mass_matrix[n] != 0):
         dist_i = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][i]]]["size"] / 2
         for j in (n for n in range(N) if mass_matrix[n] != 0):
             dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
@@ -62,7 +78,7 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
                     gamma = gamma_factor(v)
                     B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
                 elif DIM_Numb == 3:
-                    B[i] += np.cross(v, E[i]) / C_speed**2
+                    B[i] += np.cross(v, E[i]) / C_speed**2"""
 
     # Construct the electromagnetic field tensor
     F = np.zeros((4, 4, len(SystemList)))

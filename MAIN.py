@@ -111,7 +111,7 @@ def main(T, Repr_type, Nset):
         if SYSTEM.Tot_Numb == 0:
             T = ti
             break
-        print("Energy", SYSTEM.TOTAL_ENERGY(), "\n")
+        # print("Energy", SYSTEM.TOTAL_ENERGY(), "\n")
         if ti != T - 1:
             SpontaneousEvents(t)
 
@@ -169,7 +169,8 @@ if __name__ == "__main__":
     ) = SET_PARAMETERS()
 
     LO, LOinf = np.array(box_size), np.array([0 for d in range(DIM_Numb)])
-    L_FCT = [lambda x: LO + 0 * np.cos(x), lambda x: LOinf + 0 * np.sin(x + 1)]
+    # L_FCT = [lambda x: LO + np.cos(x), lambda x: LOinf + np.sin(x + 1)]
+    L_FCT = [lambda x: LO, lambda x: LOinf]
 
     from Particles.Global_Variables import init
 

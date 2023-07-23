@@ -176,7 +176,6 @@ def Interaction_Loop_Check(Xf, t, GroupList):
         for Interaction in INTERACT_HIST:
             if Interaction[2] == 3:
                 if COUNTFCT(Global_variables.COLPTS, Interaction[:3]) == 0:
-                    print("ann")
                     Xf = COLLIDE(Interaction, Xf, GroupList, t)
                     NumbDone += 1
                     break

@@ -6,6 +6,7 @@ from Particles.Global_Variables import Global_variables
 from System.Group_Close import Group_particles
 from Particles.ParticleClass import Particle
 from operator import itemgetter
+from Misc.Relativistic_functions import Momentum_Calc
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -137,12 +138,8 @@ class SYSTEM_CLASS:
         self.Xi = Xi
 
     def UPDATE_DO(self, t):
-        Etot = 0
         for particle in self.Particles_List:
-            Etot += particle.MOVE(t)
-        print(t, Etot)
-        if abs(Etot) > 5:
-            raise ValueError("Big Energy loss")
+            particle.MOVE(t)
 
     def TOTAL_ENERGY(self):
         return sum(particle.Energy for particle in self.Particles_List)
@@ -194,6 +191,14 @@ class SYSTEM_CLASS:
                 ]
             )
         particle.X = NewPos
+        Vlist = self.Vflipinfo[index][PartOrAnti][ID]
+        if Vlist:
+            newV = Vlist[-1]
+            particle.V = newV
+            if particle.M != 0:
+                particle.P = Momentum_Calc(newV, particle.M)
+            else:
+                particle.P = np.linalg.norm(particle.P) * newV / np.linalg.norm(newV)
         Global_variables.ALL_TIME.extend(targs[1:])
         self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 

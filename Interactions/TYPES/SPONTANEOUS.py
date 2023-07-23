@@ -4,6 +4,7 @@ from Interactions.TYPES.STRONG import STRONG_FORCE_GROUP
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import Get_V_from_P
 from Misc.Rotation_fcts import rotate_quat, ROT2D, angle_axis_quat
+from System.Find_space import Find_space_for_particles
 import System.SystemClass
 
 rng = np.random.default_rng()
@@ -66,7 +67,7 @@ def SpontaneousEvents(t):
     GEN_INFO.sort(key=lambda x: x[1], reverse=True)
     for nameind, killind in GEN_INFO:
         NewpartName = PARTICLE_SPONT_NAMES[nameind]
-        Particle_zize = PARTICLE_DICT[NewpartName]["size"]
+        Particle_size = PARTICLE_DICT[NewpartName]["size"]
 
         Particle_Kill = SYSTEM.Get_Particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
         PosCenter = Particle_Kill.X
@@ -75,10 +76,6 @@ def SpontaneousEvents(t):
         NEWMASS = PARTICLE_DICT[NewpartName]["mass"]
         photmomentum = Particle_Kill.P
         photDirection = photmomentum / np.linalg.norm(photmomentum)
-
-        # VParam = (photDirection / (C_speed * NEWMASS)) * (
-        #    (Energyval**2 - NEWMASS**2 * C_speed**4) / (C_speed**2 * NEWMASS)
-        # ) ** 0.5
 
         New_P_norm = (Energyval**2 - NEWMASS**2 * C_speed**4) ** 0.5 / C_speed
         VParam = Get_V_from_P(New_P_norm * photDirection, NEWMASS)
@@ -98,37 +95,20 @@ def SpontaneousEvents(t):
         else:
             VParam1, VParam2 = VParam, -VParam
 
-        top_space = np.linalg.norm(Global_variables.L - PosCenter) - Particle_zize
-        bottom_space = np.linalg.norm(Global_variables.Linf - PosCenter) - Particle_zize
+        PosParam1, PosParam2 = Find_space_for_particles(
+            np.array(PosCenter), Particle_size / 2, VParam1, VParam2, t
+        )
+        if PosParam1 is not None:
+            CREATEparam1 = "Spont_Create", PosParam1, VParam1, t, Energyval
+            CREATEparam2 = "Spont_Create", PosParam2, VParam2, t, Energyval
+            CREATEPARAMS = [CREATEparam1, CREATEparam2]
+            # remove photon
+            SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
 
-        if top_space < 0 and bottom_space < 0:
-            print("no space for particle creation")
-        elif top_space > 0 and bottom_space > 0:
-            radius_vect1 = Particle_zize * VParam1 / np.linalg.norm(VParam1)
-            radius_vect2 = Particle_zize * VParam2 / np.linalg.norm(VParam2)
-            PosParam1 = PosCenter + radius_vect1
-            PosParam2 = PosCenter + radius_vect2
-        elif top_space > 0 and bottom_space < 0:
-            radius_vect1 = Particle_zize * VParam1 / np.linalg.norm(VParam1)
-            radius_vect2 = Particle_zize * VParam2 / np.linalg.norm(VParam2)
-            PosParam1 = PosCenter + np.abs(radius_vect1)
-            PosParam2 = PosCenter + np.abs(radius_vect2)
-        elif top_space < 0 and bottom_space > 0:
-            radius_vect1 = Particle_zize * VParam1 / np.linalg.norm(VParam1)
-            radius_vect2 = Particle_zize * VParam2 / np.linalg.norm(VParam2)
-            PosParam1 = PosCenter - np.abs(radius_vect1)
-            PosParam2 = PosCenter - np.abs(radius_vect2)
-
-        CREATEparam1 = "Spont_Create", PosParam1, VParam1, t, Energyval
-        CREATEparam2 = "Spont_Create", PosParam2, VParam2, t, Energyval
-        CREATEPARAMS = [CREATEparam1, CREATEparam2]
-        # remove photon
-        SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
-
-        Typeindex = PARTICLE_DICT[NewpartName]["index"]
-        print("sp")
-        for i in range(2):
-            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+            Typeindex = PARTICLE_DICT[NewpartName]["index"]
+            print("sp")
+            for i in range(2):
+                SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
 
     ##############
     # STRONG FORCE#

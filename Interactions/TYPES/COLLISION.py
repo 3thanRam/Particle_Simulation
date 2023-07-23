@@ -118,8 +118,8 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     b1.append(newb1)
     b2.append(newb2)
 
-    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append([0, VParam1[0]])
-    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append([0, VParam2[0]])
+    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(VParam1)
+    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(VParam2)
     Xinter1 = np.array(Xinter1)
     Xinter2 = np.array(Xinter2)
 

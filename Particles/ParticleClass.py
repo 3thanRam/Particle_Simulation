@@ -137,28 +137,20 @@ class Particle:
     def MOVE(self, t, DT=dt):
         xi = self.X
         Vt = self.V.copy()
-        DE = 0
         if self.name != "photon":
-            FORCE = Global_variables.FIELD
             field_index = Global_variables.Field_DICT[(*self.parity, self.ID)]
-            # Get the position and velocity of the i-th particle
-            gamma = gamma_factor(Vt)
-            U = gamma * np.array([C_speed] + [vt for vt in Vt] + [0] * (3 - DIM_Numb))
-            K = self.Elec_Charge * np.einsum(
-                "ijk,j->ik", FORCE, U
-            )  # self.Elec_Charge * FORCE[:, :, field_index].dot(U)
-
-            F = K[1 : DIM_Numb + 1, field_index]  # / self.M
-            dP = F * DT
+            U = gamma_factor(Vt) * np.array(
+                [C_speed] + [vt for vt in Vt] + [0] * (3 - DIM_Numb)
+            )
+            K = self.Elec_Charge * np.einsum("ijk,j->ik", Global_variables.FIELD, U)
+            F = K[1 : DIM_Numb + 1, field_index]
+            D_tau = (DT**2 - np.dot(self.V, self.V) * DT**2 / C_speed) ** 0.5
+            dP = F * D_tau  # proper time
             NewP = self.P + dP
             Vt = Get_V_from_P(NewP, self.M)
-
-            NewE = Energy_Calc(NewP, self.M)
-            Eloss_theo = np.dot(F, self.V) * DT
-            DE = (NewE - self.Energy) - Eloss_theo
             self.P = NewP
             self.V = Vt
-            self.Energy = NewE
+            self.Energy = Energy_Calc(NewP, self.M)
 
         # if self.Strong_Charg!=0:
         #    Vstrong=Global_variables.Strong_FIELD[...]
@@ -172,28 +164,10 @@ class Particle:
         )
 
         if in_all_bounds(xf, t, self.Size):
-            do_info = [xf, [], [t]]
+            xfin, xinter, Tparam, b = xf, [], [t], [xf - Vt * t]
         else:
-            do_info = BOUNDS_Collision_Check(
-                xi, xf, Vt, t, self.ID, self.parity, self.M
+            xfin, xinter, Tparam, b = BOUNDS_Collision_Check(
+                xi, xf, Vt, t, self.ID, self.parity
             )
         a = Vt
-        b = []
-        xfin, xinter, Tparam = do_info
-
-        if BOUNDARY_COND == 0:
-            for r in range(len(xinter)):
-                b.append(xinter[r][0] - a * float(Tparam[1 + r]))
-            b.append(xfin - a * float(Tparam[0]))
-        else:
-            A = np.copy(a)
-            for r in range(len(xinter)):
-                b.append(xinter[r][0] - A * float(Tparam[1 + r]))
-                flipindex, flipvalue = System.SystemClass.SYSTEM.Vflipinfo[
-                    self.parity[1]
-                ][self.parity[0]][self.ID][r]
-                A[flipindex] = flipvalue
-            b.append(xfin - A * float(Tparam[0]))
-
         self.Coef_param_list = [a, b, Tparam, self.parity, self.ID, xinter, xfin]
-        return DE

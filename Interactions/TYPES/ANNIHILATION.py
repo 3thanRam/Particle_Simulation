@@ -154,16 +154,13 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
                 A = np.copy(New_V)
                 for r in range(len(New_Xinter)):
                     b.append(New_Xinter[r][0] - A * float(New_Tpara[1 + r]))
-                    flipindex, flipvalue = SYSTEM.Vflipinfo[Crindex][partoranti][
-                        New_id
-                    ][r]
-                    A[flipindex] = flipvalue
+                    A = SYSTEM.Vflipinfo[Crindex][partoranti][New_id][r]
                 b.append(New_Xend - A * float(New_Tpara[0]))
 
         if len(New_Xinter) == 0:
             b.insert(0, "PreCreation")
             New_Tpara.append(ti)
-            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append([0, New_V[0]])
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].append(New_V)
             Xinter_LIST = [[xo, xo]]  # [[New_Xend, New_Xend]]  # [[xo, xo]]
         else:
             xinterkilllist, vflipkill_list, b_kill_list, Tpara_kill_list = (
@@ -181,7 +178,7 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
                     vflipkill_list.append(
                         SYSTEM.Vflipinfo[Crindex][partoranti][New_id][it - 1]
                     )
-            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].insert(0, [0, New_V[0]])
+            SYSTEM.Vflipinfo[Crindex][partoranti][New_id].insert(0, New_V)
             for Tpara_kill in Tpara_kill_list:
                 New_Tpara.remove(Tpara_kill)
             New_Tpara.insert(1, ti)

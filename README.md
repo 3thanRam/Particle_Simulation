@@ -16,10 +16,6 @@ To do:
 
 -Redo comments
 
--Collisions(relativistic)
-
--more types of particles
-
 -Strong & weak nuclear forces
 
--Improve Interaction search near dynamic boundaries
+-Relativistic dynamic boundaries
