@@ -134,6 +134,18 @@ class Particle:
             System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
+    def Position(self, d, isXi):
+        """
+        Get information about particle identification and position before or after dt to give to Position_class lists
+        """
+        partOranti, part_type, id = self.parity[0], self.parity[1], self.ID
+        if isXi:
+            X_d = self.X[d]
+        else:
+            X_d = self.Coef_param_list[-1][d]
+
+        return (X_d, partOranti, part_type, id)
+
     def MOVE(self, t, DT=dt):
         """
         Perform time step DT of simulation

@@ -1,6 +1,6 @@
 import numpy as np
 import Interactions.INTERACTION_LOOP
-import ENVIRONMENT.FIELDS
+import System.Position_class
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from System.Group_Close import Group_particles
@@ -10,7 +10,7 @@ from Misc.Relativistic_functions import Momentum_Calc
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
-dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
+
 DIM_Numb = Global_variables.DIM_Numb
 Vmax = Global_variables.Vmax
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
@@ -143,27 +143,6 @@ class SYSTEM_CLASS:
         self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
         self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
-    def Get_XI(self):
-        """
-        Generate array of identifying information and initial position of each particle
-        """
-        Xi = np.array(
-            [
-                [
-                    (particle.X[d], particle.parity[0], particle.parity[1], particle.ID)
-                    for particle in self.Particles_List
-                ]
-                for d in range(DIM_Numb)
-            ],
-            dtype=dtype,
-        )
-        Global_variables.FIELD = ENVIRONMENT.FIELDS.Gen_Field(
-            Xi, self.Particles_List, self.Quarks_Numb, self.Tot_Numb
-        )  # update electric field according to positions and charges of particles
-
-        Xi.sort(order="Pos")
-        self.Xi = Xi
-
     def UPDATE_DO(self, t):
         """
         perform MOVE(t) method on each particle in the system
@@ -177,46 +156,26 @@ class SYSTEM_CLASS:
         """
         return sum(particle.Energy for particle in self.Particles_List)
 
-    def Get_XF(self):
-        """
-        Generate array of identifying information and position after dt of each particle
-        """
-        Xf = np.array(
-            [
-                [
-                    (
-                        p.Coef_param_list[-1][d],
-                        p.Coef_param_list[3][0],
-                        p.Coef_param_list[3][1],
-                        p.Coef_param_list[4],
-                    )
-                    for p in self.Particles_List
-                ]
-                for d in range(DIM_Numb)
-            ],
-            dtype=dtype,
-        )
-        Xf.sort(order="Pos")
-        self.Xf = Xf
-
     def UPDATE(self, t):
         """
         Update system variables to current values
         """
         self.RESET_Vflipinfo()
-        self.Get_XI()
+        Position_LISTS = System.Position_class.Position_LISTS
+        Position_LISTS.Get_X_list(self.Particles_List, self.Quarks_Numb, self.Tot_Numb)
         self.UPDATE_DO(t)
-        self.Get_XF()
+        Position_LISTS.Get_X_list(self.Particles_List)
         self.UPDATE_XF(t)
 
     def UPDATE_XF(self, t):
         """
         Check for interactions and deal with them between t-dt and t
         """
-        PARAMS = Group_particles(self.Xi, self.Xf)
+        Position_LISTS = System.Position_class.Position_LISTS
+        PARAMS = Group_particles(Position_LISTS.Xi, Position_LISTS.Xf)
         if len(PARAMS) != 0:
-            self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
-                self.Xf, t, PARAMS
+            Position_LISTS.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
+                Position_LISTS.Xf, t, PARAMS
             )
         else:
             print("NO CHG PARAMS for t=", t)

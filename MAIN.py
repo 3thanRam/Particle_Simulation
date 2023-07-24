@@ -61,6 +61,10 @@ def main(T, Repr_type, Nset):
     init()
     from System.SystemClass import SYSTEM
     from Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
+    from System.Position_class import init_pos
+
+    init_pos()
+    from System.Position_class import Position_LISTS
 
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
@@ -98,27 +102,9 @@ def main(T, Repr_type, Nset):
         L, Linf = Update_L_Lmin(t)
         Global_variables.Update_Bound_Params(L, Linf, t)
         SYSTEM.UPDATE(t)
-        Xf = SYSTEM.Xf
 
         # Update particle positions and tracking history
-        for indUpdate in range(len(Xf[0])):
-            if not Xf[0][indUpdate]:
-                continue
-
-            pos_search = [Xf[0][indUpdate][0]]
-            PartOrAnti_search, typeindex_search, id_search = [*Xf[0][indUpdate]][1:4]
-
-            for d in range(1, DIM_Numb):
-                Pos_d_index = np.where(
-                    (Xf[d]["index"] == id_search)
-                    & (Xf[d]["TypeID0"] == PartOrAnti_search)
-                    & (Xf[d]["TypeID1"] == typeindex_search)
-                )[0][0]
-                pos_search.append(Xf[d]["Pos"][Pos_d_index])
-
-            SYSTEM.UPDATE_TRACKING(
-                typeindex_search, PartOrAnti_search, id_search, t, pos_search
-            )
+        Position_LISTS.Update_tracking_info(t)
 
         # Update the densities of particles
         Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
