@@ -1,5 +1,6 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
+from Misc.Functions import NORM
 
 C_speed = Global_variables.C_speed
 DIM_Numb = Global_variables.DIM_Numb
@@ -20,7 +21,7 @@ def gamma_factor(v):
     if isinstance(v, float):
         V = v
     else:
-        V = np.linalg.norm(v)
+        V = NORM(v)
     if V >= C_speed:
         RELAT_ERROR(V)
     return 1 / (1 - (V / C_speed) ** 2) ** 0.5
@@ -30,7 +31,7 @@ def lorentz_boost(Energy, momentum, Velocity, INV=1):
     """
     Perform lorentz boost of Energy, momentum by into reference with velocity
     """
-    V_norm = np.linalg.norm(Velocity)
+    V_norm = NORM(Velocity)
     V_direction = Velocity / V_norm
     Gamma = gamma_factor(V_norm)
     PdotV = np.dot(momentum, V_direction)
@@ -47,7 +48,7 @@ def Get_V_from_P(momentum, mass):
     """
     Calculate velocity of particle of given mass and momentum
     """
-    P_norm = np.linalg.norm(momentum)
+    P_norm = NORM(momentum)
     direction = momentum / P_norm
     V_norm = P_norm * (1 / (1 + (P_norm / (mass * C_speed)) ** 2)) ** 0.5 / mass
     return V_norm * direction
@@ -75,7 +76,7 @@ def Velocity_add(v1, v2):
     """
     Dotprod = np.dot(v1, v2)
     prefact = 1 / (1 + Dotprod * C_speed**2)
-    reci_gamma = 1 / gamma_factor(np.linalg.norm(v2))
+    reci_gamma = 1 / gamma_factor(NORM(v2))
 
     Vfin = prefact * (
         reci_gamma * v1 + v2 + (1 - reci_gamma) * Dotprod * v2 / np.dot(v2, v2)

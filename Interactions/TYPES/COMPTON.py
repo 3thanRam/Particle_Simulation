@@ -6,6 +6,7 @@ from Misc.Relativistic_functions import (
     lorentz_boost,
     Get_V_from_P,
 )
+from Misc.Functions import NORM
 from Misc.Rotation_fcts import Rotate_vector_xyzAxes
 
 
@@ -94,7 +95,7 @@ def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
         Ei_particle, pi_particle, Vboost
     )
     theta = Distr_fct.rvs(Ei_boosted_photon)
-    ini_direction = Pi_boosted_photon / np.linalg.norm(Pi_boosted_photon)
+    ini_direction = Pi_boosted_photon / NORM(Pi_boosted_photon)
     Ef_boosted_photon = Ei_boosted_photon / (
         1 + (Ei_boosted_photon * (1 - np.cos(theta)) / (M_particle * C_speed**2))
     )
@@ -112,7 +113,7 @@ def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
         NewE1, NewP1 = lorentz_boost(
             Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1
         )
-        VParam1 = C_speed * NewP1 / np.linalg.norm(NewP1)
+        VParam1 = C_speed * NewP1 / NORM(NewP1)
         NewE2, NewP2 = lorentz_boost(
             Ef_boosted_particle, pf_boosted_particle, Vboost, INV=-1
         )
@@ -121,7 +122,7 @@ def Compton_scattering(p1index, V1, M1, P1, E1, V2, M2, P2, E2):
         NewE2, NewP2 = lorentz_boost(
             Ef_boosted_photon, pf_boosted_photon, Vboost, INV=-1
         )
-        VParam2 = C_speed * NewP2 / np.linalg.norm(NewP2)
+        VParam2 = C_speed * NewP2 / NORM(NewP2)
         NewE1, NewP1 = lorentz_boost(
             Ef_boosted_particle, pf_boosted_particle, Vboost, INV=-1
         )

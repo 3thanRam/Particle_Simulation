@@ -1,5 +1,6 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
+import math
 
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 V0 = Global_variables.V0
@@ -78,3 +79,39 @@ def COUNTFCT(LIST, elem, mode=None):
             if sublist == elem:
                 return 1
         return 0
+
+
+def numpy_norm(Vector, axis=None):
+    return np.linalg.norm(Vector, axis)
+
+
+def ONE_Dim_norm(Vector, axis=None):
+    if axis is None:
+        return Vector[0] * Vector[0]
+        # return sum(v*v for v in Vector) ** 0.5
+    else:
+        return np.linalg.norm(Vector, axis)
+
+
+def TWO_Dim_norm(Vector, axis=None):
+    if axis is None:
+        return math.hypot(Vector[0], Vector[1])
+        # return sum(v*v for v in Vector) ** 0.5
+    else:
+        return np.linalg.norm(Vector, axis)
+
+
+def THREE_Dim_norm(Vector, axis=None):
+    if axis is None:
+        return math.hypot(Vector[0], Vector[1], Vector[2])
+        # return sum(v*v for v in Vector) ** 0.5
+    else:
+        return np.linalg.norm(Vector, axis)
+
+
+if DIM_Numb == 3:
+    NORM = THREE_Dim_norm
+elif DIM_Numb == 2:
+    NORM = TWO_Dim_norm
+else:
+    NORM = ONE_Dim_norm

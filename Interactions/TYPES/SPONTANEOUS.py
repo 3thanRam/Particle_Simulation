@@ -6,6 +6,7 @@ from Misc.Relativistic_functions import Get_V_from_P
 from Misc.Rotation_fcts import rotate_quat, ROT2D, angle_axis_quat
 from System.Find_space import Find_space_for_particles
 import System.SystemClass as System_module
+from Misc.Functions import NORM
 
 rng = np.random.default_rng()
 Numb_of_TYPES = len(PARTICLE_DICT)
@@ -84,7 +85,7 @@ def SpontaneousEvents(t):
         Energyval = Energy_List[killind] / 2
         NEWMASS = PARTICLE_DICT[NewpartName]["mass"]
         photmomentum = Particle_Kill.P
-        photDirection = photmomentum / np.linalg.norm(photmomentum)
+        photDirection = photmomentum / NORM(photmomentum)
 
         New_P_norm = (Energyval**2 - NEWMASS**2 * C_speed**4) ** 0.5 / C_speed
         VParam = Get_V_from_P(New_P_norm * photDirection, NEWMASS)

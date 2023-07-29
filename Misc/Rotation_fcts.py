@@ -1,5 +1,6 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
+from Misc.Functions import NORM
 
 DIM_Numb = Global_variables.DIM_Numb
 
@@ -29,7 +30,7 @@ def angle_axis_quat(theta, axis):
     """
     Given an angle and an axis, it returns a quaternion.
     """
-    axis = np.array(axis) / np.linalg.norm(axis)
+    axis = np.array(axis) / NORM(axis)
     return np.append([np.cos(theta / 2)], np.sin(theta / 2) * axis)
 
 
@@ -52,7 +53,7 @@ def rotate_quat(quat, vect):
     # Transfrom vect into an quaternion
     vect = np.append([0], vect)
     # Normalize it
-    norm_vect = np.linalg.norm(vect)
+    norm_vect = NORM(vect)
     vect = vect / norm_vect
     # Computes the conjugate of quat
     quat_ = np.append(quat[0], -quat[1:])

@@ -2,6 +2,7 @@ import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 import System.SystemClass as System_module
+from Misc.Functions import NORM
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 C_speed = Global_variables.C_speed
@@ -36,13 +37,11 @@ def STRONG_FORCE_GROUP(TotnumbAllpart):
         [[Xiarray["Pos"][i] for Xiarray in Xarray] for i in range(len(Xarray[0]))]
     )
     DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
-    distances = np.linalg.norm(DELTA, axis=-1)
+    distances = NORM(DELTA, axis=-1)
     strong_charge_matrix = np.array(
         [s.Strong_Charge for s in System_module.SYSTEM.Particles_List]
     )
-    vel_matrix = np.array(
-        [np.linalg.norm(s.V) for s in System_module.SYSTEM.Particles_List]
-    )
+    vel_matrix = np.array([NORM(s.V) for s in System_module.SYSTEM.Particles_List])
     BIG_vel_matrix = np.outer(vel_matrix, vel_matrix)
 
     Strong_DIST = np.where(
@@ -252,7 +251,7 @@ def SpontaneousEvents(t):
         Energyval = SPRING_ENERGY[ParentSystindex1][ParentSystindex2] / 2
 
         dX = X1 - X2
-        ParentDirection = dX / np.linalg.norm(dX)
+        ParentDirection = dX / NORM(dX)
 
         NEWMASS = PARTICLE_DICT[NewpartName]["mass"]
 

@@ -7,6 +7,7 @@ from System.Group_Close import Group_particles
 from Particles.ParticleClass import Particle
 from operator import itemgetter
 from Misc.Relativistic_functions import Momentum_Calc
+from Misc.Functions import NORM
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -182,7 +183,7 @@ class SYSTEM_CLASS:
             if particle.M != 0:
                 particle.P = Momentum_Calc(newV, particle.M)
             else:
-                particle.P = np.linalg.norm(particle.P) * newV / np.linalg.norm(newV)
+                particle.P = NORM(particle.P) * newV / NORM(newV)
         Global_variables.ALL_TIME.extend(targs[1:])
         self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 

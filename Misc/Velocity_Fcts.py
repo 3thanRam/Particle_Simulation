@@ -1,5 +1,6 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
+from Misc.Functions import NORM
 
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 V0 = Global_variables.V0
@@ -22,7 +23,7 @@ def GAUSS():
     - np.ndarray: a random velocity vector with values rounded to ROUNDDIGIT decimal places.
     """
     V = np.round(rng.normal(0, V0 / 3, DIM_Numb), ROUNDDIGIT)
-    while np.linalg.norm(V) > C_speed:
+    while NORM(V) > C_speed:
         V = np.round(rng.normal(0, V0 / 3, DIM_Numb), ROUNDDIGIT)
     return V
 

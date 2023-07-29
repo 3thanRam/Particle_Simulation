@@ -1,7 +1,7 @@
 import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
-from Interactions.TYPES.SPONTANEOUS import STRONG_FORCE_GROUP
+from Misc.Functions import NORM
 from Misc.Relativistic_functions import gamma_factor
 from itertools import permutations
 
@@ -63,7 +63,7 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
         dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
         rmin = dist_i + dist_j
         r = loc_arr[j] - loc_arr[i]
-        r_norm = np.linalg.norm(r)
+        r_norm = NORM(r)
         if r_norm > rmin:
             v = velocity_matrix[i]
             q = charges[j]

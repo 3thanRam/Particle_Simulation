@@ -12,6 +12,7 @@ PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 from Particles.Global_Variables import Global_variables
 import System.SystemClass as System_module
 from operator import itemgetter
+from Misc.Functions import NORM
 
 item_get = itemgetter(
     0,
@@ -108,7 +109,7 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
         )  # [1,0,0] rotated by alpha,beta around y,z
     elif DIM_Numb == 2:
         SD = 0.1745329251994329  # 10 degrees
-        v1_u, v2_u = V1 / np.linalg.norm(V1), V2 / np.linalg.norm(V2)
+        v1_u, v2_u = V1 / NORM(V1), V2 / NORM(V2)
         Angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
         theta = Angle + np.round(rng.normal(Angle, SD, 1), ROUNDDIGIT)[0]

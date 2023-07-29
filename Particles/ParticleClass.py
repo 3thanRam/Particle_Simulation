@@ -7,11 +7,10 @@ from Misc.Velocity_Fcts import UNIFORM  # RANDCHOICE,GAUSS
 from Misc.Relativistic_functions import (
     gamma_factor,
     Energy_Calc,
-    Velocity_add,
     Get_V_from_P,
     Momentum_Calc,
 )
-
+from Misc.Functions import NORM
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
 from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
 from operator import itemgetter
@@ -35,7 +34,7 @@ charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
 
 def GEN_V():
     v = V_fct()
-    while np.linalg.norm(v) >= C_speed:
+    while NORM(v) >= C_speed:
         v = V_fct()
     return v
 
@@ -47,7 +46,7 @@ def Velocity_Momentum(mass):
         v = velocity
     else:
         p = velocity
-        v = C_speed * velocity / np.linalg.norm(velocity)
+        v = C_speed * velocity / NORM(velocity)
 
     return (v, p)
 
@@ -122,7 +121,7 @@ class Particle:
             PosParam, VParam, TvalueParam, Energyval = self.ExtraParams[1:]
             X, V, E = PosParam, VParam, Energyval
             if typeIndex == 13:
-                vdirection = V / np.linalg.norm(V)
+                vdirection = V / NORM(V)
                 P = Energyval * vdirection / C_speed
                 V = C_speed * vdirection
                 E = Energy_Calc(P, self.M)

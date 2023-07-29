@@ -1,7 +1,7 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
 from Misc.Position_Fcts import in_all_bounds
-import System.SystemClass
+from Misc.Functions import NORM
 
 DIM_Numb = Global_variables.DIM_Numb
 rng = np.random.default_rng()
@@ -27,7 +27,7 @@ def Find_space_for_particles(PosCenter, Particle_radius, V1, V2, t):
     )
 
     if np.all((top_face - bottom_face) > 4 * Particle_radius):
-        Pos_shift = Particle_radius * V1 / np.linalg.norm(V1)
+        Pos_shift = Particle_radius * V1 / NORM(V1)
         PosParam1 = PosCenter + Pos_shift
         PosParam2 = PosCenter - Pos_shift
     Count = 0
@@ -37,7 +37,7 @@ def Find_space_for_particles(PosCenter, Particle_radius, V1, V2, t):
         Pos_shift = RandPOS[Count % 10]
         PosParam1 = PosCenter + Pos_shift
         PosParam2 = PosCenter - Pos_shift
-        dist = np.linalg.norm(PosParam1 - PosParam2)
+        dist = NORM(PosParam1 - PosParam2)
         if (
             in_all_bounds(PosParam1, t=t, ParticleSize=2 * Particle_radius)
             and in_all_bounds(PosParam2, t=t, ParticleSize=2 * Particle_radius)

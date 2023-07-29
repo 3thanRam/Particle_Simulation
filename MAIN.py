@@ -157,6 +157,8 @@ def main(T, Repr_type, Nset):
         return Dt
 
 
+Profile_mode = 0
+Numb_lines = 20
 if __name__ == "__main__":
     from Settings.INPUT import SET_PARAMETERS
 
@@ -183,4 +185,20 @@ if __name__ == "__main__":
     dt = Global_variables.dt
     L_FCT = Global_variables.L_FCT
 
-    main(Time_steps, Repr_mode, iniNparticles_set)
+    if Profile_mode == 0:
+        main(Time_steps, Repr_mode, iniNparticles_set)
+    else:
+        import cProfile
+        import pstats
+
+        with cProfile.Profile() as pr:
+            for c in range(3):
+                print("c", c)
+                main(Time_steps, 2, iniNparticles_set)
+        stats = pstats.Stats(pr).strip_dirs()
+        stats.sort_stats(pstats.SortKey.TIME)
+        # stats.print_stats(Numb_lines)
+        stats.dump_stats(filename="statdump.prof")  # snakeviz ./statdump.prof
+        import subprocess
+
+        subprocess.run(["snakeviz", "./statdump.prof"])

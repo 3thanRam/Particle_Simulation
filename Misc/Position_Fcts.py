@@ -1,5 +1,6 @@
 import numpy as np
 from Particles.Global_Variables import Global_variables
+from Misc.Functions import NORM
 
 ROUNDDIGIT = Global_variables.ROUNDDIGIT
 V0 = Global_variables.V0
@@ -20,10 +21,7 @@ def in_all_bounds(POSarray, t=None, ParticleSize=0):
         )
     else:
         Lmaxi, Lmini = L_FCT[0](t) - ParticleSize, L_FCT[1](t) + ParticleSize
-    return all(
-        value < Lmaxi[indV] and value > Lmini[indV]
-        for indV, value in enumerate(POSarray)
-    )
+    return np.all((POSarray < Lmaxi) & (POSarray > Lmini))
 
 
 def Pos_fct(min_value, max_value):
@@ -56,7 +54,7 @@ def CHECKstartPos(Particle_POS, Particle_size):
     if len(Xini) > 0:
         XiArray = np.array(Xini)
         Size_array = np.array(Ini_size) + Particle_size
-        dist = np.linalg.norm(XiArray - Particle_POS, axis=1)
+        dist = NORM(XiArray - Particle_POS, axis=1)
         return (dist > Size_array).all()
     else:
         return True
@@ -106,6 +104,10 @@ def Pos_point_around(Point, Part_size):
         POS (ndarray): location to place particle
     """
     POS = Pos_fct2(Point)
+    Count = 0
     while not CHECKstartPos(POS, Part_size):
         POS = Pos_fct2(Point)
+        Count += 1
+        if Count > 10**4:
+            raise RuntimeError("Couldn't find room for particle, exiting program")
     return POS

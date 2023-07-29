@@ -2,7 +2,7 @@ import numpy as np
 from Interactions.INTERACTION_DEF import COLTYPE
 from Particles.Global_Variables import Global_variables
 from Particles.Dictionary import PARTICLE_DICT
-from Misc.Functions import ROUND
+from Misc.Functions import ROUND, NORM
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -57,10 +57,10 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
     X1_ini, X1_fin = a1 * Tstart + b1, a1 * Tend + b1
     X2_ini, X2_fin = a2 * Tstart + b2, a2 * Tend + b2
 
-    Dini = np.linalg.norm(X1_ini - X2_ini)
+    Dini = NORM(X1_ini - X2_ini)
     if Dini < (Dist1 + Dist2):
         return (Tstart, Xo)
-    Dfin = np.linalg.norm(X1_fin - X2_fin)
+    Dfin = NORM(X1_fin - X2_fin)
 
     if Dfin <= (Dist1 + Dist2):
         Delta_b = b2 - b1
@@ -80,7 +80,7 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
             R = Dist1 / (Dist1 + Dist2)
             Xoi = x1 + (x2 - x1) * R
             Xoi = np.round(Xoi, decimals=ROUNDDIGIT)
-            Dt = round(np.linalg.norm(x1 - x2), 5)
+            Dt = round(NORM(x1 - x2), 5)
             if Dt <= (Dist1 + Dist2):
                 return (Tmini, Xoi)
             Tsols.remove(Tmini)
