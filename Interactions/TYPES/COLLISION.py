@@ -2,7 +2,7 @@ import numpy as np
 
 rng = np.random.default_rng()
 from Particles.Global_Variables import Global_variables
-import System.SystemClass
+import System.SystemClass as System_module
 from Interactions.TYPES.COMPTON import Compton_scattering
 from Interactions.TYPES.RELATIVISTIC import Relativistic_Collision
 
@@ -36,15 +36,14 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
 
     # Extract information about the collision
     ti, xo, coltype, z1, z2, p1, id1, p2, id2 = FirstAnn
-    SYSTEM = System.SystemClass.SYSTEM
     Global_variables.ALL_TIME.append(ti)
     Global_variables.COLPTS.append([ti, xo, coltype])
 
     partORAnti1, partORAnti2 = p1[0], p2[0]
     p1index, p2index = p1[1], p2[1]
 
-    particle1 = SYSTEM.Get_Particle(p1index, partORAnti1, id1)
-    particle2 = SYSTEM.Get_Particle(p2index, partORAnti2, id2)
+    particle1 = System_module.SYSTEM.Get_Particle(p1index, partORAnti1, id1)
+    particle2 = System_module.SYSTEM.Get_Particle(p2index, partORAnti2, id2)
 
     V1, b1, Targs1, p1c, id1c, Xinter1, ends1 = particle1.Coef_param_list
     V2, b2, Targs2, p2c, id2c, Xinter2, ends2 = particle2.Coef_param_list
@@ -97,13 +96,13 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
         b1.pop(remind)
         Xinter1.pop(remind)
         ends1 -= 1
-        SYSTEM.Vflipinfo[p1index][partORAnti1][id1].pop(remind)
+        System_module.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].pop(remind)
     for remind in Rem_ind[1]:
         Targs2.pop(remind + 1)
         b2.pop(remind)
         Xinter2.pop(remind)
         ends2 -= 1
-        SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
+        System_module.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
     DT = t - ti
     Xend1, Xend2 = Pos1 + DT * VParam1, Pos2 + DT * VParam2
 
@@ -119,8 +118,8 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     b1.append(newb1)
     b2.append(newb2)
 
-    SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(VParam1)
-    SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(VParam2)
+    System_module.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(VParam1)
+    System_module.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(VParam2)
     Xinter1 = np.array(Xinter1)
     Xinter2 = np.array(Xinter2)
 
@@ -143,6 +142,6 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     Xf = Set_F_data(Xf, p1[1], p1[0], id1, Xend1)
     Xf = Set_F_data(Xf, p2[1], p2[0], id2, Xend2)
 
-    SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
-    SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
+    System_module.SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
+    System_module.SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
     return Xf

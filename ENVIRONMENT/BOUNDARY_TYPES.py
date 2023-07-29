@@ -1,4 +1,4 @@
-import System.SystemClass
+import System.SystemClass as System_module
 
 
 def BOUNDARY_FCT_HARD(A, p, id, z):
@@ -13,7 +13,7 @@ def BOUNDARY_FCT_HARD(A, p, id, z):
     if z == 0:
         return A
     else:
-        NewA = System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id][z - 1]
+        NewA = System_module.SYSTEM.Vflipinfo[p[1]][p[0]][id][z - 1]
         return NewA
 
 

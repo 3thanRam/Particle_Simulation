@@ -1,5 +1,5 @@
 import numpy as np
-import System.SystemClass
+import System.SystemClass as System_module
 from Particles.Dictionary import PARTICLE_DICT
 from Misc.Functions import ROUND
 from Particles.Global_Variables import Global_variables
@@ -79,7 +79,7 @@ def BOUNDS_Collision_Check(Xfin, Velocity, t, id, p):
                 Xint1, Xint2 = b + Velocity * tmin, b + Velocity * tmin
             Xinter.append([Xint1, Xint2])
             t_prev = tmin
-            System.SystemClass.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(Velocity)
+            System_module.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(Velocity)
             Velocity[d_chg] = chg_param * abs(Velocity[d_chg])
             X_inter = Xint2 + Velocity * (t - tmin)
             return True

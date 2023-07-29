@@ -1,5 +1,5 @@
 import numpy as np
-import System.SystemClass
+import System.SystemClass as System_module
 from itertools import combinations
 
 from Particles.Global_Variables import Global_variables
@@ -122,8 +122,8 @@ def Interaction_Loop_Check(Xf, t, GroupList):
                 particle1, particle2 = Group[I1], Group[I2]
                 p1, id1 = particle1
                 p2, id2 = particle2
-                P1 = System.SystemClass.SYSTEM.Get_Particle(p1[1], p1[0], id1)
-                P2 = System.SystemClass.SYSTEM.Get_Particle(p2[1], p2[0], id2)
+                P1 = System_module.SYSTEM.Get_Particle(p1[1], p1[0], id1)
+                P2 = System_module.SYSTEM.Get_Particle(p2[1], p2[0], id2)
                 A1, B1, t1params, p1, id1 = P1.Coef_param_list[:5]
                 A2, B2, t2params, p2, id2 = P2.Coef_param_list[:5]
 

@@ -1,7 +1,7 @@
 import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
-import System.SystemClass
+import System.SystemClass as System_module
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 C_speed = Global_variables.C_speed
@@ -21,11 +21,13 @@ def COLOR_ERROR(Colour_group):
 
 
 def STRONG_FORCE_GROUP(TotnumbAllpart):
-    SYSTEM = System.SystemClass.SYSTEM
     dtype = [("Pos", float), ("TypeID0", int), ("TypeID1", int), ("index", int)]
     Xarray = np.array(
         [
-            [(s.X[d], s.parity[0], s.parity[1], s.ID) for s in SYSTEM.Particles_List]
+            [
+                (s.X[d], s.parity[0], s.parity[1], s.ID)
+                for s in System_module.SYSTEM.Particles_List
+            ]
             for d in range(DIM_Numb)
         ],
         dtype=dtype,
@@ -35,8 +37,12 @@ def STRONG_FORCE_GROUP(TotnumbAllpart):
     )
     DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
     distances = np.linalg.norm(DELTA, axis=-1)
-    strong_charge_matrix = np.array([s.Strong_Charge for s in SYSTEM.Particles_List])
-    vel_matrix = np.array([np.linalg.norm(s.V) for s in SYSTEM.Particles_List])
+    strong_charge_matrix = np.array(
+        [s.Strong_Charge for s in System_module.SYSTEM.Particles_List]
+    )
+    vel_matrix = np.array(
+        [np.linalg.norm(s.V) for s in System_module.SYSTEM.Particles_List]
+    )
     BIG_vel_matrix = np.outer(vel_matrix, vel_matrix)
 
     Strong_DIST = np.where(
@@ -157,8 +163,6 @@ def SpontaneousEvents(t):
         t (float): current time of simulation
 
     """
-    SYSTEM = System.SystemClass.SYSTEM
-
     ##############
     # STRONG FORCE#
     ##############
@@ -177,8 +181,8 @@ def SpontaneousEvents(t):
         for partName in QUARK_SPONT_NAMES
     ]
 
-    Quark_Numb = SYSTEM.Quarks_Numb
-    TotnumbAllpart = SYSTEM.Tot_Numb
+    Quark_Numb = System_module.SYSTEM.Quarks_Numb
+    TotnumbAllpart = System_module.SYSTEM.Tot_Numb
     if Quark_Numb == 0:
         Global_variables.S_Force = np.zeros((TotnumbAllpart, TotnumbAllpart))
         return 0
@@ -221,16 +225,16 @@ def SpontaneousEvents(t):
         NewpartName = QUARK_SPONT_NAMES[nameind]
 
         parity1, id1, X1 = (
-            SYSTEM.Particles_List[ParentSystindex1].parity,
-            SYSTEM.Particles_List[ParentSystindex1].ID,
-            np.array(SYSTEM.Particles_List[ParentSystindex1].X),
+            System_module.SYSTEM.Particles_List[ParentSystindex1].parity,
+            System_module.SYSTEM.Particles_List[ParentSystindex1].ID,
+            np.array(System_module.SYSTEM.Particles_List[ParentSystindex1].X),
         )
         PartOrAnti1, ind1 = parity1
 
         parity2, id2, X2 = (
-            SYSTEM.Particles_List[ParentSystindex2].parity,
-            SYSTEM.Particles_List[ParentSystindex2].ID,
-            np.array(SYSTEM.Particles_List[ParentSystindex2].X),
+            System_module.SYSTEM.Particles_List[ParentSystindex2].parity,
+            System_module.SYSTEM.Particles_List[ParentSystindex2].ID,
+            np.array(System_module.SYSTEM.Particles_List[ParentSystindex2].X),
         )
         PartOrAnti2, ind2 = parity2
 
@@ -264,4 +268,4 @@ def SpontaneousEvents(t):
 
         Typeindex = PARTICLE_DICT[NewpartName]["index"]
         for i in range(2):
-            SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+            System_module.SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])

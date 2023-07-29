@@ -5,7 +5,7 @@ from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import Get_V_from_P
 from Misc.Rotation_fcts import rotate_quat, ROT2D, angle_axis_quat
 from System.Find_space import Find_space_for_particles
-import System.SystemClass
+import System.SystemClass as System_module
 
 rng = np.random.default_rng()
 Numb_of_TYPES = len(PARTICLE_DICT)
@@ -23,7 +23,6 @@ def SpontaneousEvents(t):
         t (float): current time of simulation
 
     """
-    SYSTEM = System.SystemClass.SYSTEM
     ##########
     # ELM######
     ##########
@@ -46,7 +45,9 @@ def SpontaneousEvents(t):
 
     RemoveTypeInd = PARTICLE_DICT["photon"]["index"]
 
-    PHOTON_LIST = [part for part in SYSTEM.Particles_List if part.name == "photon"]
+    PHOTON_LIST = [
+        part for part in System_module.SYSTEM.Particles_List if part.name == "photon"
+    ]
 
     PHOTON_ID_LIST = [photon.ID for photon in PHOTON_LIST]
     Energy_List = np.array([photon.Energy for photon in PHOTON_LIST])
@@ -75,7 +76,9 @@ def SpontaneousEvents(t):
         NewpartName = PARTICLE_SPONT_NAMES[nameind]
         Particle_size = PARTICLE_DICT[NewpartName]["size"]
 
-        Particle_Kill = SYSTEM.Get_Particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+        Particle_Kill = System_module.SYSTEM.Get_Particle(
+            RemoveTypeInd, 0, PHOTON_ID_LIST[killind]
+        )
         PosCenter = Particle_Kill.X
         Global_variables.COLPTS.append([t, PosCenter, 4])
         Energyval = Energy_List[killind] / 2
@@ -109,9 +112,11 @@ def SpontaneousEvents(t):
             CREATEparam2 = "Spont_Create", PosParam2, VParam2, t, Energyval
             CREATEPARAMS = [CREATEparam1, CREATEparam2]
             # remove photon
-            SYSTEM.Remove_particle(RemoveTypeInd, 0, PHOTON_ID_LIST[killind])
+            System_module.SYSTEM.Remove_particle(
+                RemoveTypeInd, 0, PHOTON_ID_LIST[killind]
+            )
 
             Typeindex = PARTICLE_DICT[NewpartName]["index"]
             print("sp")
             for i in range(2):
-                SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
+                System_module.SYSTEM.Add_Particle(Typeindex, i, CREATEPARAMS[i])
