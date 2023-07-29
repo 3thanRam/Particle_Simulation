@@ -1,35 +1,14 @@
 import numpy as np
-import System.SystemClass as System_module
 from itertools import combinations
 
+import System.SystemClass as System_module
 from Particles.Global_Variables import Global_variables
-
-if Global_variables.DIM_Numb == 1:
-    from Interactions.INTERACTION_CHECK import INTERCHECK_1D
-
-    INTERCHECK = INTERCHECK_1D
-else:
-    from Interactions.INTERACTION_CHECK import INTERCHECK_ND
-
-    INTERCHECK = INTERCHECK_ND
-
-BOUNDARY_COND = Global_variables.BOUNDARY_COND
-if BOUNDARY_COND == 0:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
-
-    BOUNDARY_FCT = BOUNDARY_FCT_PER
-else:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
-
-    BOUNDARY_FCT = BOUNDARY_FCT_HARD
-
+from Interactions.INTERACTION_CHECK import INTERCHECK
+from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT
 from Interactions.INTERACTION_DEF import COLTYPE
 from Interactions.TYPES.ANNIHILATION import ANNIHILATE
 from Interactions.TYPES.COLLISION import COLLIDE
-
-# from Interactions.TYPES.ABSORPTION import ABSORBE
 from Misc.Functions import COUNTFCT
-
 
 dt = Global_variables.dt
 

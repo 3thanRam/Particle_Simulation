@@ -12,16 +12,45 @@ Xini = []
 Ini_size = []
 
 
-def in_all_bounds(POSarray, t=None, ParticleSize=0):
+def In_1D_bounds(array, L_up, L_down):
+    return L_down[0] < array[0] < L_up[0]
+
+
+def In_2D_bounds(array, L_up, L_down):
+    return (L_down[0] < array[0] < L_up[0]) & (L_down[1] < array[1] < L_up[1])
+
+
+def In_3D_bounds(array, L_up, L_down):
+    return (
+        (L_down[0] < array[0] < L_up[0])
+        & (L_down[1] < array[1] < L_up[1])
+        & (L_down[2] < array[2] < L_up[2])
+    )
+
+
+if DIM_Numb == 3:
+    In_Bounds = In_3D_bounds
+elif DIM_Numb == 2:
+    In_Bounds = In_2D_bounds
+elif DIM_Numb == 1:
+    In_Bounds = In_1D_bounds
+
+Array1, Array2 = np.empty(DIM_Numb), np.empty(DIM_Numb)
+
+
+def GetLmaxmin(time, ParticleSize):
+    """Get upper and lower limits for the center of the particle, annoyingly fast method of creating an array"""
+    Lup, Ldown = L_FCT[0](time), L_FCT[1](time)
+    Array1 = Lup - ParticleSize
+    Array2 = Ldown + ParticleSize
+    return Array1, Array2
+
+
+def in_all_bounds(POSarray, time, ParticleSize=0):
     """Returns True if all elements of POSarray are inside the box"""
-    if t is None:  # t == None:
-        Lmaxi, Lmini = (
-            Global_variables.L - ParticleSize,
-            Global_variables.Linf + ParticleSize,
-        )
-    else:
-        Lmaxi, Lmini = L_FCT[0](t) - ParticleSize, L_FCT[1](t) + ParticleSize
-    return np.all((POSarray < Lmaxi) & (POSarray > Lmini))
+    Lmaxi, Lmini = GetLmaxmin(time, ParticleSize)
+
+    return In_Bounds(POSarray, Lmaxi, Lmini)
 
 
 def Pos_fct(min_value, max_value):

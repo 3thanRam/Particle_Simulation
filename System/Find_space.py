@@ -5,6 +5,7 @@ from Misc.Functions import NORM
 
 DIM_Numb = Global_variables.DIM_Numb
 rng = np.random.default_rng()
+Numb_Rand_create = 50
 
 
 def Find_space_for_particles(PosCenter, Particle_radius, V1, V2, t):
@@ -26,21 +27,27 @@ def Find_space_for_particles(PosCenter, Particle_radius, V1, V2, t):
         axis=0,
     )
 
-    if np.all((top_face - bottom_face) > 4 * Particle_radius):
+    if all(
+        (top_face[d] - bottom_face[d]) > 4 * Particle_radius for d in range(DIM_Numb)
+    ):
         Pos_shift = Particle_radius * V1 / NORM(V1)
         PosParam1 = PosCenter + Pos_shift
         PosParam2 = PosCenter - Pos_shift
     Count = 0
     while True:
-        if Count % 10 == 0:
-            RandPOS = rng.uniform(bottom_face, top_face, size=(10, DIM_Numb))
-        Pos_shift = RandPOS[Count % 10]
+        if Count % Numb_Rand_create == 0:
+            RandPOS = rng.uniform(
+                bottom_face, top_face, size=(Numb_Rand_create, DIM_Numb)
+            )
+        Pos_shift = RandPOS[Count % Numb_Rand_create]
         PosParam1 = PosCenter + Pos_shift
         PosParam2 = PosCenter - Pos_shift
         dist = NORM(PosParam1 - PosParam2)
         if (
-            in_all_bounds(PosParam1, t=t, ParticleSize=2 * Particle_radius)
-            and in_all_bounds(PosParam2, t=t, ParticleSize=2 * Particle_radius)
+            in_all_bounds(POSarray=PosParam1, time=t, ParticleSize=2 * Particle_radius)
+            and in_all_bounds(
+                POSarray=PosParam2, time=t, ParticleSize=2 * Particle_radius
+            )
             and dist > 2 * Particle_radius
         ):
             return PosParam1, PosParam2

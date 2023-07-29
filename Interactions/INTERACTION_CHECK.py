@@ -28,8 +28,7 @@ def quad_equ(a, b, c, bound_start, bound_end):
             if bound_start <= to <= bound_end:
                 sols.append(to)
         return sols
-    else:
-        return []
+    return []
 
 
 def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
@@ -87,7 +86,7 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
     return (Tmini, Xo)
 
 
-def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
+def INTERCHECK(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
     """
     Check if the line segments defined by points a1, b1 and a2, b2 intersect
     during the time interval [Tstart, Tend] and return information about the
@@ -121,23 +120,3 @@ def INTERCHECK_ND(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
     else:
         # If the lines are parallel or do not intersect during the time interval, return [0]
         return [0]
-
-
-def INTERCHECK_1D(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
-    """Faster INTERCHECK function for 1D"""
-
-    a1, a2 = float(a1), float(a2)
-    b1, b2 = b1[0], b2[0]
-    difA = a1 - a2
-    difB = b2 - b1
-    if difA != 0:
-        ti = ROUND(difB / difA)
-        xo = np.array([round(ti * a2 + b2, ROUNDDIGIT - 2)])
-        if (
-            Tstart <= ti <= Tend
-            and t - dt <= ti <= t
-            and ti > 0
-            and Global_variables.Linf < xo < Global_variables.L
-        ):
-            return [COLTYPE(p1, p2), ti, xo, z1, z2]
-    return [0]

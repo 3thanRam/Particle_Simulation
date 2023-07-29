@@ -1,4 +1,5 @@
 import System.SystemClass as System_module
+from Particles.Global_Variables import Global_variables
 
 
 def BOUNDARY_FCT_HARD(A, p, id, z):
@@ -20,3 +21,10 @@ def BOUNDARY_FCT_HARD(A, p, id, z):
 def BOUNDARY_FCT_PER(A, p, id, z):
     """If boundaries are periodic then no need to reverse speeds at boundaries. Allthough this function looks useless it avoids checking boundaries for each loop"""
     return A
+
+
+BOUNDARY_COND = Global_variables.BOUNDARY_COND
+if BOUNDARY_COND == 0:
+    BOUNDARY_FCT = BOUNDARY_FCT_PER
+else:
+    BOUNDARY_FCT = BOUNDARY_FCT_HARD
