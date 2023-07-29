@@ -5,6 +5,7 @@ from Particles.Global_Variables import Global_variables
 import System.SystemClass as System_module
 from Interactions.TYPES.COMPTON import Compton_scattering
 from Interactions.TYPES.RELATIVISTIC import Relativistic_Collision
+from Misc.Position_Fcts import in_all_bounds
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
@@ -64,7 +65,9 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     Pos1 = np.array([*Pos1], dtype=float)
     Pos2 = np.array([*Pos2], dtype=float)
 
-    if p1index == 13 or p2index == 13:  # Compton scattering
+    if (
+        p1index == 13 or p2index == 13
+    ):  # if one particle is photon then Compton_scattering
         VParam1, NewP1, NewE1, VParam2, NewP2, NewE2 = Compton_scattering(
             p1index, V1, M1, P1, E1, V2, M2, P2, E2
         )
@@ -81,52 +84,31 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
     particle2.Energy = NewE2
     particle2.P = NewP2
 
+    Sizes = [particle1.Size / 2, particle2.Size / 2]
     Targs1, Xinter1 = list(Targs1), list(Xinter1)
     Targs2, Xinter2 = list(Targs2), list(Xinter2)
     Targs = [Targs1, Targs2]
-    Rem_ind = [[], []]
-    for targind, Targ in enumerate(Targs):
-        for tind, tval in enumerate(Targ[1:]):
-            if tval > ti:
-                Rem_ind[targind].append(tind - 1)
-    Rem_ind[0].sort(reverse=True)
-    Rem_ind[1].sort(reverse=True)
-    for remind in Rem_ind[0]:
-        Targs1.pop(remind + 1)
-        b1.pop(remind)
-        Xinter1.pop(remind)
-        ends1 -= 1
-        System_module.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].pop(remind)
-    for remind in Rem_ind[1]:
-        Targs2.pop(remind + 1)
-        b2.pop(remind)
-        Xinter2.pop(remind)
-        ends2 -= 1
-        System_module.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].pop(remind)
-    DT = t - ti
-    Xend1, Xend2 = Pos1 + DT * VParam1, Pos2 + DT * VParam2
-
-    Targs1.append(ti)
-    Targs2.append(ti)
-    x1o = Pos1
-    x2o = Pos2
-
-    Xinter1.append([x1o, x1o])
-    Xinter2.append([x2o, x2o])
-    newb1 = x1o - VParam1 * ti
-    newb2 = x2o - VParam2 * ti
-    b1.append(newb1)
-    b2.append(newb2)
-
-    System_module.SYSTEM.Vflipinfo[p1index][partORAnti1][id1].append(VParam1)
-    System_module.SYSTEM.Vflipinfo[p2index][partORAnti2][id2].append(VParam2)
-    Xinter1 = np.array(Xinter1)
-    Xinter2 = np.array(Xinter2)
-
-    NewCoefs = [
-        [VParam1, b1, Targs1, p1, id1, Xinter1, Xend1],
-        [VParam2, b2, Targs2, p2, id2, Xinter2, Xend2],
+    ARGS = [
+        [
+            Targs1,
+            b1,
+            Xinter1,
+            System_module.SYSTEM.Vflipinfo[p1index][partORAnti1][id1],
+        ],
+        [
+            Targs2,
+            b2,
+            Xinter2,
+            System_module.SYSTEM.Vflipinfo[p2index][partORAnti2][id2],
+        ],
     ]
+    for part_ind in range(2):
+        for tind in range(len(Targs[part_ind]) - 1):
+            if Targs[part_ind][-1 - tind] > ti:
+                for arg in ARGS[part_ind]:
+                    arg.pop(-1)
+            else:
+                break
 
     def Set_F_data(Xf, particle_index, partORanti, id, NewXdata):
         for d in range(DIM_Numb):
@@ -139,9 +121,37 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
                     Xf[d][subind][0] = NewXdata[d]
         return Xf
 
-    Xf = Set_F_data(Xf, p1[1], p1[0], id1, Xend1)
-    Xf = Set_F_data(Xf, p2[1], p2[0], id2, Xend2)
+    DT = t - ti
+    Xinter = [Xinter1, Xinter2]
+    b = [b1, b2]
+    Pos = [Pos1, Pos2]
+    Vparam = [VParam1, VParam2]
+    pindex = [p1index, p2index]
+    partORAnti = [partORAnti1, partORAnti2]
+    id_list = [id1, id2]
+    for part_ind in range(2):
+        p, partorAnti, id = pindex[part_ind], partORAnti[part_ind], id_list[part_ind]
+        position, velocity = Pos[part_ind], Vparam[part_ind]
+        Targs[part_ind].append(ti)
+        Xinter[part_ind].append([position, position])
+        b[part_ind].append(position - velocity * ti)
+        System_module.SYSTEM.Vflipinfo[p][partorAnti][id].append(velocity)
+        Xinter[part_ind] = np.array(Xinter[part_ind])
+        Xend = position + DT * velocity
+        size = Sizes[part_ind]
+        if not in_all_bounds(Xend, t, size):
+            print("error bounced out of bounds")
+            print(Xend, t, "  ", position, ti, "\n")
+        Xf = Set_F_data(Xf, p, partorAnti, id, Xend)
 
-    System_module.SYSTEM.Particle_set_coefs(p1index, partORAnti1, id1, NewCoefs[0])
-    System_module.SYSTEM.Particle_set_coefs(p2index, partORAnti2, id2, NewCoefs[1])
+        NewCoef = [
+            velocity,
+            b[part_ind],
+            Targs[part_ind],
+            (partorAnti, p),
+            id,
+            Xinter[part_ind],
+            Xend,
+        ]
+        System_module.SYSTEM.Particle_set_coefs(p, partorAnti, id, NewCoef)
     return Xf

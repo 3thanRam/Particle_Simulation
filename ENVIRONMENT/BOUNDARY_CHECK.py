@@ -2,6 +2,7 @@ import numpy as np
 import System.SystemClass as System_module
 from Particles.Dictionary import PARTICLE_DICT
 from Misc.Functions import ROUND
+from Misc.Position_Fcts import in_all_bounds
 from Particles.Global_Variables import Global_variables
 
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -82,7 +83,7 @@ def BOUNDS_Collision_Check(Xfin, Velocity, t, id, p):
             System_module.SYSTEM.Vflipinfo[p[1]][p[0]][id].append(Velocity)
             Velocity[d_chg] = chg_param * abs(Velocity[d_chg])
             X_inter = Xint2 + Velocity * (t - tmin)
-            return True
+            return not in_all_bounds(X_inter, t, PART_SIZE)
         else:
             return False
 
@@ -94,4 +95,4 @@ def BOUNDS_Collision_Check(Xfin, Velocity, t, id, p):
         if Count > 10:
             raise ValueError("Can't advance particle inside of boundaries")
 
-    return Xfin, np.array(Xinter), t_list, b_list
+    return X_inter, np.array(Xinter), t_list, b_list
