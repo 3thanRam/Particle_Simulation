@@ -118,30 +118,10 @@ class SYSTEM_CLASS:
             for maxnumbpart, maxnumbanti in self.MAX_ID_PER_TYPE
         ]
 
-    def Get_Energy_velocity_Remove_particle(self, index, PartOrAnti, ID):
-        """
-        Get energy and velocity of a particle identified using index, PartOrAnti, ID then removing it from the system
-        """
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-        particle = self.Particles_List[SEARCH_id]
-        E, V = particle.Energy, particle.V
-        self.Particles_List.pop(SEARCH_id)
-        self.Numb_Per_TYPE[index][PartOrAnti] -= 1
-        self.Tot_Numb -= 1
-        if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
-            self.Quarks_Numb -= 1
-        return [E, V]
-
     def Get_Particle(self, index, PartOrAnti, ID):
         """Get a particle identified using index, PartOrAnti, ID"""
         SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
         return self.Particles_List[SEARCH_id]
-
-    def Particle_set_coefs(self, index, PartOrAnti, ID, New_Coef_info):
-        """Set the Coef_param_list variable of a particle, to New_Coef_info ,identified using index, PartOrAnti, ID"""
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
-        self.Particles_List[SEARCH_id].Coef_param_list = New_Coef_info
-        self.Particles_List[SEARCH_id].V = New_Coef_info[0]
 
     def UPDATE_DO(self, t):
         """

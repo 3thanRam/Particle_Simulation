@@ -224,12 +224,18 @@ def ANNIHILATE(FirstAnn, Xf, COEFSlist, t):
     Xendlist = [Xend1, Xend2]
     NewCoefs = [Coef_info1, Coef_info2]
 
-    System_module.SYSTEM.Particle_set_coefs(
-        Coef_info1[3][1], Coef_info1[3][0], Coef_info1[4], Coef_info1
+    Particle_a = System_module.SYSTEM.Get_Particle(
+        Coef_info1[3][1], Coef_info1[3][0], Coef_info1[4]
     )
-    System_module.SYSTEM.Particle_set_coefs(
-        Coef_info2[3][1], Coef_info2[3][0], Coef_info2[4], Coef_info2
+    Particle_a.Coef_param_list = Coef_info2
+    Particle_a.V = Coef_info2[0]
+
+    Particle_b = System_module.SYSTEM.Get_Particle(
+        Coef_info2[3][1], Coef_info2[3][0], Coef_info2[4]
     )
+    Particle_b.Coef_param_list = Coef_info2
+    Particle_b.V = Coef_info2[0]
+
     NewFO = [list(Xf[d]) for d in range(DIM_Numb)]
     TOKILL = [[] for d in range(DIM_Numb)]
     for d in range(DIM_Numb):

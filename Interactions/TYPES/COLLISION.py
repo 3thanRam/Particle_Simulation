@@ -153,5 +153,7 @@ def COLLIDE(FirstAnn, Xf, COEFSlist, t):
             Xinter[part_ind],
             Xend,
         ]
-        System_module.SYSTEM.Particle_set_coefs(p, partorAnti, id, NewCoef)
+        Particle = System_module.SYSTEM.Get_Particle(p, partorAnti, id)
+        Particle.Coef_param_list = NewCoef
+        Particle.V = velocity
     return Xf
