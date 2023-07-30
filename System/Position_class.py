@@ -3,7 +3,8 @@ import numpy as np
 
 import ENVIRONMENT.FIELDS
 from Particles.Global_Variables import Global_variables
-import System.SystemClass
+from System.Group_Close import Group_particles
+import Interactions.INTERACTION_LOOP
 
 DIM_Numb = Global_variables.DIM_Numb
 
@@ -45,28 +46,17 @@ class Position_list_class:
             self.Xf = X_array
         return X_array
 
-    def Update_tracking_info(self, t):
+    def UPDATE_XF(self, t):
         """
-        Update particle positions and tracking history
+        Check for interactions and deal with them between t-dt and t
         """
-        SYSTEM = System.SystemClass.SYSTEM
-        Xf = self.Xf
-
-        for indUpdate in range(len(Xf[0])):
-            if not Xf[0][indUpdate]:
-                continue
-            pos_search = [Xf[0][indUpdate][0]]
-            PartOrAnti_search, typeindex_search, id_search = [*Xf[0][indUpdate]][1:4]
-            for d in range(1, DIM_Numb):
-                Pos_d_index = np.where(
-                    (Xf[d]["index"] == id_search)
-                    & (Xf[d]["TypeID0"] == PartOrAnti_search)
-                    & (Xf[d]["TypeID1"] == typeindex_search)
-                )[0][0]
-                pos_search.append(Xf[d]["Pos"][Pos_d_index])
-            SYSTEM.UPDATE_TRACKING(
-                typeindex_search, PartOrAnti_search, id_search, t, pos_search
+        PARAMS = Group_particles(self.Xi, self.Xf)
+        if len(PARAMS) != 0:
+            self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
+                self.Xf, t, PARAMS
             )
+        else:
+            print("NO CHG PARAMS for t=", t)
 
 
 def init_pos():

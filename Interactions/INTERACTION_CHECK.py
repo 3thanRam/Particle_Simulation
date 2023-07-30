@@ -31,6 +31,15 @@ def quad_equ(a, b, c, bound_start, bound_end):
     return []
 
 
+def GetABC(acoef_1, acoef_2, bcoef_1, bcoef_2, TotSize):
+    Delta_b = bcoef_2 - bcoef_1
+    Delta_a = acoef_2 - acoef_1
+    A = np.dot(Delta_a, Delta_a)
+    B = 2 * np.dot(Delta_a, Delta_b)
+    C = np.dot(Delta_b, Delta_b) - TotSize**2
+    return A, B, C
+
+
 def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
     """
     Search for possible intersections between particle trajectories and if there are multiple then get first occuring
@@ -50,26 +59,14 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
 
     # Calculate the difference of the slopes and intercepts of the two lines
 
-    Tmini = np.inf
-    Xo = np.array([])
-    # Tstart, Tend = t - dt, t
-    X1_ini, X1_fin = a1 * Tstart + b1, a1 * Tend + b1
-    X2_ini, X2_fin = a2 * Tstart + b2, a2 * Tend + b2
-
-    Dini = NORM(X1_ini - X2_ini)
-    if Dini < (Dist1 + Dist2):
-        return (Tstart, Xo)
-    Dfin = NORM(X1_fin - X2_fin)
+    # Dini = NORM(Tstart * (a1 - a2) + (b1 - b2))
+    # if Dini < (Dist1 + Dist2):
+    #    return (Tstart, [])
+    Dfin = NORM(Tend * (a1 - a2) + (b1 - b2))  # NORM(X1_fin - X2_fin)
 
     if Dfin <= (Dist1 + Dist2):
-        Delta_b = b2 - b1
-        Delta_a = a2 - a1
-        rab = Dist1 + Dist2
-
         # quad formula A*u^2 +B*u+C
-        A = np.dot(Delta_a, Delta_a)
-        B = 2 * np.dot(Delta_a, Delta_b)
-        C = np.dot(Delta_b, Delta_b) - rab**2
+        A, B, C = GetABC(a1, a2, b1, b2, Dist1 + Dist2)
         Tsols = quad_equ(A, B, C, Tstart, Tend)
 
         for i in range(len(Tsols)):
@@ -77,13 +74,13 @@ def MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend):
             x1 = Tmini * a1 + b1
             x2 = Tmini * a2 + b2
             R = Dist1 / (Dist1 + Dist2)
-            Xoi = x1 + (x2 - x1) * R
-            Xoi = np.round(Xoi, decimals=ROUNDDIGIT)
-            Dt = round(NORM(x1 - x2), 5)
+            Xo = x1 + (x2 - x1) * R
+            Xo = np.round(Xo, decimals=ROUNDDIGIT)
+            Dt = ROUND(NORM(x1 - x2))
             if Dt <= (Dist1 + Dist2):
-                return (Tmini, Xoi)
+                return (Tmini, Xo)
             Tsols.remove(Tmini)
-    return (Tmini, Xo)
+    return (0, [])
 
 
 def INTERCHECK(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
@@ -115,7 +112,7 @@ def INTERCHECK(a1, b1, p1, a2, b2, p2, t, z1, z2, Tstart, Tend):
         PARTICLE_DICT[PARTICLE_NAMES[p2[1]]]["size"] / 2,
     )
     tmini, xo = MINIMISE(a1, b1, a2, b2, Dist1, Dist2, Tstart, Tend)
-    if xo.size > 0:
+    if len(xo) > 0:
         return [COLTYPE(p1, p2), tmini, xo, z1, z2]
     else:
         # If the lines are parallel or do not intersect during the time interval, return [0]

@@ -1,11 +1,12 @@
 import numpy as np
-import Interactions.INTERACTION_LOOP
+from operator import itemgetter
+
+
 import System.Position_class
+
+from Particles.ParticleClass import Particle
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
-from System.Group_Close import Group_particles
-from Particles.ParticleClass import Particle
-from operator import itemgetter
 from Misc.Relativistic_functions import Momentum_Calc
 from Misc.Functions import NORM
 
@@ -53,16 +54,20 @@ class SYSTEM_CLASS:
         if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
             COLOUR = [0, 0, 0]
             if ExtraParams == None:
+                TvalueParam = 0
                 P_ExtraParams = ["INIT_Quark_CREATION", POSCENTER]
             else:
+                TvalueParam = ExtraParams[-2]
                 P_ExtraParams = ExtraParams
             self.Quarks_Numb += 1
         elif ExtraParams == None:
+            TvalueParam = 0
             COLOUR = None
             P_ExtraParams = None
         else:
             COLOUR = None
             P_ExtraParams = ExtraParams
+            TvalueParam = ExtraParams[-2]
 
         self.Numb_Per_TYPE[index][PartOrAnti] += 1
         self.Tot_Numb += 1
@@ -83,6 +88,13 @@ class SYSTEM_CLASS:
                 ExtraParams=P_ExtraParams,
             )
         )
+        self.TRACKING[index][PartOrAnti].append(
+            [[TvalueParam, self.Particles_List[-1].X]]
+        )
+        if ExtraParams and (
+            ExtraParams[0] == "Post_Interaction" or ExtraParams[0] == "Spont_Create"
+        ):
+            self.Vflipinfo[index][PartOrAnti].append([])
 
     def FIND_particle(self, index, PartOrAnti, ID):
         """
@@ -146,22 +158,31 @@ class SYSTEM_CLASS:
         Position_LISTS.Get_X_list(self.Particles_List, self.Quarks_Numb, self.Tot_Numb)
         self.UPDATE_DO(t)
         Position_LISTS.Get_X_list(self.Particles_List)
-        self.UPDATE_XF(t)
+        Position_LISTS.UPDATE_XF(t)
+        # Update particle positions and tracking history
+        self.Update_All_tracking_info(t, Position_LISTS.Xf)
 
-    def UPDATE_XF(self, t):
+    def Update_All_tracking_info(self, t, Xf):
         """
-        Check for interactions and deal with them between t-dt and t
+        Update particle positions and tracking history
         """
-        Position_LISTS = System.Position_class.Position_LISTS
-        PARAMS = Group_particles(Position_LISTS.Xi, Position_LISTS.Xf)
-        if len(PARAMS) != 0:
-            Position_LISTS.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
-                Position_LISTS.Xf, t, PARAMS
+        for indUpdate in range(len(Xf[0])):
+            if not Xf[0][indUpdate]:
+                continue
+            pos_search = [Xf[0][indUpdate][0]]
+            PartOrAnti_search, typeindex_search, id_search = [*Xf[0][indUpdate]][1:4]
+            for d in range(1, DIM_Numb):
+                Pos_d_index = np.where(
+                    (Xf[d]["index"] == id_search)
+                    & (Xf[d]["TypeID0"] == PartOrAnti_search)
+                    & (Xf[d]["TypeID1"] == typeindex_search)
+                )[0][0]
+                pos_search.append(Xf[d]["Pos"][Pos_d_index])
+            self.Update_particle_track(
+                typeindex_search, PartOrAnti_search, id_search, t, pos_search
             )
-        else:
-            print("NO CHG PARAMS for t=", t)
 
-    def UPDATE_TRACKING(self, index, PartOrAnti, ID, t, NewPos):
+    def Update_particle_track(self, index, PartOrAnti, ID, t, NewPos):
         """
         Update trajectory history of particle, identified by index, PartOrAnti, ID at time t with new position NewPos
         """
@@ -188,7 +209,7 @@ class SYSTEM_CLASS:
         self.TRACKING[index][PartOrAnti][ID].append([t, NewPos])
 
 
-def init():
+def init_Syst():
     """
     initialise SYSTEM as a SYSTEM_CLASS object
     """

@@ -1,6 +1,19 @@
 import numpy as np
 import time
 
+from Settings.STARTUP import Init
+from Settings.INPUT import SET_PARAMETERS
+from Display.Density import DENS_FCT
+from Display.DisplayDRAW import DRAW
+
+Profile_mode = 0
+Numb_lines = 20
+
+if Profile_mode == 1:
+    import subprocess
+    import cProfile
+    import pstats
+
 
 def Update_Density(Dens, L, Linf, Numb_Per_TYPE):
     """Update Density list, a list containing the number of particles of each type divided by the volume of the box at each time instant dt
@@ -49,15 +62,10 @@ def main(T, Repr_type, Nset):
 
     """
 
-    from System.SystemClass import init
-
-    init()
+    Init()
     from System.SystemClass import SYSTEM
     from Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
-    from System.Position_class import init_pos
-
-    init_pos()
-    from System.Position_class import Position_LISTS
+    from Misc.Functions import ROUND
 
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
@@ -96,9 +104,6 @@ def main(T, Repr_type, Nset):
         Global_variables.Update_Bound_Params(L, Linf, t)
         SYSTEM.UPDATE(t)
 
-        # Update particle positions and tracking history
-        Position_LISTS.Update_tracking_info(t)
-
         # Update the densities of particles
         Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
 
@@ -122,7 +127,6 @@ def main(T, Repr_type, Nset):
         Repr_type == 1
     ):  # if Repr_type is equal to 1, then the function produces a graphical output of the simulation results using the DRAW function.
         print("Generating time:", Dt, "s")
-        import Display.DisplayDRAW as DRAW_TRAJ
 
         DRAW_PARAMS = [
             T,
@@ -136,27 +140,18 @@ def main(T, Repr_type, Nset):
             BOUNDARY_COND,
             ALL_TIME,
         ]
-        DRAW_TRAJ.DRAW(*DRAW_PARAMS)
+        DRAW(*DRAW_PARAMS)
     elif (
         Repr_type == 0
     ):  # the function produces a density plot of the simulation results using the DENS_FCT function
-        import matplotlib.pyplot as plt
-        from Display.Density import DENS_FCT
-
         print("Total time:", Dt, "s")
         Trange = np.linspace(0, (T - 1) * dt, len(Global_variables.ALL_TIME))
-        fig, ax = plt.subplots()
-        DENS_FCT(DIM_Numb, Dens, Trange, ax)
-        plt.show()
+        DENS_FCT(DIM_Numb, Dens, Trange, 0, True)
     else:
         return Dt
 
 
-Profile_mode = 0
-Numb_lines = 20
 if __name__ == "__main__":
-    from Settings.INPUT import SET_PARAMETERS
-
     (
         DIM_Numb,
         Time_steps,
@@ -169,12 +164,11 @@ if __name__ == "__main__":
     LO, LOinf = np.array(box_size), np.array([0 for d in range(DIM_Numb)])
     # L_FCT = [lambda x: LO + np.cos(x), lambda x: LOinf + np.sin(x + 1)]
     L_FCT = [lambda x: LO, lambda x: LOinf]
-
+    # Init(DIM_Numb, BOUNDARY_COND, L_FCT)
     from Particles.Global_Variables import init
 
     init(DIM_Numb, BOUNDARY_COND, L_FCT)
     from Particles.Global_Variables import Global_variables
-    from Misc.Functions import ROUND
 
     Vmax = Global_variables.Vmax
     dt = Global_variables.dt
@@ -183,17 +177,15 @@ if __name__ == "__main__":
     if Profile_mode == 0:
         main(Time_steps, Repr_mode, iniNparticles_set)
     else:
-        import cProfile
-        import pstats
-
+        RUNS = 3
         with cProfile.Profile() as pr:
-            for c in range(3):
-                print("c", c)
+            for c in range(RUNS):
+                print("Run number:", c + 1, "/", RUNS)
                 main(Time_steps, 2, iniNparticles_set)
+        print("Done")
         stats = pstats.Stats(pr).strip_dirs()
         stats.sort_stats(pstats.SortKey.TIME)
         # stats.print_stats(Numb_lines)
         stats.dump_stats(filename="statdump.prof")  # snakeviz ./statdump.prof
-        import subprocess
 
         subprocess.run(["snakeviz", "./statdump.prof"])

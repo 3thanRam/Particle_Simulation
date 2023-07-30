@@ -1,5 +1,4 @@
 import numpy as np
-import System.SystemClass
 from dataclasses import dataclass, field
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
@@ -113,7 +112,6 @@ class Particle:
 
             V, P = Velocity_Momentum(self.M)
             E = Energy_Calc(P, self.M)
-            System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append([[0.0, X]])
         elif (
             self.ExtraParams[0] == "Post_Interaction"
             or self.ExtraParams[0] == "Spont_Create"
@@ -127,10 +125,6 @@ class Particle:
                 E = Energy_Calc(P, self.M)
             else:
                 P = Momentum_Calc(V, self.M)
-            System.SystemClass.SYSTEM.TRACKING[typeIndex][partORanti].append(
-                [[TvalueParam, X]]
-            )
-            System.SystemClass.SYSTEM.Vflipinfo[typeIndex][partORanti].append([])
         self.X, self.V, self.Energy, self.P = X, V, E, P
 
     def Position(self, d, isXi):

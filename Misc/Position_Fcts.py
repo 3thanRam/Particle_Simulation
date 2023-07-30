@@ -1,4 +1,5 @@
 import numpy as np
+
 from Particles.Global_Variables import Global_variables
 from Misc.Functions import NORM
 
@@ -7,6 +8,7 @@ V0 = Global_variables.V0
 DIM_Numb = Global_variables.DIM_Numb
 L_FCT = Global_variables.L_FCT
 Dist_min = Global_variables.Dist_min
+
 rng = np.random.default_rng()
 Xini = []
 Ini_size = []

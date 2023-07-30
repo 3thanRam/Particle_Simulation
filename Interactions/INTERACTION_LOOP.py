@@ -1,4 +1,3 @@
-import numpy as np
 from itertools import combinations
 
 import System.SystemClass as System_module
@@ -95,7 +94,7 @@ def Interaction_Loop_Check(Xf, t, GroupList):
         INTERACT_HIST = []  # gather history of Collisions
         INTERACT_SEARCH = []  # list with less info for faster search
 
-        mintime = np.inf
+        mintime = 2 * t
         for GroupID, Group in enumerate(GroupList):
             for I1, I2 in combinations(range(len(Group)), 2):
                 particle1, particle2 = Group[I1], Group[I2]
