@@ -1,12 +1,5 @@
 import numpy as np
 import time
-import matplotlib.pyplot as plt
-
-from Particles.Dictionary import PARTICLE_DICT
-from Display.Density import DENS_FCT
-
-Numb_of_TYPES = len(PARTICLE_DICT)
-PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 
 def Update_Density(Dens, L, Linf, Numb_Per_TYPE):
@@ -69,7 +62,7 @@ def main(T, Repr_type, Nset):
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
 
-    Dens = [[[], []] for num in range(Numb_of_TYPES)]
+    Dens = [[[], []] for num in range(len(Nset))]
     L, Linf = Update_L_Lmin(0)
 
     Dper = 0
@@ -142,16 +135,18 @@ def main(T, Repr_type, Nset):
             L_FCT,
             BOUNDARY_COND,
             ALL_TIME,
-            PARTICLE_DICT,
         ]
         DRAW_TRAJ.DRAW(*DRAW_PARAMS)
     elif (
         Repr_type == 0
     ):  # the function produces a density plot of the simulation results using the DENS_FCT function
+        import matplotlib.pyplot as plt
+        from Display.Density import DENS_FCT
+
         print("Total time:", Dt, "s")
         Trange = np.linspace(0, (T - 1) * dt, len(Global_variables.ALL_TIME))
         fig, ax = plt.subplots()
-        DENS_FCT(DIM_Numb, Dens, Trange, ax, PARTICLE_DICT)
+        DENS_FCT(DIM_Numb, Dens, Trange, ax)
         plt.show()
     else:
         return Dt

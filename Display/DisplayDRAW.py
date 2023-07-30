@@ -5,8 +5,6 @@ import numpy as np
 from Display.Density import DENS_FCT
 
 
-PARTICLE_DICT = {}
-
 DIM_Numb = 0
 dt = 0
 
@@ -22,7 +20,6 @@ def DRAW(
     LFcts,
     BOUNDARY_COND,
     ALLtimes,
-    PARTICLE_DICT0,
     File_path_name=None,
 ):
     """
@@ -59,11 +56,10 @@ def DRAW(
     --------
     None
     """
-    global DIM_Numb, L, Linf, dt, PARTICLE_DICT
+    global DIM_Numb, L, Linf, dt
     dt = dt0
     Linf, L = Lparam
     DIM_Numb = DIM_Numb0
-    PARTICLE_DICT = PARTICLE_DICT0
     # PART_Colors,Event_Colors,PART_Style,Event_Style,PART_LStyle,Event_LStyle
 
     if DIM_Numb != 3:

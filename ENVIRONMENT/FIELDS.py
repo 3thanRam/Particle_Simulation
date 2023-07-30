@@ -3,7 +3,7 @@ from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
 from Misc.Functions import NORM
 from Misc.Relativistic_functions import gamma_factor
-from itertools import permutations
+from itertools import permutations, chain
 
 DIM_Numb = Global_variables.DIM_Numb
 Numb_of_TYPES = len(PARTICLE_DICT)
@@ -19,9 +19,7 @@ M_cst = 1 / (4 * np.pi)
 Fine_Struc_Cst = 0.0072973525628
 charge_e = np.sqrt(4 * np.pi * Fine_Struc_Cst)
 
-
-def gamma_factor(u):
-    return 1 / np.sqrt(1 - (np.dot(u, u) / C_speed) ** 2)
+Gamma_array = np.vectorize(gamma_factor)
 
 
 def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
@@ -54,25 +52,69 @@ def Gen_Field(Xarray, SystemList, Quark_Numb, TotnumbAllpart):
     mass_matrix = np.array([s.M for s in SystemList])
 
     N = len(SystemList)
-    E = np.zeros((N, 3))
-    B = np.zeros((N, 3))
 
-    # Non_zero_mass =
-    for i, j in permutations((n for n in range(N) if mass_matrix[n] != 0), 2):
-        dist_i = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][i]]]["size"] / 2
-        dist_j = PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][j]]]["size"] / 2
-        rmin = dist_i + dist_j
-        r = loc_arr[j] - loc_arr[i]
-        r_norm = NORM(r)
-        if r_norm > rmin:
-            v = velocity_matrix[i]
-            q = charges[j]
-            E[i] += q * r / r_norm**3
-            if DIM_Numb == 2:
-                gamma = gamma_factor(v)
-                B[i] += np.array([-r[1], r[0], 0]) * q * gamma / r_norm**3
-            elif DIM_Numb == 3:
-                B[i] += np.cross(v, E[i]) / C_speed**2
+    def Radius_Sum(index_a, index_b):
+        return (
+            PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][index_a]]]["size"]
+            + PARTICLE_DICT[PARTICLE_NAMES[Xarray[0]["TypeID1"][index_b]]]["size"]
+        ) / 2
+
+    def Array_genE_B():
+        DELTA = (loc_arr.T[..., np.newaxis] - loc_arr.T[:, np.newaxis]).T
+
+        d_min = np.array([[Radius_Sum(i, j) for j in range(N)] for i in range(N)])
+        distances = np.linalg.norm(DELTA, axis=-1)
+        Non_zero_mask = distances > d_min  # to avoid divergences
+        # Get directions of forces
+        unit_vector = np.zeros_like(DELTA.T)
+        np.divide(DELTA.T, distances, out=unit_vector, where=Non_zero_mask)
+        unit_vector = unit_vector.T
+
+        Charge_matrix = np.outer(charges, np.ones_like(charges))
+        ELEC_matrix = E_cst * Charge_matrix
+        E_field = np.zeros_like(ELEC_matrix)
+        np.divide(ELEC_matrix, distances**2, out=E_field, where=Non_zero_mask)
+
+        E = (unit_vector.T * E_field).T.sum(axis=1)
+
+        def OneD_B():
+            return np.zeros((N, 3))
+
+        def TwoD_B():
+            Gamma = np.outer(
+                np.ones(N),
+                np.fromiter(
+                    (
+                        gamma_factor(velocity_matrix[part_i])
+                        if mass_matrix[part_i] != 0
+                        else 0
+                        for part_i in range(N)
+                    ),
+                    "float",
+                    N,
+                ),
+            )
+            DELTA2 = np.array(
+                [
+                    [[-DELTA[i, j][1], DELTA[i, j][0], 0] for j in range(N)]
+                    for i in range(N)
+                ]
+            )
+            unit_vector2 = np.zeros_like(DELTA2.T)
+            np.divide(DELTA2.T, distances, out=unit_vector2, where=Non_zero_mask)
+            unit_vector2 = unit_vector2.T
+            MAGN_matrix = M_cst * distances * Gamma * Charge_matrix
+            B_field = np.zeros_like(MAGN_matrix)
+            np.divide(MAGN_matrix, distances**3, out=B_field, where=Non_zero_mask)
+            return (unit_vector2.T * B_field).T.sum(axis=1)
+
+        def ThreeD_B():
+            # Not sure if this is correct
+            return np.cross(velocity_matrix, E) / C_speed**2
+
+        return E, [OneD_B, TwoD_B, ThreeD_B][DIM_Numb - 1]()
+
+    E, B = Array_genE_B()
 
     # Construct the electromagnetic field tensor
     F = np.zeros((4, 4, len(SystemList)))

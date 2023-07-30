@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import rv_continuous
-from scipy import integrate
+from scipy import integrate, interpolate
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import (
     lorentz_boost,
@@ -36,6 +36,28 @@ class Probability_Distribution(rv_continuous):
             self.Cross_section, args=(Ei_boosted_photon), a=0, b=np.pi
         )[0]
         return self.Cross_section(alpha, Ei_boosted_photon) / Norm_cst
+
+    # def _cdf(self, alpha, Ei_boosted_photon):
+    #    return integrate.quad(
+    #        self.Cross_section, args=(Ei_boosted_photon), a=0, b=alpha
+    #    )[0]
+    # def Interpolate(self, X, Y):
+    #    return interpolate.interp1d(X, Y)
+    # def _ppf(self, x, Ei_boosted_photon):
+    #    Angle_values = np.linspace(0, np.pi, 10**3)
+    #    N_cst = self._cdf(np.pi, Ei_boosted_photon)
+    #    vectorized_function = np.vectorize(self._cdf)
+    #    Cumul_energy_values = (
+    #        vectorized_function(Angle_values, Ei_boosted_photon) / N_cst
+    #    )
+    #    # Cumul_energy_values = [
+    #    #    self.CDF(angle, Ei_boosted_photon) / N_cst for angle in Angle_values
+    #    # ]
+    #    # Cumul_energy_values = [
+    #    #    self._cdf(angle, Ei_boosted_photon) for angle in Angle_values
+    #    # ]
+    #    ppf = self.Interpolate(Cumul_energy_values, Angle_values)
+    #    return ppf(x)
 
     def Cross_section(self, alpha, Ei_boosted_photon):
         """Calcute cross section of the interaction
