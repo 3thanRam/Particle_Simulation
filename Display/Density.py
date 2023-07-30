@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # import time
 # from itertools import product
@@ -52,7 +53,7 @@ def fct_fit2(to, ko):
     return RES
 
 
-def DENS_FCT(DIM_Numb0, Density, Trange, ax):
+def DENS_FCT(DIM_Numb0, Density, Trange, ax, Draw=False):
     """
     Plots the particle densities in a DIM_Numb-dimensional box as a function of time.
 
@@ -63,6 +64,9 @@ def DENS_FCT(DIM_Numb0, Density, Trange, ax):
         ax (numpy.ndarray): matplotlib axes.Axes object on which to plot densities
     """
     global DO, p_var, DIM_Numb
+
+    if Draw:
+        fig, ax = plt.subplots()
     # Initialize parameters
     DIM_Numb = DIM_Numb0
     DT = ["", 0.1, 0.1, 0.05]
@@ -128,3 +132,5 @@ def DENS_FCT(DIM_Numb0, Density, Trange, ax):
         ax.loglog(Ttheo,D_theo1,color='grey',label='AntiParticle FIT')
     """
     ax.legend()
+    if Draw:
+        plt.show()

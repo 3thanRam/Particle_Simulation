@@ -1,9 +1,7 @@
 import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
-from Misc.Functions import NORM
 from Misc.Relativistic_functions import gamma_factor
-from itertools import permutations, chain
 
 DIM_Numb = Global_variables.DIM_Numb
 Numb_of_TYPES = len(PARTICLE_DICT)

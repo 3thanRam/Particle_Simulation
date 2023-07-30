@@ -2,6 +2,10 @@ import numpy as np
 from matplotlib import colors
 from Particles.Dictionary import PARTICLE_DICT
 from Particles.Global_Variables import Global_variables
+from mayavi import mlab
+import imageio
+from scipy.special import sph_harm
+from Display.COMPLETE_DATA import COMPLETE_DATAPTS
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
@@ -37,10 +41,6 @@ def TRAJ_3D(
         Path to where to save the video
 
     """
-    from mayavi import mlab
-    import imageio
-    from scipy.special import sph_harm
-    from Display.COMPLETE_DATA import COMPLETE_DATAPTS
 
     Time = ALL_TIME
 
