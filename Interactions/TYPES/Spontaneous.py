@@ -1,6 +1,6 @@
 import numpy as np
 from Particles.Dictionary import PARTICLE_DICT
-from Interactions.TYPES.STRONG import STRONG_FORCE_GROUP
+from Interactions.TYPES.Strong import STRONG_FORCE_GROUP
 from Particles.Global_Variables import Global_variables
 from Misc.Relativistic_functions import Get_V_from_P
 from Misc.Rotation_fcts import rotate_quat, ROT2D, angle_axis_quat

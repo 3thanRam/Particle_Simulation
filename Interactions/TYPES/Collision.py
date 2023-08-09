@@ -3,17 +3,25 @@ import numpy as np
 rng = np.random.default_rng()
 from Particles.Global_Variables import Global_variables
 import System.SystemClass as System_module
-from Interactions.TYPES.COMPTON import Compton_scattering
-from Interactions.TYPES.RELATIVISTIC import Relativistic_Collision
+from Interactions.TYPES.Compton import (
+    Compton_scattering,
+)
+from Interactions.TYPES.Relativistic import (
+    Relativistic_Collision,
+)
 from Misc.Position_Fcts import in_all_bounds
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+    from Environment.Boundary_types import (
+        BOUNDARY_FCT_PER,
+    )
 
     BOUNDARY_FCT = BOUNDARY_FCT_PER
 else:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+    from Environment.Boundary_types import (
+        BOUNDARY_FCT_HARD,
+    )
 
     BOUNDARY_FCT = BOUNDARY_FCT_HARD
 ROUNDDIGIT = Global_variables.ROUNDDIGIT

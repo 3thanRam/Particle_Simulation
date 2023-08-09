@@ -96,7 +96,7 @@ class SYSTEM_CLASS:
         ):
             self.Vflipinfo[index][PartOrAnti].append([])
 
-    def FIND_particle(self, index, PartOrAnti, ID):
+    def Find_particle(self, index, PartOrAnti, ID):
         """
         Find a particle in the system using its  index, PartOrAnti and ID
         """
@@ -112,14 +112,14 @@ class SYSTEM_CLASS:
         """
         Remove a particle identified using index, PartOrAnti, ID
         """
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        SEARCH_id = self.Find_particle(index, PartOrAnti, ID)
         self.Particles_List.pop(SEARCH_id)
         self.Numb_Per_TYPE[index][PartOrAnti] -= 1
         self.Tot_Numb -= 1
         if PARTICLE_DICT[PARTICLE_NAMES[index]]["Strong_Charge"] != 0:
             self.Quarks_Numb -= 1
 
-    def RESET_Vflipinfo(self):
+    def Reset_Vflipinfo(self):
         """
         Set all particles vflipinfo to empty list
         """
@@ -133,30 +133,30 @@ class SYSTEM_CLASS:
 
     def Get_Particle(self, index, PartOrAnti, ID):
         """Get a particle identified using index, PartOrAnti, ID"""
-        SEARCH_id = self.FIND_particle(index, PartOrAnti, ID)
+        SEARCH_id = self.Find_particle(index, PartOrAnti, ID)
         return self.Particles_List[SEARCH_id]
 
-    def UPDATE_DO(self, t):
+    def Move_particles(self, t):
         """
         perform MOVE(t) method on each particle in the system
         """
         for particle in self.Particles_List:
             particle.MOVE(t)
 
-    def TOTAL_ENERGY(self):
+    def Total_energy(self):
         """
         Return the total energy of the system at the time at which called
         """
         return sum(particle.Energy for particle in self.Particles_List)
 
-    def UPDATE(self, t):
+    def Update_System(self, t):
         """
         Update system variables to current values
         """
-        self.RESET_Vflipinfo()
+        self.Reset_Vflipinfo()
         Position_LISTS = System.Position_class.Position_LISTS
         Position_LISTS.Get_X_list(self.Particles_List, self.Quarks_Numb, self.Tot_Numb)
-        self.UPDATE_DO(t)
+        self.Move_particles(t)
         Position_LISTS.Get_X_list(self.Particles_List)
         Position_LISTS.UPDATE_XF(t)
         # Update particle positions and tracking history

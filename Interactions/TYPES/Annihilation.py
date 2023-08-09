@@ -22,11 +22,15 @@ item_get = itemgetter(
 
 BOUNDARY_COND = Global_variables.BOUNDARY_COND
 if BOUNDARY_COND == 0:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_PER
+    from Environment.Boundary_types import (
+        BOUNDARY_FCT_PER,
+    )
 
     BOUNDARY_FCT = BOUNDARY_FCT_PER
 else:
-    from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT_HARD
+    from Environment.Boundary_types import (
+        BOUNDARY_FCT_HARD,
+    )
 
     BOUNDARY_FCT = BOUNDARY_FCT_HARD
 

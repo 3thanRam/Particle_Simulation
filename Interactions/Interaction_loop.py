@@ -2,11 +2,19 @@ from itertools import combinations
 
 import System.SystemClass as System_module
 from Particles.Global_Variables import Global_variables
-from Interactions.INTERACTION_CHECK import INTERCHECK
-from ENVIRONMENT.BOUNDARY_TYPES import BOUNDARY_FCT
-from Interactions.INTERACTION_DEF import COLTYPE
-from Interactions.TYPES.ANNIHILATION import ANNIHILATE
-from Interactions.TYPES.COLLISION import COLLIDE
+from Interactions.Interaction_check import (
+    INTERCHECK,
+)
+from Environment.Boundary_types import (
+    BOUNDARY_FCT,
+)
+from Interactions.Interaction_definition import (
+    COLTYPE,
+)
+from Interactions.TYPES.Annihilation import (
+    ANNIHILATE,
+)
+from Interactions.TYPES.Collision import COLLIDE
 from Misc.Functions import COUNTFCT
 
 dt = Global_variables.dt

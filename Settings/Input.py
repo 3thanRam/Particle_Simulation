@@ -5,7 +5,7 @@ Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
 
 
-recommend_Dim = 2
+recommend_Dim = 3
 Parameter_dict = {
     "Numb_Dimensions": {"type": int, "Rec": recommend_Dim, "bounds": [1, 3]},
     "time_steps": {"type": int, "Rec": [20, 10, 20], "bounds": [0, np.inf]},

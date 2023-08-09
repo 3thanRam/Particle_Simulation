@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 import numpy as np
 
-import ENVIRONMENT.FIELDS
+import Environment.Fields
 from Particles.Global_Variables import Global_variables
 from System.Group_Close import Group_particles
-import Interactions.INTERACTION_LOOP
+import Interactions.Interaction_loop
 
 DIM_Numb = Global_variables.DIM_Numb
 
@@ -34,7 +34,7 @@ class Position_list_class:
         )
 
         if Tot_Numb:
-            Global_variables.FIELD = ENVIRONMENT.FIELDS.Gen_Field(
+            Global_variables.FIELD = Environment.Fields.Gen_Field(
                 X_array, Particles_List, Quarks_Numb, Tot_Numb
             )  # update electric field according to positions and charges of particles before dt
 
@@ -52,7 +52,7 @@ class Position_list_class:
         """
         PARAMS = Group_particles(self.Xi, self.Xf)
         if len(PARAMS) != 0:
-            self.Xf = Interactions.INTERACTION_LOOP.Interaction_Loop_Check(
+            self.Xf = Interactions.Interaction_loop.Interaction_Loop_Check(
                 self.Xf, t, PARAMS
             )
         else:

@@ -1,10 +1,10 @@
 import numpy as np
 import time
 
-from Settings.STARTUP import Init
-from Settings.INPUT import SET_PARAMETERS
+from Settings.Startup import Init
+from Settings.Input import SET_PARAMETERS
 from Display.Density import DENS_FCT
-from Display.DisplayDRAW import DRAW
+from Display.Display_draw import DRAW
 
 Profile_mode = 0
 Numb_lines = 20
@@ -62,11 +62,15 @@ def main(T, Repr_type, Nset):
 
     """
 
-    Init()
+    Init(DIM_Numb, BOUNDARY_COND, L_FCT)
+    from Particles.Global_Variables import Global_variables
     from System.SystemClass import SYSTEM
-    from Interactions.TYPES.SPONTANEOUS import SpontaneousEvents
+    from Interactions.TYPES.Spontaneous import (
+        SpontaneousEvents,
+    )
     from Misc.Functions import ROUND
 
+    dt = Global_variables.dt
     T = int(10 * T)
     time0 = time.time()  # Starting time for the simulation
 
@@ -102,7 +106,7 @@ def main(T, Repr_type, Nset):
         t = ROUND(ti * dt)
         L, Linf = Update_L_Lmin(t)
         Global_variables.Update_Bound_Params(L, Linf, t)
-        SYSTEM.UPDATE(t)
+        SYSTEM.Update_System(t)
 
         # Update the densities of particles
         Dens = Update_Density(Dens, L, Linf, SYSTEM.Numb_Per_TYPE)
@@ -110,7 +114,7 @@ def main(T, Repr_type, Nset):
         if SYSTEM.Tot_Numb == 0:
             T = ti
             break
-        # print("Energy", SYSTEM.TOTAL_ENERGY(), "\n")
+        # print("Energy", SYSTEM.Total_energy(), "\n")
         if ti != T - 1:
             SpontaneousEvents(t)
 
@@ -162,21 +166,15 @@ if __name__ == "__main__":
     ) = SET_PARAMETERS()
 
     LO, LOinf = np.array(box_size), np.array([0 for d in range(DIM_Numb)])
-    # L_FCT = [lambda x: LO + np.cos(x), lambda x: LOinf + np.sin(x + 1)]
-    L_FCT = [lambda x: LO, lambda x: LOinf]
-    # Init(DIM_Numb, BOUNDARY_COND, L_FCT)
-    from Particles.Global_Variables import init
-
-    init(DIM_Numb, BOUNDARY_COND, L_FCT)
-    from Particles.Global_Variables import Global_variables
-
-    Vmax = Global_variables.Vmax
-    dt = Global_variables.dt
-    L_FCT = Global_variables.L_FCT
+    L_FCT = [
+        lambda x: LO,
+        lambda x: LOinf,
+    ]  # [lambda x: LO + np.cos(x), lambda x: LOinf + np.sin(x + 1)]
 
     if Profile_mode == 0:
         main(Time_steps, Repr_mode, iniNparticles_set)
     else:
+        # Track where python spends the most time
         RUNS = 3
         with cProfile.Profile() as pr:
             for c in range(RUNS):

@@ -5,7 +5,9 @@ from Particles.Global_Variables import Global_variables
 from mayavi import mlab
 import imageio
 from scipy.special import sph_harm
-from Display.COMPLETE_DATA import COMPLETE_DATAPTS
+from Display.Complete_data import (
+    COMPLETE_DATAPTS,
+)
 
 Numb_of_TYPES = len(PARTICLE_DICT)
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]

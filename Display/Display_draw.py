@@ -72,20 +72,20 @@ def DRAW(
         # Plot Trajectories as a function of time in another subplot
         ax = fig.add_subplot(1, 2, 1)
         if DIM_Numb == 1:
-            from Display.DRAW1D import TRAJ_1D
+            from Display.Draw1D import TRAJ_1D
 
             ax.set_xlabel("Time(s)")
             ax.set_ylabel("Position X")
             TRAJ_1D(ax, TRACKING, Trange, COLPTS, LFcts)
         else:
-            from Display.DRAW2D import TRAJ_2D
+            from Display.Draw2D import TRAJ_2D
 
             plt.subplots_adjust(bottom=0.225)
             ax.set_xlabel("Position X")
             ax.set_ylabel("Position Y")
             TRAJ_2D(fig, ax, TRACKING, ALLtimes, Density, COLPTS, LFcts, dt)
     else:
-        from Display.DRAW3D import TRAJ_3D
+        from Display.Draw3D import TRAJ_3D
 
         TRAJ_3D(
             dt,

@@ -1,4 +1,6 @@
-from Display.COMPLETE_DATA import COMPLETE_DATAPTS
+from Display.Complete_data import (
+    COMPLETE_DATAPTS,
+)
 from Particles.Dictionary import PARTICLE_DICT
 import numpy as np
 from matplotlib.lines import Line2D

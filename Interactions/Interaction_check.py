@@ -1,5 +1,7 @@
 import numpy as np
-from Interactions.INTERACTION_DEF import COLTYPE
+from Interactions.Interaction_definition import (
+    COLTYPE,
+)
 from Particles.Global_Variables import Global_variables
 from Particles.Dictionary import PARTICLE_DICT
 from Misc.Functions import ROUND, NORM

@@ -11,7 +11,9 @@ from Misc.Relativistic_functions import (
 )
 from Misc.Functions import NORM
 from Misc.Position_Fcts import GEN_X, in_all_bounds, Pos_point_around
-from ENVIRONMENT.BOUNDARY_CHECK import BOUNDS_Collision_Check
+from Environment.Boundary_check import (
+    BOUNDS_Collision_Check,
+)
 from operator import itemgetter
 
 PARTICLE_NAMES = [*PARTICLE_DICT.keys()]
